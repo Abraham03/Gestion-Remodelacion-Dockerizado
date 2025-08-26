@@ -1,0 +1,18 @@
+<div class="logo-container">
+    <img src="assets/images/logo_GBS.png" alt="GBS Renovations LLC Logo" class="app-logo" *ngIf="isSidebarOpen" />
+</div>
+
+<mat-nav-list>
+  <ng-container *ngFor="let item of menuItems">
+    <a
+      mat-list-item
+      *ngIf="hasPermission(item.permission)"
+      [routerLink]="item.route"
+      routerLinkActive="active"
+      (click)="onMenuItemClick()"
+    >
+      <mat-icon mat-list-icon>{{ item.icon }}</mat-icon>
+      <span *ngIf="isSidebarOpen">{{ item.label }}</span>
+    </a>
+  </ng-container>
+</mat-nav-list>

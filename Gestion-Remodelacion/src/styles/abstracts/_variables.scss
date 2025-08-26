@@ -1,0 +1,48 @@
+/* src/styles/abstracts/_variables.scss */
+
+// --- COLORES ---
+// Define una paleta de colores para una fácil gestión del tema
+$color-primary: #3f51b5;
+$color-text-secondary: #9e9e9e;
+$color-accent: #ff4081;
+$color-warn: #f44336;
+$color-background: #f0f2f5;
+$color-surface: #ffffff;
+$color-text-dark: #333;
+$color-text-light: #fff;
+$color-shadow: rgba(0, 0, 0, 0.1);
+$border-color: #e0e0e0; // Un gris claro para bordes sutiles
+$color-brand-black: #121212; // Chinese Black [cite: 13, 16, 18]
+$color-brand-yellow: #FFD245; // Gargoyle Gas [cite: 15, 22, 24]
+
+$color-success: #4caf50; // Verde para éxito, balance positivo
+$color-info: #00bcd4;    // Cian para información, como ingresos
+
+// --- TIPOGRAFÍA ---
+$font-family: Roboto, "Helvetica Neue", sans-serif;
+$font-family-serif: "Times New Roman", serif; // Times New Roman 
+// --- DISEÑO RESPONSIVO ---
+$breakpoint-mobile: 600px;
+$breakpoint-tablet: 1024px;
+
+// --- ESPACIADO ---
+$spacing-xxs: 2px;
+$spacing-xs: 8px;
+$spacing-s: 16px;
+$spacing-m: 24px;
+$spacing-l: 32px;
+$spacing-xl: 48px;
+
+// --- BORDES Y SOMBRAS ---
+$border-radius-s: 4px;
+$border-radius-m: 8px;
+$box-shadow-s: 0 2px 4px $color-shadow;
+$box-shadow-m: 0 4px 8px $color-shadow;
+
+// --- LAYOUT ---
+$header-height-desktop: 64px;
+$header-height-mobile: 56px;
+$footer-height-desktop: 64px;
+$footer-height-mobile: 48px;
+$sidebar-width-open: 15%;
+$sidebar-width-closed: 70px;

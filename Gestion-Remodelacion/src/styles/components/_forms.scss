@@ -1,0 +1,55 @@
+/* src/styles/components/_forms.scss */
+
+// ✅ CAMBIO: Se importan las variables para poder usarlas en este archivo.
+@use '../abstracts/variables' as vars;
+@use '../abstracts/mixins' as mixins;
+
+.form-card {
+  // ✅ CAMBIO: Se prefijan todas las variables con 'vars.'
+  background-color: vars.$color-surface;
+  border-radius: vars.$border-radius-m;
+  padding: vars.$spacing-l;
+  box-shadow: vars.$box-shadow-m;
+  
+  &.mat-dialog-container {
+    padding: 0;
+  }
+}
+
+.form-header {
+  padding: vars.$spacing-m;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  h2 {
+    // ✅ CAMBIO: Se prefija el mixin con 'mixins.'
+    @include mixins.responsive-text(1.25rem, 1.5rem);
+    color: vars.$color-primary;
+    margin: 0;
+  }
+}
+
+.form-content {
+  padding: vars.$spacing-m;
+  display: flex;
+  flex-direction: column;
+  gap: vars.$spacing-s;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: vars.$spacing-s;
+  padding: vars.$spacing-s vars.$spacing-m;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  
+  @include mixins.respond-to(mobile) {
+    justify-content: space-between;
+    padding: vars.$spacing-xs vars.$spacing-s;
+    button {
+      flex-grow: 1;
+    }
+  }
+}

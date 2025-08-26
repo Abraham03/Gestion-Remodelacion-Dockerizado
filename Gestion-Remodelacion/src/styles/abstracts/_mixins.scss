@@ -1,0 +1,21 @@
+/* src/styles/abstracts/_mixins.scss */
+
+// ✅ CAMBIO: Se importa el archivo de variables para poder usar $breakpoint-mobile, etc.
+@use 'variables' as vars;
+
+// Mixin para estilos responsivos
+@mixin respond-to($breakpoint) {
+  // ✅ CAMBIO: Se prefijan las variables con 'vars.'
+  @if $breakpoint == mobile {
+    @media (max-width: vars.$breakpoint-mobile) { @content; }
+  } @else if $breakpoint == tablet {
+    @media (min-width: (vars.$breakpoint-mobile + 1)) and (max-width: vars.$breakpoint-tablet) { @content; }
+  } @else if $breakpoint == desktop {
+    @media (min-width: (vars.$breakpoint-tablet + 1)) { @content; }
+  }
+}
+
+// Mixin para el tamaño de texto responsivo
+@mixin responsive-text($min-size, $max-size, $min-viewport: 320px, $max-viewport: 1200px) {
+  font-size: clamp($min-size, calc(#{$min-size} + #{$max-size - $min-size} * ((100vw - #{$min-viewport}) / #{$max-viewport - $min-viewport})), $max-size);
+}

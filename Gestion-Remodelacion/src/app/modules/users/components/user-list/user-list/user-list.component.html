@@ -1,0 +1,69 @@
+<div class="page-container">
+  <div class="table-header">
+    <h2 class="page-title">Gestión de Usuarios</h2>
+    <div class="table-actions">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Filtrar</mat-label>
+        <input matInput placeholder="Ej. Juan Pérez" [(ngModel)]="filterValue" >
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      <button mat-flat-button color="primary" (click)="openUserForm()">
+        <mat-icon>add</mat-icon> Registrar Usuario
+      </button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort>
+
+        <ng-container matColumnDef="username">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Username </th>
+          <td mat-cell *matCellDef="let user"> {{ user.username }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="enabled">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Activo </th>
+          <td mat-cell *matCellDef="let user">
+            <mat-icon [ngClass]="{'active-icon': user.enabled, 'inactive-icon': !user.enabled}" color="{{ user.enabled ? 'primary' : 'warn' }}">
+              {{ user.enabled ? 'check_circle' : 'cancel' }}
+            </mat-icon>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="roles">
+          <th mat-header-cell *matHeaderCellDef> Roles </th>
+          <td mat-cell *matCellDef="let user">
+            <span *ngFor="let role of user.roles; last as isLast">
+              {{ role.name }}{{ !isLast ? ', ' : '' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Acciones </th>
+          <td mat-cell *matCellDef="let user">
+            <button mat-icon-button color="accent" (click)="openUserForm(user)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteUser(user.id)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+    
+    <mat-paginator
+      [length]="totalElements"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25]"
+      [pageIndex]="currentPage"
+      showFirstLastButtons>
+    </mat-paginator>
+  </div>
+</div>

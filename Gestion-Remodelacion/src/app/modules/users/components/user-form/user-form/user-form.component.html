@@ -1,0 +1,70 @@
+<h2 mat-dialog-title>{{ isEditMode ? "Editar Usuario" : "Nuevo Usuario" }}</h2>
+
+<mat-dialog-content [formGroup]="userForm">
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Username</mat-label>
+    <input matInput formControlName="username" required />
+    <mat-error
+      *ngIf="
+        userForm.get('username')?.hasError('required') &&
+        userForm.get('username')?.touched
+      "
+    >
+      El username es obligatorio.
+    </mat-error>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditMode">
+    <mat-label>Contraseña</mat-label>
+    <input
+      matInput
+      type="password"
+      formControlName="password"
+      [required]="!isEditMode"
+    />
+    <mat-error
+      *ngIf="
+        userForm.get('password')?.hasError('required') &&
+        userForm.get('password')?.touched
+      "
+    >
+      La contraseña es obligatoria.
+    </mat-error>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Roles</mat-label>    
+    <mat-select formControlName="roles" multiple required>
+           
+      <mat-option *ngFor="let role of roles" [value]="role.id">{{
+        role.name
+      }}</mat-option>
+         
+    </mat-select>
+       
+    <mat-error
+      *ngIf="
+        userForm.get('roles')?.hasError('required') &&
+        userForm.get('roles')?.touched
+      "
+    >
+            Se debe asignar al menos un rol.    
+    </mat-error>
+  </mat-form-field>
+
+  <mat-checkbox formControlName="enabled" class="checkbox-spacing"
+    >Usuario Activo</mat-checkbox
+  >
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSubmit()"
+    [disabled]="userForm.invalid"
+  >
+    {{ isEditMode ? "Actualizar" : "Crear" }}
+  </button>
+</mat-dialog-actions>

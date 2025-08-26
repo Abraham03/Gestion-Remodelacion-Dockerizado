@@ -1,0 +1,25 @@
+/* src/app/shared/components/footer/footer.component.scss */
+
+// ✅ CAMBIO: Se reemplaza @import por @use y se asignan alias.
+@use '../../../../styles/abstracts/variables' as vars;
+@use '../../../../styles/abstracts/mixins' as mixins;
+
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  // ✅ CAMBIO: Se prefijan todas las variables y mixins.
+  padding: vars.$spacing-xs vars.$spacing-s;
+  height: vars.$footer-height-desktop;
+  color: vars.$color-text-dark;
+  z-index: 1000;
+  
+  @include mixins.respond-to(mobile) {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: vars.$footer-height-mobile;
+    font-size: x-small;
+  }
+}

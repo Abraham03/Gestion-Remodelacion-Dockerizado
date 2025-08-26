@@ -1,0 +1,8 @@
+/* src/app/modules/empleados/components/empleado-form/empleado-form.component.scss */
+
+// ✅ CAMBIO: Se reemplaza @import por @use para cargar los módulos de estilos.
+@use '../../../../../styles/abstracts/mixins';
+@use '../../../../../styles/abstracts/variables';
+@use '../../../../../styles/components/forms';
+
+/* Si necesitas sobrescribir o añadir estilos específicos para este componente, hazlo aquí. */

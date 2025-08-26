@@ -1,0 +1,40 @@
+/* src/app/modules/proyectos/components/proyecto-list/proyecto-list.component.scss */
+
+// ✅ CAMBIO: Se reemplaza @import por @use y se asignan alias.
+@use '../../../../../styles/abstracts/mixins' as mixins;
+@use '../../../../../styles/abstracts/variables' as vars;
+@use '../../../../../styles/components/tables';
+@use '../../../../../styles/base/base';
+
+.mat-column-nombreProyecto {
+  font-weight: 500;
+  // ✅ CAMBIO: Se prefija la variable con 'vars'.
+  color: vars.$color-primary;
+}
+
+.filter-field {
+  width: 100%;
+  max-width: 300px;
+}
+
+.table-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  // ✅ CAMBIO: Se prefija la variable con 'vars'.
+  gap: vars.$spacing-s;
+
+  @include mixins.respond-to(mobile) {
+    // Para el div que contiene los botones
+    &.table-actions {
+      flex-direction: column;
+      width: 100%;
+      
+      button {
+        width: 100%;
+      }
+    }
+  }
+}
+

@@ -1,0 +1,55 @@
+/* src/app/modules/empleados/components/empleado-list/empleado-list.component.scss */
+
+// Se utilizan los módulos globales con alias
+@use '../../../../../styles/abstracts/mixins' as mixins;
+@use '../../../../../styles/abstracts/variables' as vars;
+@use '../../../../../styles/components/tables';
+@use '../../../../../styles/base/base';
+
+// Estilos específicos del componente de lista de empleados
+.active-icon {
+  color: green;
+}
+
+.inactive-icon {
+  color: red;
+}
+
+// Ocultar la columna de 'teléfono' en móvil
+@include mixins.respond-to(mobile) {
+  .mat-column-telefonoContacto {
+    display: none;
+  }
+}
+
+// Asegurarse de que el filtro tenga un ancho responsivo
+.filter-field {
+  width: 100%;
+  max-width: 300px;
+}
+
+.mat-column-nombreCompleto {
+  font-weight: 500;
+  color: vars.$color-primary;
+}
+
+.table-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: vars.$spacing-s;
+
+  @include mixins.respond-to(mobile) {
+    // Para el div que contiene los botones
+    &.table-actions {
+      flex-direction: column; // Apila los botones en una columna
+      width: 100%; // Ocupa todo el ancho disponible
+      
+      // Ajusta los botones para que ocupen todo el ancho
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

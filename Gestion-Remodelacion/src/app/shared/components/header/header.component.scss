@@ -1,0 +1,91 @@
+/* src/app/shared/components/header/header.component.scss */
+
+// ✅ CAMBIO: Se reemplaza @import por @use y se asignan alias.
+@use '../../../../styles/abstracts/variables' as vars;
+@use '../../../../styles/abstracts/mixins' as mixins;
+
+mat-toolbar {
+  // ✅ CAMBIO: Se prefijan todas las variables y mixins.
+  height: vars.$header-height-desktop;
+  box-shadow: vars.$box-shadow-s;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  //background-color: vars.$color-surface; // Se añade color de fondo para consistencia
+
+  @include mixins.respond-to(mobile) {
+    height: vars.$header-height-mobile;
+  }
+}
+
+.title {
+  margin-left: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+
+
+
+  @include mixins.respond-to(mobile) {
+    margin-left: 8px;
+    font-size: 14px;
+  }
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.user-info-display {
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+}
+
+.user-details-hover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  margin-right: 16px;
+
+  .username-display {
+    font-weight: 500;
+    line-height: 1.2;
+  @include mixins.respond-to(mobile) {
+    margin-left: 8px;
+    font-size: 14px;
+  }
+
+  }
+
+  .user-role-tooltip {
+    line-height: 1.2;
+    color: rgba(255, 255, 255, 0.8); 
+  }
+}
+
+.menu-header {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f5f5f5;
+
+  .mat-icon {
+    align-self: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .mat-body-1 {
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  .mat-caption {
+    color: rgba(0, 0, 0, 0.54);
+    line-height: 1.2;
+  }
+}

@@ -1,0 +1,96 @@
+/* src/app/modules/auth/components/login/login.component.scss */
+
+// 1. IMPORTAMOS TUS VARIABLES Y MIXINS GLOBALES
+@use '../../../../../styles/abstracts/variables' as vars;
+@use '../../../../../styles/abstracts/mixins' as mixins;
+
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: vars.$spacing-s;
+  // ✅ CAMBIO: Usamos un color de fondo más alineado a la marca
+  background-color: vars.$color-background; 
+  box-sizing: border-box;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 450px;
+  padding: vars.$spacing-l;
+  border-radius: vars.$border-radius-m;
+  box-shadow: vars.$box-shadow-m;
+  animation: fadeIn 0.5s ease-out;
+
+  @include mixins.respond-to(mobile) {
+    padding: vars.$spacing-m;
+  }
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: vars.$spacing-l;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .logo {
+    // ✅ CAMBIO: Se corrige la función clamp y se ajustan los valores.
+    width: clamp(120px, 25vw, 180px);
+    height: auto;
+    // ✅ CAMBIO: Se ajusta el margen inferior para respetar el 'Área de Respeto'.
+    margin-bottom: vars.$spacing-m;
+  }
+
+  mat-card-title {
+    // ✅ CAMBIO: Se usa la tipografía oficial del manual.
+    font-family: vars.$font-family-serif;
+    color: vars.$color-brand-black; // Color de la marca
+    @include mixins.responsive-text(1.5rem, 2rem);
+    font-weight: 700;
+    margin-bottom: vars.$spacing-xs;
+  }
+  
+  mat-card-subtitle {
+    color: vars.$color-text-secondary;
+    @include mixins.responsive-text(0.9rem, 1rem);
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.login-button {
+  height: 48px;
+  width: 100%;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: vars.$spacing-s;
+  // ✅ CAMBIO: Se usa el color de la marca para el botón principal
+  background-color: vars.$color-brand-black;
+  color: vars.$color-text-light;
+}
+
+.login-actions {
+  text-align: center;
+  margin-top: vars.$spacing-m;
+  padding: 0;
+
+  a {
+    color: vars.$color-primary;
+    text-decoration: none;
+    font-size: 0.9rem;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

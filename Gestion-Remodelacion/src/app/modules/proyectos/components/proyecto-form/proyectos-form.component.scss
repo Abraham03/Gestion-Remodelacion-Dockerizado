@@ -1,0 +1,8 @@
+/* src/app/modules/proyectos/components/proyecto-form/proyecto-form.component.scss */
+
+// ✅ CAMBIO: Se reemplaza @import por @use y se asignan alias.
+@use '../../../../../styles/abstracts/mixins' as mixins;
+@use '../../../../../styles/abstracts/variables' as vars;
+@use '../../../../../styles/components/forms';
+@use '../../../../../styles/base/base';
+

@@ -1,0 +1,19 @@
+/* src/styles.scss */
+
+// 1. Importaciones de módulos de Angular Material
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+// 2. Variables y utilidades
+@import 'abstracts/variables';
+@import 'abstracts/mixins';
+
+// 3. Estilos base y de tipografía
+@import 'base/base';
+
+// 4. Estilos de layout
+// Aquí irían los estilos de layout. Puedes crear un archivo _layout.scss
+// para centralizar estos estilos si lo deseas.
+
+// 5. Estilos de los componentes
+@import 'components/forms';
+@import 'components/tables';

@@ -1,0 +1,80 @@
+<div class="page-container">
+  <div class="table-header">
+    <h2>Registro de Horas Trabajadas</h2>
+    <div class="table-actions">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Buscar</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Juan Pérez">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      <div class="table-actions">
+        <button mat-flat-button color="primary" (click)="openForm()">
+          <mat-icon>add</mat-icon>
+          Agregar Cliente
+        </button>
+        <button mat-flat-button color="accent" (click)="exportToExcel()">
+          <mat-icon>file_download</mat-icon>
+          Excel
+        </button>
+        <button mat-flat-button color="primary" (click)="exportToPdf()">
+          <mat-icon>picture_as_pdf</mat-icon>
+          PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort class="responsive-table">
+        
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="fecha">Fecha</th>
+          <td mat-cell *matCellDef="let row">{{ row.fecha | date:'mediumDate' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="nombreEmpleado">
+          <th mat-header-cell *matHeaderCellDef >Empleado</th>
+          <td mat-cell *matCellDef="let row">{{ row.nombreEmpleado }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="nombreProyecto">
+          <th mat-header-cell *matHeaderCellDef >Proyecto</th>
+          <td mat-cell *matCellDef="let row">{{ row.nombreProyecto }}</td>
+        </ng-container>
+        
+        <ng-container matColumnDef="horas">
+          <th mat-header-cell *matHeaderCellDef>Horas</th>
+          <td mat-cell *matCellDef="let row">{{ row.horas | number:'1.2-2' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actividadRealizada">
+          <th mat-header-cell *matHeaderCellDef>Actividad Realizada</th>
+          <td mat-cell *matCellDef="let row">{{ row.actividadRealizada }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let row">
+            <button mat-icon-button color="primary" (click)="openForm(row)" matTooltip="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteHorasTrabajadas(row.id!)" matTooltip="Eliminar">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+            No se encontraron registros de horas trabajadas que coincidan con el filtro.
+          </td>
+        </tr>
+      </table>
+    </div>
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons class="table-paginator"></mat-paginator>
+  </div>
+</div>

@@ -1,0 +1,62 @@
+<h2 mat-dialog-title>{{ data ? 'Editar Registro de Horas' : 'Registrar Horas Trabajadas' }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content class="mat-typography form-content">
+    <div class="form-section">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Empleado</mat-label>
+        <mat-select formControlName="idEmpleado" required>
+          <mat-option *ngFor="let empleado of (empleados$ | async)" [value]="empleado.id">
+            {{ empleado.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.get('idEmpleado')?.hasError('required') && form.get('idEmpleado')?.touched">
+          El empleado es requerido.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Proyecto</mat-label>
+        <mat-select formControlName="idProyecto" required>
+          <mat-option *ngFor="let proyecto of (proyectos$ | async)" [value]="proyecto.id">
+            {{ proyecto.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.get('idProyecto')?.hasError('required') && form.get('idProyecto')?.touched">
+          El proyecto es requerido.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Fecha</mat-label>
+        <input matInput [matDatepicker]="pickerFecha" formControlName="fecha" required>
+        <mat-datepicker-toggle matSuffix [for]="pickerFecha"></mat-datepicker-toggle>
+        <mat-datepicker #pickerFecha></mat-datepicker>
+        <mat-error *ngIf="form.get('fecha')?.hasError('required') && form.get('fecha')?.touched">
+          La fecha es requerida.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Horas</mat-label>
+        <input matInput type="number" formControlName="horas" required min="0.01" max="10000" step="0.5">
+        <mat-error *ngIf="form.get('horas')?.hasError('required') && form.get('horas')?.touched">
+          Las horas son requeridas.
+        </mat-error>
+        <mat-error *ngIf="(form.get('horas')?.hasError('min') || form.get('horas')?.hasError('max')) && form.get('horas')?.touched">
+          Las horas deben ser mayor a 0.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Actividad Realizada</mat-label>
+        <textarea matInput formControlName="actividadRealizada" cdkTextareaAutosize cdkAutosizeMinRows="3" cdkAutosizeMaxRows="5"></textarea>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="form-actions">
+    <button mat-flat-button color="warn" type="button" (click)="onCancel()">Cancelar</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Guardar</button>
+  </mat-dialog-actions>
+</form>

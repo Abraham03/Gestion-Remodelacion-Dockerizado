@@ -1,0 +1,119 @@
+services:
+  # Servicio para la aplicación Angular (Frontend)
+  gestion-remodelacion-front:
+    build:
+      context: ./gestion-remodelacion # Ruta a la carpeta del Dockerfile de Angular
+      dockerfile: Dockerfile
+    ports:
+      - "80:80" # Mapea el puerto 80 del contenedor al puerto 80 del host
+  # Limitar los recursos fisicos ram, cpu del host al container frontend      
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 128M
+        reservations:
+          cpus: "0.05"
+          memory: 64M
+    depends_on:
+      gestion-remodelacion-back:
+        condition: service_healthy
+    networks:
+      - gestion-network
+    volumes:
+      # Montar el código fuente de Angular para desarrollo rápido (hot-reload)
+      # Esto permite ver los cambios en el navegador sin reconstruir la imagen de Angular
+      #- ./gestion-remodelacion:/app
+      #- /app/node_modules # Esto asegura que node_modules dentro del contenedor no sea sobreescrito por el del host
+       - ./gestion-remodelacion/dist/gestion-remodelacion/browser:/usr/share/nginx/html
+
+
+
+  # Servicio para la aplicación Spring Boot (Backend)
+  gestion-remodelacion-back:
+    build:
+      context: ./gestion-remodelacion-back # Ruta a la carpeta del Dockerfile de Spring Boot
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # Mapea el puerto 8080 del contenedor al puerto 8080 del host (útil para pruebas directas)
+  # Limitar los recursos fisicos ram, cpu del host al container backend   
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2.5G
+        reservations:
+          cpus: "0.5"
+          memory: 1G
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      # Configuración de la base de datos para Spring Boot (apuntando al servicio 'db')
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/gestion_efrain?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: porque03
+      # Configuración de Hibernate
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
+      SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_LOB_NON_CONTEXTUAL_CREATION: "true" # Asegúrate de que esta línea esté bien si es necesaria
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
+      # JWT Configuration
+      JWT_SECRET_KEY: mySecretKeyForJWTGenerationWithAtLeast256BitsLongToBeSecureEnough
+      JWT_EXPIRATION_MS: 604800000
+      JWT_ISSUER: GestionRemodelacion
+      JWT_REFRESH_EXPIRATION_MS: 604800000
+      # Server Port (aunque ya expuesto en ports, es bueno para la app)
+      SERVER_PORT: 8080
+      # Desactivar open-in-view (opcional pero recomendado)
+      SPRING_JPA_OPEN_IN_VIEW: "false"
+      # Otros
+      SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE: UTC
+      SPRING_JACKSON_SERIALIZATION_WRITE_DATES_AS_TIMESTAMPS: "false"
+      SPRING_JACKSON_DESERIALIZATION_ADJUST_DATES_TO_CONTEXT_TIME_ZONE: "false"
+      SERVER_SERVLET_CONTEXT_PARAMETERS_JAVAX_SERVLET_JSP_JSTL_FMT_TIME_ZONE: UTC
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    depends_on:
+      db: # Asegura que la base de datos esté lista antes que el backend
+        condition: service_healthy
+    networks:
+      - gestion-network
+
+  # Servicio para la Base de Datos MySQL
+  db:
+    image: mysql:8.0 # Versión 8.0 es compatible con tu 8.4.4
+    environment:
+      MYSQL_ROOT_PASSWORD: porque03 # La misma contraseña que usas en Spring Boot
+      MYSQL_DATABASE: gestion_efrain # El nombre de la base de datos
+    ports:
+      - "3307:3306" # Opcional: para conectarte a la DB directamente desde el host
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 1.5G
+        reservations:
+          cpus: "0.25"
+          memory: 512M
+    volumes:
+      - db_data:/var/lib/mysql # ¡Crucial para que tus datos no se eliminen!
+      # NUEVA LÍNEA: Monta tu script SQL de inicialización
+      - ./db_init.sql:/docker-entrypoint-initdb.d/db_init.sql # Asegúrate que 'db_init.sql' esté en la misma carpeta que docker-compose.yml
+    networks:
+      - gestion-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pporque03"]
+      timeout: 20s
+      retries: 10
+      start_period: 30s   
+
+networks:
+  gestion-network:
+    driver: bridge
+
+volumes:
+  db_data: # Define el volumen nombrado para la persistencia de MySQL

@@ -1,0 +1,74 @@
+<div class="page-container">
+  <div class="table-header">
+    <h2>Gestión de Roles</h2>
+    <div class="table-actions">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Buscar Rol</mat-label>
+        <input matInput [(ngModel)]="searchTerm" (keyup.enter)="applyFilter()" placeholder="Nombre, descripción...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      <button mat-flat-button color="primary" (click)="openRoleForm()" *ngIf="hasPermission('ROLE_CREATE')">
+        <mat-icon>add</mat-icon> Nuevo Rol
+      </button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange($event)">
+
+        <ng-container matColumnDef="name">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Nombre </mat-header-cell>
+          <mat-cell *matCellDef="let role"> {{ role.name }} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="description">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Descripción </mat-header-cell>
+          <mat-cell *matCellDef="let role"> {{ role.description }} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="permissions">
+          <mat-header-cell *matHeaderCellDef> Permisos </mat-header-cell>
+          <mat-cell *matCellDef="let role">
+            <ng-container *ngIf="role.permissions && role.permissions.length > 0">
+              <button mat-button (click)="viewPermissions(role)">
+                {{ role.permissions.length }} permisos
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </ng-container>
+            <ng-container *ngIf="!role.permissions || role.permissions.length === 0">
+              Ninguno
+            </ng-container>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <mat-header-cell *matHeaderCellDef> Acciones </mat-header-cell>
+          <mat-cell *matCellDef="let role">
+            <button mat-icon-button color="accent" (click)="openRoleForm(role)" *ngIf="hasPermission('ROLE_UPDATE')">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteRole(role.id)" *ngIf="hasPermission('ROLE_DELETE')">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" colspan="6">
+            No se encontraron clientes que coincidan con el filtro.
+          </td>
+        </tr>
+
+      </table>
+    </div>
+
+    <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" aria-label="Seleccionar página de roles">
+    </mat-paginator>
+  </div>
+</div>

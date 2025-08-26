@@ -1,0 +1,38 @@
+/* src/app/modules/usuarios/components/usuario-list/usuario-list.component.scss */
+
+/* src/app/modules/users/components/user-list/user-list/user-list.component.scss */
+
+// ✅ CAMBIO: Se corrige la ruta relativa agregando un '../' adicional.
+@use '../../../../../../styles/abstracts/mixins' as mixins;
+@use '../../../../../../styles/abstracts/variables' as vars;
+@use '../../../../../../styles/components/tables';
+@use '../../../../../../styles/base/base';
+
+// ... (el resto de tus estilos para la lista de usuarios)
+
+.active-icon {
+  color: green;
+}
+
+.inactive-icon {
+  color: red;
+}
+
+.mat-column-username {
+  font-weight: 500;
+  // ✅ CAMBIO: Se prefija la variable con 'vars'.
+  color: vars.$color-primary;
+}
+
+.filter-field {
+  width: 100%;
+  max-width: 300px;
+}
+
+.table-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: vars.$spacing-s;
+}

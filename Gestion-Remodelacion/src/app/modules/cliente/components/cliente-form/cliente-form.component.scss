@@ -1,0 +1,11 @@
+/* src/app/modules/cliente/components/cliente-form/cliente-form.component.scss */
+
+// ✅ CAMBIO: Se reemplaza @import por @use para cargar los módulos de estilos globales.
+// No se necesitan prefijos aquí porque no se usan variables o mixins directamente en este archivo.
+@use '../../../../../styles/abstracts/mixins';
+@use '../../../../../styles/abstracts/variables';
+@use '../../../../../styles/components/forms';
+
+/* Aquí también puedes agregar estilos específicos. Por ejemplo, si un formulario 
+  tiene un campo de fecha y quieres que el ícono tenga un color diferente.
+*/

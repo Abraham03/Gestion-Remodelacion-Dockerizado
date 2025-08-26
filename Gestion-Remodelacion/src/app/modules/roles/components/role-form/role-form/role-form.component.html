@@ -1,0 +1,49 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Editar Rol' : 'Nuevo Rol' }}</h2>
+
+<form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content class="mat-typography form-content">
+    <div class="form-section">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre del Rol</mat-label>
+        <input matInput formControlName="name" required>
+        <mat-error *ngIf="roleForm.get('name')?.hasError('required') && roleForm.get('name')?.touched">
+          El nombre del rol es obligatorio.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="description" required cdkTextareaAutosize cdkAutosizeMinRows="3" cdkAutosizeMaxRows="5"></textarea>
+        <mat-error *ngIf="roleForm.get('description')?.hasError('required') && roleForm.get('description')?.touched">
+          La descripción es obligatoria.
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-section">
+      <h3>Permisos</h3>
+      <div class="permissions-container">
+        <div *ngIf="allPermissions.length === 0">Cargando permisos...</div>
+        <mat-checkbox
+          *ngFor="let permission of allPermissions"
+          [value]="permission.id.toString()" 
+          [checked]="isPermissionSelected(permission.id)"
+          (change)="onPermissionChange($event, permission.id)"
+          class="permission-checkbox"
+        >
+          {{ permission.name }} - <small>{{ permission.description }}</small>
+        </mat-checkbox>
+        <mat-error *ngIf="roleForm.get('permissions')?.hasError('required') && roleForm.get('permissions')?.touched">
+          Debe seleccionar al menos un permiso.
+        </mat-error>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="form-actions">
+    <button mat-flat-button color="warn" type="button" (click)="onCancel()">Cancelar</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="roleForm.invalid">
+      {{ isEditMode ? 'Actualizar' : 'Crear' }}
+    </button>
+  </mat-dialog-actions>
+</form>

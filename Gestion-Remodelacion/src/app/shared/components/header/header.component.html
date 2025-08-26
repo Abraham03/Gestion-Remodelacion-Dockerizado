@@ -1,0 +1,27 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="onToggleSidebar()">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span class="title">GBS RENOVATIONS LLC</span>
+  <span class="spacer"></span>
+
+  <div class="user-info-display" *ngIf="authService.isAuthenticated()">
+    <div class="user-details-hover hide-on-mobile">
+      <span class="username-display mat-body-1">{{ authService.currentUser()?.username }}</span>
+    </div>
+    <button mat-icon-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>account_circle</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <div class="menu-header">
+        <mat-icon>person</mat-icon>
+        <span class="mat-caption">{{ authService.userRoles()[0].name | titlecase }}</span>
+      </div>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="onLogout()">
+        <mat-icon>exit_to_app</mat-icon>
+        <span>Cerrar sesión</span>
+      </button>
+    </mat-menu>
+  </div>
+</mat-toolbar>

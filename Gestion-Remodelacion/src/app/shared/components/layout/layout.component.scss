@@ -1,0 +1,68 @@
+/* src/app/shared/components/layout/layout.component.scss */
+
+// ✅ CAMBIO: Se reemplaza @import por @use y se asignan alias.
+@use '../../../../styles/abstracts/variables' as vars;
+@use '../../../../styles/abstracts/mixins' as mixins;
+@use '../../../../styles/base/base';
+
+.app-layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+  // ✅ CAMBIO: Se prefijan todas las variables y mixins.
+  background-color: vars.$color-background;
+
+  @include mixins.respond-to(mobile) {
+    flex-direction: column;
+  }
+}
+
+.app-sidenav-container-main {
+  width: vars.$sidebar-width-open;
+  transition: width 0.3s ease;
+  flex-shrink: 0;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+
+  &.sidebar-closed {
+    width: auto;
+    transition: width 0.8s ease;
+  }
+
+  @include mixins.respond-to(mobile) {
+    width: 0;
+    &[aria-hidden='true'] {
+      width: 0;
+    }
+  }
+
+  mat-sidenav {
+    width: 100%;
+    height: 100%;
+    
+    @include mixins.respond-to(mobile) {
+      width: 50%;
+      max-width: 250px;
+    }
+  }
+
+  mat-sidenav-content {
+    display: none;
+  }
+}
+
+.app-content-area {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  background-color: vars.$color-background;
+}
+
+.main-content-area {
+  flex-grow: 1;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: vars.$spacing-m;
+
+  @include mixins.respond-to(mobile) {
+    padding: vars.$spacing-s;
+  }
+}

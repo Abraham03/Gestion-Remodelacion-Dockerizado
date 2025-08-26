@@ -1,0 +1,12 @@
+/* src/styles/base/_base.scss */
+
+// ✅ CAMBIO: Se importan las variables para poder usarlas en este archivo.
+@use '../abstracts/variables' as vars;
+
+body {
+  margin: 0;
+  // ✅ CAMBIO: Se prefijan todas las variables con 'vars.'
+  font-family: vars.$font-family;
+  color: vars.$color-text-dark;
+  background-color: vars.$color-background;
+}

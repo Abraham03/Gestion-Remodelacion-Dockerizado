@@ -1,0 +1,9 @@
+/* src/app/modules/users/components/user-form/user-form/user-form.component.scss */
+
+// ✅ CAMBIO: Se corrige la ruta relativa agregando un '../' adicional.
+@use '../../../../../../styles/abstracts/mixins' as mixins;
+@use '../../../../../../styles/abstracts/variables' as vars;
+@use '../../../../../../styles/components/forms';
+@use '../../../../../../styles/base/base';
+
+// ... (tus estilos específicos si los tienes)

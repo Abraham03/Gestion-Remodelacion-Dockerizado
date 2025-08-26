@@ -1,0 +1,28 @@
+<div class="app-layout-wrapper">
+  <mat-sidenav-container
+    class="app-sidenav-container-main"
+    [class.sidebar-closed]="!(isSidebarOpen$ | async) && !(isHandset$ | async)"
+  >
+    <mat-sidenav
+      #sidenav
+      [mode]="(isHandset$ | async) ? 'over' : 'side'"
+      [opened]="(isSidebarOpen$ | async)"
+      class="app-sidebar"
+      (closed)="onSidenavClosed()"
+      [fixedInViewport]="(isHandset$ | async)"
+      [fixedTopGap]="(isHandset$ | async) ? 56 : 64"
+      [fixedBottomGap]="(isHandset$ | async) ? 48 : 64"
+    >
+      <app-sidebar [isSidebarOpen]="(isSidebarOpen$ | async) ?? true"></app-sidebar>
+    </mat-sidenav>
+    <mat-sidenav-content></mat-sidenav-content>
+  </mat-sidenav-container>
+
+  <div class="app-content-area">
+    <app-header (toggleSidebarEvent)="onToggleSidebar()"></app-header>
+    <main class="main-content-area">
+      <router-outlet></router-outlet>
+    </main>
+    <app-footer></app-footer>
+  </div>
+</div>

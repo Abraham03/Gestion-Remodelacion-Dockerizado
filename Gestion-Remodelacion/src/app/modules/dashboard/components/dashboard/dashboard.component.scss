@@ -1,0 +1,165 @@
+/* ============================================================================
+ * ARCHIVO: dashboard.component.scss (Refactorizado con Estilos Globales)
+ * ============================================================================ */
+
+// ✅ CAMBIO: Se reemplaza @import por @use y se asignan alias (namespaces).
+// 'vars' será el prefijo para las variables, 'mixins' para los mixins.
+@use '../../../../../styles/abstracts/variables' as vars;
+@use '../../../../../styles/abstracts/mixins' as mixins;
+
+// --- ESTILOS ESPECÍFICOS DEL COMPONENTE DASHBOARD ---
+
+.dashboard-container {
+  // ✅ CAMBIO: Se añade el prefijo 'vars.' a la variable.
+  padding: vars.$spacing-m;
+  max-width: 1600px;
+  margin: auto;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: vars.$spacing-l;
+
+  h1 {
+    color: vars.$color-text-dark;
+    // ✅ CAMBIO: Se añade el prefijo 'mixins.' al mixin.
+    @include mixins.responsive-text(1.8rem, 2.5rem);
+    font-weight: 700;
+    margin: 0;
+  }
+  .subtitle {
+    color: vars.$color-text-secondary;
+    @include mixins.responsive-text(1rem, 1.1rem);
+    margin-top: vars.$spacing-xs;
+  }
+}
+
+// Estilos para la tarjeta de filtros globales
+.global-filters-card {
+  padding: vars.$spacing-s vars.$spacing-m;
+  margin-bottom: vars.$spacing-l;
+  background-color: vars.$color-surface;
+  border-radius: vars.$border-radius-m;
+  box-shadow: vars.$box-shadow-s;
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: vars.$spacing-m;
+    flex-wrap: wrap;
+
+    > mat-icon {
+      color: vars.$color-text-secondary;
+    }
+
+    .mat-form-field {
+      flex: 1 1 200px;
+      min-width: 200px;
+      margin-top: 10px;
+    }
+  }
+}
+
+.section-title {
+  margin-top: vars.$spacing-xl;
+  margin-bottom: vars.$spacing-m;
+  @include mixins.responsive-text(1.5rem, 1.75rem);
+  font-weight: 600;
+  color: vars.$color-text-dark;
+  border-bottom: 2px solid vars.$color-primary;
+  padding-bottom: vars.$spacing-s;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: vars.$spacing-m;
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  padding: vars.$spacing-m;
+  background-color: vars.$color-surface;
+  border-radius: vars.$border-radius-m;
+  box-shadow: vars.$box-shadow-s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: vars.$box-shadow-m;
+  }
+
+  .kpi-icon-container {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: vars.$spacing-s;
+
+    .kpi-icon {
+      font-size: 24px;
+      color: vars.$color-text-light;
+    }
+  }
+
+  .kpi-content {
+    text-align: left;
+    .kpi-title { color: vars.$color-text-secondary; font-size: 1rem; margin: 0; }
+    .kpi-value { color: vars.$color-text-dark; font-size: 2rem; font-weight: 700; margin: 4px 0 0 0; line-height: 1.1; }
+  }
+}
+
+// ✅ CAMBIO: Se añade el prefijo 'vars.' a todas las variables de color.
+.color-success { background-color: vars.$color-success; }
+.color-info { background-color: vars.$color-info; }
+.color-warn { background-color: vars.$color-warn; }
+.color-primary { background-color: vars.$color-primary; }
+.color-accent { background-color: vars.$color-accent; }
+
+.chart-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: vars.$spacing-m;
+  border-radius: vars.$border-radius-m;
+  box-shadow: vars.$box-shadow-s;
+  background-color: vars.$color-surface;
+  
+  mat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding-bottom: vars.$spacing-s;
+    gap: vars.$spacing-s;
+    flex-wrap: wrap;
+  }
+  
+  mat-card-title { @include mixins.responsive-text(1.1rem, 1.25rem); font-weight: 600; }
+  mat-card-content { flex-grow: 1; position: relative; }
+  .chart-container { position: relative; width: 100%; height: 100%; }
+}
+
+.chart-actions {
+  display: flex;
+  gap: vars.$spacing-s;
+
+  .year-selector, .month-selector {
+    width: 150px;
+    .mat-mdc-form-field-subscript-wrapper { display: none; }
+  }
+}
+
+.loading-shade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: vars.$spacing-xl;
+  p { margin-top: vars.$spacing-s; font-size: 1.1rem; color: vars.$color-text-secondary; }
+}
