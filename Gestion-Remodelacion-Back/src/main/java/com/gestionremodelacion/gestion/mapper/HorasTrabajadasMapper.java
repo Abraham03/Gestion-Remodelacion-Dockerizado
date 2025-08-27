@@ -36,6 +36,7 @@ public abstract class HorasTrabajadasMapper {
     @Mapping(source = "empleado.nombreCompleto", target = "nombreEmpleado")
     @Mapping(source = "proyecto.id", target = "idProyecto")
     @Mapping(source = "proyecto.nombreProyecto", target = "nombreProyecto")
+    @Mapping(source = "costoPorHoraActual", target = "costoPorHoraActual") 
     public abstract HorasTrabajadasResponse toHorasTrabajadasResponse(HorasTrabajadas horasTrabajadas);
 
     /**
@@ -58,6 +59,7 @@ public abstract class HorasTrabajadasMapper {
      * @return Una nueva entidad HorasTrabajadas.
      */
     @Mapping(target = "id", ignore = true) // El ID es generado por la DB
+    @Mapping(target = "costoPorHoraActual", ignore = true) // <-- Se agrega esta línea
     @Mapping(target = "fechaRegistro", ignore = true) // Manejado por @PrePersist en la entidad
     @Mapping(target = "empleado", expression = "java(getEmpleadoById(request.getIdEmpleado()))")
     @Mapping(target = "proyecto", expression = "java(getProyectoById(request.getIdProyecto()))")
@@ -73,6 +75,7 @@ public abstract class HorasTrabajadasMapper {
      * @param horasTrabajadas La entidad HorasTrabajadas existente a actualizar.
      */
     @Mapping(target = "id", ignore = true) // El ID no debe ser actualizado desde el request
+    @Mapping(target = "costoPorHoraActual", ignore = true) // <-- Se agrega esta línea
     @Mapping(target = "fechaRegistro", ignore = true) // FechaRegistro no debe ser actualizada desde el request
     @Mapping(target = "empleado", expression = "java(getEmpleadoById(request.getIdEmpleado()))") // Siempre intentamos resolver
     @Mapping(target = "proyecto", expression = "java(getProyectoById(request.getIdProyecto()))") // Siempre intentamos resolver

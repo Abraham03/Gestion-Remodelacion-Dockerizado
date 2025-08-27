@@ -39,6 +39,9 @@ public class HorasTrabajadas {
     @Column(name = "horas", nullable = false)
     private BigDecimal horas;
 
+    @Column(name = "costo_por_hora_actual")
+    private BigDecimal costoPorHoraActual;
+
     @Column(name = "actividad_realizada", columnDefinition = "TEXT")
     private String actividadRealizada;
 
@@ -52,6 +55,13 @@ public class HorasTrabajadas {
     @PrePersist
     protected void onCreate() {
         this.fechaRegistro = LocalDateTime.now();
+    }
+    public BigDecimal getCostoPorHoraActual() {
+        return costoPorHoraActual;
+    }
+
+    public void setCostoPorHoraActual(BigDecimal costoPorHoraActual) {
+        this.costoPorHoraActual = costoPorHoraActual; 
     }
 
     // Getters y Setters

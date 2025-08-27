@@ -1,18 +1,20 @@
 <div class="form-card mat-dialog-container">
   <div class="form-header">
-    <h2 mat-dialog-title>{{ data ? 'Editar Proyecto' : 'Crear Proyecto' }}</h2>
+    <h2 mat-dialog-title>{{ data ? "Editar Proyecto" : "Crear Proyecto" }}</h2>
   </div>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <mat-dialog-content class="mat-typography form-content">
-
       <div class="form-section">
         <h3>Detalles del Proyecto</h3>
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Nombre del Proyecto</mat-label>
-            <input matInput formControlName="nombreProyecto" required>
-            <mat-error *ngIf="form.get('nombreProyecto')?.hasError('required') && form.get('nombreProyecto')?.touched">
+            <input matInput formControlName="nombreProyecto" required />
+            <mat-error *ngIf="
+                form.get('nombreProyecto')?.hasError('required') &&
+                form.get('nombreProyecto')?.touched
+              ">
               El nombre del proyecto es requerido
             </mat-error>
           </mat-form-field>
@@ -24,7 +26,10 @@
                 {{ estado }}
               </mat-option>
             </mat-select>
-            <mat-error *ngIf="form.get('estado')?.hasError('required') && form.get('estado')?.touched">
+            <mat-error *ngIf="
+                form.get('estado')?.hasError('required') &&
+                form.get('estado')?.touched
+              ">
               El estado es requerido
             </mat-error>
           </mat-form-field>
@@ -32,8 +37,11 @@
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Dirección de la Propiedad</mat-label>
-          <input matInput formControlName="direccionPropiedad" required>
-          <mat-error *ngIf="form.get('direccionPropiedad')?.hasError('required') && form.get('direccionPropiedad')?.touched">
+          <input matInput formControlName="direccionPropiedad" required />
+          <mat-error *ngIf="
+              form.get('direccionPropiedad')?.hasError('required') &&
+              form.get('direccionPropiedad')?.touched
+            ">
             La dirección de la propiedad es requerida
           </mat-error>
         </mat-form-field>
@@ -49,20 +57,26 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Fecha de Inicio</mat-label>
-            <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicio" required>
+            <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicio" required />
             <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
             <mat-datepicker #pickerInicio></mat-datepicker>
-            <mat-error *ngIf="form.get('fechaInicio')?.hasError('required') && form.get('fechaInicio')?.touched">
+            <mat-error *ngIf="
+                form.get('fechaInicio')?.hasError('required') &&
+                form.get('fechaInicio')?.touched
+              ">
               La fecha de inicio es requerida
             </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Fecha Fin Estimada</mat-label>
-            <input matInput [matDatepicker]="pickerFinEstimada" formControlName="fechaFinEstimada" required>
+            <input matInput [matDatepicker]="pickerFinEstimada" formControlName="fechaFinEstimada" required />
             <mat-datepicker-toggle matSuffix [for]="pickerFinEstimada"></mat-datepicker-toggle>
             <mat-datepicker #pickerFinEstimada></mat-datepicker>
-            <mat-error *ngIf="form.get('fechaFinEstimada')?.hasError('required') && form.get('fechaFinEstimada')?.touched">
+            <mat-error *ngIf="
+                form.get('fechaFinEstimada')?.hasError('required') &&
+                form.get('fechaFinEstimada')?.touched
+              ">
               La fecha fin estimada es requerida
             </mat-error>
           </mat-form-field>
@@ -70,14 +84,14 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Fecha Finalización Real</mat-label>
-            <input matInput [matDatepicker]="pickerFinReal" formControlName="fechaFinalizacionReal">
+            <input matInput [matDatepicker]="pickerFinReal" formControlName="fechaFinalizacionReal" />
             <mat-datepicker-toggle matSuffix [for]="pickerFinReal"></mat-datepicker-toggle>
             <mat-datepicker #pickerFinReal></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Fecha Último Pago Recibido</mat-label>
-            <input matInput [matDatepicker]="pickerUltimoPago" formControlName="fechaUltimoPagoRecibido">
+            <input matInput [matDatepicker]="pickerUltimoPago" formControlName="fechaUltimoPagoRecibido" />
             <mat-datepicker-toggle matSuffix [for]="pickerUltimoPago"></mat-datepicker-toggle>
             <mat-datepicker #pickerUltimoPago></mat-datepicker>
           </mat-form-field>
@@ -89,19 +103,34 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Monto Contrato</mat-label>
-            <input matInput type="number" formControlName="montoContrato" required min="0" step="0.01">
-            <mat-error *ngIf="form.get('montoContrato')?.hasError('required') && form.get('montoContrato')?.touched">
+            <input matInput type="number" formControlName="montoContrato" required min="0" step="0.01" />
+            <mat-error *ngIf="
+                form.get('montoContrato')?.hasError('required') &&
+                form.get('montoContrato')?.touched
+              ">
               El monto del contrato es requerido
             </mat-error>
-            <mat-error *ngIf="form.get('montoContrato')?.hasError('min') && form.get('montoContrato')?.touched">
+            <mat-error *ngIf="
+                form.get('montoContrato')?.hasError('min') &&
+                form.get('montoContrato')?.touched
+              ">
               El monto del contrato no puede ser negativo
             </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Monto Recibido</mat-label>
-            <input matInput type="number" formControlName="montoRecibido" min="0" step="0.01">
-            <mat-error *ngIf="form.get('montoRecibido')?.hasError('min') && form.get('montoRecibido')?.touched">
+            <input matInput type="number" formControlName="montoRecibido" required min="0" step="0.01" />
+            <mat-error *ngIf="
+                form.get('montoRecibido')?.hasError('required') &&
+                form.get('montoRecibido')?.touched
+              ">
+              El monto recibido es requerido
+            </mat-error>
+            <mat-error *ngIf="
+                form.get('montoRecibido')?.hasError('min') &&
+                form.get('montoRecibido')?.touched
+              ">
               El monto recibido no puede ser negativo
             </mat-error>
           </mat-form-field>
@@ -109,18 +138,23 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Costo Materiales Consolidado</mat-label>
-            <input matInput type="number" formControlName="costoMaterialesConsolidado" min="0" step="0.01">
-            <mat-error *ngIf="form.get('costoMaterialesConsolidado')?.hasError('min') && form.get('costoMaterialesConsolidado')?.touched">
+            <input matInput type="number" formControlName="costoMaterialesConsolidado"  min="0" step="0.01" />
+            <mat-error *ngIf="
+                form.get('costoMaterialesConsolidado')?.touched
+              ">
+              El costo de materiales es requerido
+            </mat-error>
+            <mat-error *ngIf="
+                form.get('costoMaterialesConsolidado')?.hasError('min') &&
+                form.get('costoMaterialesConsolidado')?.touched
+              ">
               El costo de materiales no puede ser negativo
             </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Otros Gastos Directos Consolidado</mat-label>
-            <input matInput type="number" formControlName="otrosGastosDirectosConsolidado" min="0" step="0.01">
-            <mat-error *ngIf="form.get('otrosGastosDirectosConsolidado')?.hasError('min') && form.get('otrosGastosDirectosConsolidado')?.touched">
-              Los otros gastos no pueden ser negativos
-            </mat-error>
+            <input matInput type="number" formControlName="otrosGastosDirectosConsolidado" readonly />
           </mat-form-field>
         </div>
       </div>
@@ -130,8 +164,12 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Progreso (%)</mat-label>
-            <input matInput type="number" formControlName="progresoPorcentaje" min="0" max="100" step="1">
-            <mat-error *ngIf="(form.get('progresoPorcentaje')?.hasError('min') || form.get('progresoPorcentaje')?.hasError('max')) && form.get('progresoPorcentaje')?.touched">
+            <input matInput type="number" formControlName="progresoPorcentaje" min="0" max="100" step="1" />
+            <mat-error *ngIf="
+                (form.get('progresoPorcentaje')?.hasError('min') ||
+                  form.get('progresoPorcentaje')?.hasError('max')) &&
+                form.get('progresoPorcentaje')?.touched
+              ">
               El progreso debe estar entre 0 y 100
             </mat-error>
           </mat-form-field>
@@ -148,11 +186,14 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Cliente</mat-label>
             <mat-select formControlName="idCliente" required>
-              <mat-option *ngFor="let cliente of (clientes$ | async)" [value]="cliente.id">
+              <mat-option *ngFor="let cliente of clientes$ | async" [value]="cliente.id">
                 {{ cliente.nombre }}
               </mat-option>
             </mat-select>
-            <mat-error *ngIf="form.get('idCliente')?.hasError('required') && form.get('idCliente')?.touched">
+            <mat-error *ngIf="
+                form.get('idCliente')?.hasError('required') &&
+                form.get('idCliente')?.touched
+              ">
               El cliente es requerido
             </mat-error>
           </mat-form-field>
@@ -161,19 +202,20 @@
             <mat-label>Empleado Responsable</mat-label>
             <mat-select formControlName="idEmpleadoResponsable">
               <mat-option [value]="null">-- Seleccionar --</mat-option>
-              <mat-option *ngFor="let empleado of (empleados$ | async)" [value]="empleado.id">
+              <mat-option *ngFor="let empleado of empleados$ | async" [value]="empleado.id">
                 {{ empleado.nombre }}
               </mat-option>
             </mat-select>
           </mat-form-field>
         </div>
       </div>
-
     </mat-dialog-content>
 
     <mat-dialog-actions align="end" class="form-actions">
       <button mat-button type="button" (click)="onCancel()">Cancelar</button>
-      <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Guardar</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+        Guardar
+      </button>
     </mat-dialog-actions>
   </form>
 </div>
