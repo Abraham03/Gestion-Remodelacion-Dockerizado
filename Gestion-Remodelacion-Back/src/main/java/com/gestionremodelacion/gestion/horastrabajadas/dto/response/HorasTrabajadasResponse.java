@@ -13,11 +13,12 @@ public class HorasTrabajadasResponse {
     private String nombreProyecto; // Para mostrar el nombre del proyecto
     private LocalDate fecha; // Cambiado a LocalDate
     private BigDecimal horas;
+    private BigDecimal costoPorHoraActual;
     private String actividadRealizada;
     private LocalDateTime fechaRegistro; // Cambiado a LocalDateTime
 
     public HorasTrabajadasResponse(Long id, Long idEmpleado, String nombreEmpleado, Long idProyecto,
-            String nombreProyecto, LocalDate fecha, BigDecimal horas, String actividadRealizada,
+            String nombreProyecto, LocalDate fecha, BigDecimal horas, BigDecimal costoPorHoraActual, String actividadRealizada,
             LocalDateTime fechaRegistro) { // Constructor con LocalDate y LocalDateTime
         this.id = id;
         this.idEmpleado = idEmpleado;
@@ -26,6 +27,7 @@ public class HorasTrabajadasResponse {
         this.nombreProyecto = nombreProyecto;
         this.fecha = fecha;
         this.horas = horas;
+        this.costoPorHoraActual = costoPorHoraActual;
         this.actividadRealizada = actividadRealizada;
         this.fechaRegistro = fechaRegistro;
     }
@@ -85,6 +87,14 @@ public class HorasTrabajadasResponse {
 
     public void setHoras(BigDecimal horas) {
         this.horas = horas;
+    }
+
+    public BigDecimal getCostoPorHoraActual() {
+        return costoPorHoraActual;
+    }
+
+    public void setCostoPorHoraActual(BigDecimal costoPorHoraActual) {
+        this.costoPorHoraActual = costoPorHoraActual;
     }
 
     public String getActividadRealizada() {

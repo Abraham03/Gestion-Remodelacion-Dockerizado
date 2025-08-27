@@ -17,6 +17,8 @@ import com.gestionremodelacion.gestion.horastrabajadas.model.HorasTrabajadas;
 @Repository
 public interface HorasTrabajadasRepository extends JpaRepository<HorasTrabajadas, Long> {
 
+    List<HorasTrabajadas> findByCostoPorHoraActualIsNull();    
+
     List<HorasTrabajadas> findByEmpleadoId(Long empleadoId);
 
     List<HorasTrabajadas> findByProyectoId(Long proyectoId);
@@ -27,23 +29,23 @@ public interface HorasTrabajadasRepository extends JpaRepository<HorasTrabajadas
 
     List<HorasTrabajadas> findByProyectoIdAndFechaBetween(Long proyectoId, Date startDate, Date endDate);
 
-    // ✅ NUEVO: Consulta optimizada que devuelve directamente el DTO.
+    // Consulta optimizada que devuelve directamente el DTO.
     @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
             + "h.id, e.id, e.nombreCompleto, p.id, p.nombreProyecto, "
-            + "h.fecha, h.horas, h.actividadRealizada, h.fechaRegistro) "
+            + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro) "
             + "FROM HorasTrabajadas h JOIN h.empleado e JOIN h.proyecto p")
     Page<HorasTrabajadasResponse> findAllWithDetails(Pageable pageable);
 
-    // ✅ NUEVO: Consulta optimizada con filtro por nombre de empleado o proyecto.
+    // Consulta optimizada con filtro por nombre de empleado o proyecto.
     @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
             + "h.id, e.id, e.nombreCompleto, p.id, p.nombreProyecto, "
-            + "h.fecha, h.horas, h.actividadRealizada, h.fechaRegistro) "
+            + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro) "
             + "FROM HorasTrabajadas h JOIN h.empleado e JOIN h.proyecto p WHERE "
             + "LOWER(e.nombreCompleto) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
             + "LOWER(p.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%'))")
     Page<HorasTrabajadasResponse> findByFilterWithDetails(@Param("filter") String filter, Pageable pageable);
 
-    // ✅ NUEVO: Consulta para la exportación que devuelve la entidad completa.
+    // Consulta para la exportación que devuelve la entidad completa.
     @Query("SELECT h FROM HorasTrabajadas h JOIN FETCH h.empleado e JOIN FETCH h.proyecto p WHERE "
             + "LOWER(e.nombreCompleto) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
             + "LOWER(p.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%'))")

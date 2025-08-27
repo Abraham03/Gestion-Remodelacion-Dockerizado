@@ -19,17 +19,20 @@ public class HorasTrabajadasRequest {
     @NotNull(message = "Las horas no pueden ser nulas")
     private BigDecimal horas;
 
+    private BigDecimal costoPorHora;
+
     private String actividadRealizada;
 
     // Constructors
     public HorasTrabajadasRequest() {
     }
 
-    public HorasTrabajadasRequest(Long idEmpleado, Long idProyecto, LocalDate fecha, BigDecimal horas, String actividadRealizada) {
+    public HorasTrabajadasRequest(Long idEmpleado, Long idProyecto, LocalDate fecha, BigDecimal horas, BigDecimal costoPorHora, String actividadRealizada) {
         this.idEmpleado = idEmpleado;
         this.idProyecto = idProyecto;
         this.fecha = fecha;
         this.horas = horas;
+        this.costoPorHora = costoPorHora;
         this.actividadRealizada = actividadRealizada;
     }
 
@@ -64,6 +67,14 @@ public class HorasTrabajadasRequest {
 
     public void setHoras(BigDecimal horas) {
         this.horas = horas;
+    }
+
+    public BigDecimal getCostoPorHora() {
+        return costoPorHora;
+    }
+
+    public void setCostoPorHora(BigDecimal costoPorHora) {
+        this.costoPorHora = costoPorHora;
     }
 
     public String getActividadRealizada() {

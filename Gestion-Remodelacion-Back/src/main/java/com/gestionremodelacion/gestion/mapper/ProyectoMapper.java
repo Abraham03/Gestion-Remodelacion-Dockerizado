@@ -60,6 +60,7 @@ public abstract class ProyectoMapper {
     @Mapping(target = "empleadoResponsable", expression = "java(getEmpleadoById(request.getIdEmpleadoResponsable()))")
     @Mapping(target = "id", ignore = true) // ID should not be updated from request
     @Mapping(target = "fechaCreacion", ignore = true) // FechaCreacion should not be updated from request
+    @Mapping(target = "otrosGastosDirectosConsolidado", ignore = true) // <-- ❌ AGREGAR ESTA LÍNEA
     public abstract void updateProyectoFromRequest(ProyectoRequest request, @MappingTarget Proyecto proyecto);
 
     // Helper methods to fetch Cliente and Empleado, used in expressions above

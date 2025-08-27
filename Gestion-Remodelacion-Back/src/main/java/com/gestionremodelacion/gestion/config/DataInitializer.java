@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gestionremodelacion.gestion.horastrabajadas.service.HorasTrabajadasService;
 import com.gestionremodelacion.gestion.model.Permission;
 import com.gestionremodelacion.gestion.model.Role;
 import com.gestionremodelacion.gestion.model.User;
@@ -25,15 +26,17 @@ public class DataInitializer {
     private final PermissionRepository permissionRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final HorasTrabajadasService horasTrabajadasService;
 
     public DataInitializer(RoleRepository roleRepository,
             PermissionRepository permissionRepository,
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder, HorasTrabajadasService horasTrabajadasService) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.horasTrabajadasService = horasTrabajadasService;
     }
 
     @PostConstruct
@@ -96,5 +99,11 @@ public class DataInitializer {
             adminUser.setRoles(Set.of(adminRole)); // Usar directamente 'adminRole'
             userRepository.save(adminUser);
         }
+
+        // ✅ AÑADIR LA LÓGICA DE MIGRACIÓN AQUÍ
+        System.out.println("Iniciando migración de datos...");
+        horasTrabajadasService.corregirCostosHorasHistoricas();
+        horasTrabajadasService.recalcularGastosConsolidadosProyectos();
+        System.out.println("Migración de datos finalizada.");        
     }
 }
