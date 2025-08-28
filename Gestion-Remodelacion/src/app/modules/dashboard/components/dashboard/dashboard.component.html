@@ -5,22 +5,31 @@
     <p class="subtitle">Análisis general del negocio en tiempo real.</p>
   </header>
 
-  <mat-card class="global-filters-card">
-    <div class="filter-group">
-      <mat-form-field appearance="outline">
-        <mat-label>Año (General)</mat-label>
-        <mat-select [(ngModel)]="proyectosSelectedYear" (selectionChange)="onProyectosYearChange()">
-          @for (year of proyectosYears; track year) { <mat-option [value]="year">{{ year }}</mat-option> }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Mes (General)</mat-label>
-        <mat-select [(ngModel)]="proyectosSelectedMonth" (selectionChange)="onProyectosMonthChange()">
-          @for (month of availableMonths; track month.value) { <mat-option [value]="month.value">{{ month.viewValue }}</mat-option> }
-        </mat-select>
-      </mat-form-field>
-    </div>
-  </mat-card>
+<mat-card class="global-filters-card">
+  <div class="filter-group">
+    <mat-form-field appearance="outline">
+      <mat-label>Año (General)</mat-label>
+      <mat-select [(ngModel)]="proyectosSelectedYear" (selectionChange)="onProyectosYearChange()">
+        @for (year of proyectosYears; track year) { <mat-option [value]="year">{{ year }}</mat-option> }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Mes (General)</mat-label>
+      <mat-select [(ngModel)]="proyectosSelectedMonth" (selectionChange)="onProyectosMonthChange()">
+        @for (month of availableMonths; track month.value) { <mat-option [value]="month.value">{{ month.viewValue }}</mat-option> }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Proyecto</mat-label>
+      <mat-select [(ngModel)]="proyectosSelectedId" (selectionChange)="onProyectosChange()">
+        <mat-option [value]="null">Todos los proyectos</mat-option>
+        @for (proyecto of availableProjects; track proyecto.id) {
+          <mat-option [value]="proyecto.id">{{ proyecto.nombre }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+</mat-card>
 
   <h2 class="section-title">Indicadores Clave</h2>
   <div class="kpi-grid">

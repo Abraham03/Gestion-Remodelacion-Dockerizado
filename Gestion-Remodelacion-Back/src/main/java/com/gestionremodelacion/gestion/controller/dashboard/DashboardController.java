@@ -26,12 +26,23 @@ public class DashboardController {
 
     @GetMapping("/summary")
     @PreAuthorize("hasAuthority('DASHBOARD_VIEW')")
-    // ✅ CAMBIO: Se añade el @RequestParam opcional para el mes.
-    public ResponseEntity<ApiResponse<DashboardSummaryResponse>> getDashboardSummary(@RequestParam(name = "year", required = false) Integer year, @RequestParam(name = "month", required = false) Integer month) {
-        DashboardSummaryResponse summary = dashboardService.getDashboardSummary(year, month);
+    public ResponseEntity<ApiResponse<DashboardSummaryResponse>> getDashboardSummary(
+        @RequestParam(name = "year", required = false) Integer year, 
+        @RequestParam(name = "month", required = false) Integer month,
+        @RequestParam(name = "projectId", required = false) Long projectId) {
+        DashboardSummaryResponse summary = dashboardService.getDashboardSummary(year, month, projectId);
 
         return ResponseEntity.ok(ApiResponse.success(summary));
     }
+
+    @GetMapping("/proyectos")
+    @PreAuthorize("hasAuthority('DASHBOARD_VIEW')")
+    public ResponseEntity<ApiResponse<List<Object[]>>> getProyectos(
+            @RequestParam Integer year,
+            @RequestParam(required = false) Integer month) {
+        List<Object[]> proyectos = dashboardService.getProyectos(year, month);
+        return ResponseEntity.ok(ApiResponse.success(proyectos));
+    }    
 
     @GetMapping("/clientes-summary")
     @PreAuthorize("hasAuthority('DASHBOARD_VIEW')")
@@ -43,7 +54,7 @@ public class DashboardController {
         return ResponseEntity.ok(ApiResponse.success(summary));
     }
 
-    // ✅ CAMBIO: Nuevo endpoint para obtener solo los años.
+    // Endpoint para obtener solo los años.
     @GetMapping("/years")
     @PreAuthorize("hasAuthority('DASHBOARD_VIEW')")
     public ResponseEntity<ApiResponse<List<Integer>>> getAvailableYears() {
