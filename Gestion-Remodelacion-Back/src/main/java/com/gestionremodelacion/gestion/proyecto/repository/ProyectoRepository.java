@@ -25,7 +25,7 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
     Optional<Proyecto> findByNombreProyecto(String nombreProyecto);
 
     /**
-     * ✅ CAMBIO: Consulta optimizada que devuelve directamente el DTO que
+     * Consulta optimizada que devuelve directamente el DTO que
      * necesitas. Es más eficiente que traer la entidad completa y luego
      * mapearla.
      */
@@ -40,7 +40,7 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
     Page<ProyectoResponse> findAllWithDetails(Pageable pageable);
 
     /**
-     * ✅ NUEVO: Misma consulta optimizada, pero con filtro.
+     * Misma consulta optimizada, pero con filtro.
      */
     @Query("SELECT new com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoResponse("
             + "p.id, p.cliente.id, p.cliente.nombreCliente, p.nombreProyecto, p.descripcion, "
@@ -56,7 +56,7 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
     Page<ProyectoResponse> findByFilterWithDetails(@Param("filter") String filter, Pageable pageable);
 
     /**
-     * ✅ NUEVO: Consulta para exportación que devuelve la entidad completa, ya
+     * Consulta para exportación que devuelve la entidad completa, ya
      * que el DTO de exportación necesita el objeto completo para mapear.
      */
     @Query("SELECT p FROM Proyecto p JOIN FETCH p.cliente c LEFT JOIN FETCH p.empleadoResponsable e WHERE "
@@ -67,41 +67,52 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
 
 
     /* ======================================================================= */
- /* MÉTODOS EXCLUSIVOS PARA DASHBOARDSERVICE                                */
- /* ======================================================================= */
+    /* MÉTODOS EXCLUSIVOS PARA DASHBOARDSERVICE                                */
+    /* ======================================================================= */
     @Query("SELECT DISTINCT YEAR(p.fechaInicio) FROM Proyecto p ORDER BY YEAR(p.fechaInicio) DESC")
     List<Integer> findDistinctYears();
 
-    // -- Consultas filtradas por AÑO --
+    /**
+     * Obtiene una lista de proyectos filtrados por año y mes.
+     * Devuelve solo el ID y el nombre para una carga ligera en el frontend.
+     */
+    @Query("SELECT p.id, p.nombreProyecto FROM Proyecto p WHERE "
+         + "YEAR(p.fechaInicio) = :year AND (:month is null OR MONTH(p.fechaInicio) = :month)")
+    List<Object[]> findProyectosByYearAndMonth(@Param("year") Integer year, @Param("month") Integer month);    
+
+    // Consultas filtradas por AÑO --
     @Query("SELECT COUNT(p) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year")
     Long countByYear(@Param("year") int year);
-
     @Query("SELECT SUM(p.montoRecibido) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year")
     BigDecimal sumMontoRecibidoByYear(@Param("year") int year);
-
     @Query("SELECT SUM(p.costoMaterialesConsolidado) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year")
     BigDecimal sumCostoMaterialesConsolidadoByYear(@Param("year") int year);
-
     @Query("SELECT SUM(p.otrosGastosDirectosConsolidado) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year")
     BigDecimal sumOtrosGastosDirectosConsolidadoByYear(@Param("year") int year);
-
     @Query("SELECT p.estado, COUNT(p) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year GROUP BY p.estado")
     List<Object[]> countProyectosByEstadoByYear(@Param("year") int year);
 
-    // -- ✅ NUEVO: Consultas filtradas por AÑO Y MES --
+    // Consultas filtradas por AÑO Y MES --
     @Query("SELECT COUNT(p) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year AND MONTH(p.fechaInicio) = :month")
     Long countByYearAndMonth(@Param("year") int year, @Param("month") int month);
-
     @Query("SELECT SUM(p.montoRecibido) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year AND MONTH(p.fechaInicio) = :month")
     BigDecimal sumMontoRecibidoByYearAndMonth(@Param("year") int year, @Param("month") int month);
-
     @Query("SELECT SUM(p.costoMaterialesConsolidado) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year AND MONTH(p.fechaInicio) = :month")
     BigDecimal sumCostoMaterialesConsolidadoByYearAndMonth(@Param("year") int year, @Param("month") int month);
-
     @Query("SELECT SUM(p.otrosGastosDirectosConsolidado) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year AND MONTH(p.fechaInicio) = :month")
     BigDecimal sumOtrosGastosDirectosConsolidadoByYearAndMonth(@Param("year") int year, @Param("month") int month);
-
     @Query("SELECT p.estado, COUNT(p) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year AND MONTH(p.fechaInicio) = :month GROUP BY p.estado")
     List<Object[]> countProyectosByEstadoByYearAndMonth(@Param("year") int year, @Param("month") int month);
+
+
+   // ✅ NUEVO: Consultas filtradas por ID de Proyecto
+    @Query("SELECT SUM(p.montoRecibido) FROM Proyecto p WHERE p.id = :projectId")
+    BigDecimal sumMontoRecibidoByProjectId(@Param("projectId") Long projectId);
+    @Query("SELECT SUM(p.costoMaterialesConsolidado) FROM Proyecto p WHERE p.id = :projectId")
+    BigDecimal sumCostoMaterialesConsolidadoByProjectId(@Param("projectId") Long projectId);
+    @Query("SELECT SUM(p.otrosGastosDirectosConsolidado) FROM Proyecto p WHERE p.id = :projectId")
+    BigDecimal sumOtrosGastosDirectosConsolidadoByProjectId(@Param("projectId") Long projectId);
+    @Query("SELECT p.estado, COUNT(p) FROM Proyecto p WHERE p.id = :projectId GROUP BY p.estado")
+    List<Object[]> countProyectosByEstadoByProjectId(@Param("projectId") Long projectId);    
 
 }

@@ -30,6 +30,8 @@ import { MatSelectModule } from '@angular/material/select';
 // Chart.js y el Servicio
 import { Chart, registerables } from 'chart.js';
 import { DashboardService } from '../../services/dashboard.service';
+import { DashboardProyecto } from '../../models/dashboard-proyecto.model';
+import { DropdownItem } from '../../../../core/models/dropdown-item.model';
 
 Chart.register(...registerables);
 
@@ -67,6 +69,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   public dataSource = new MatTableDataSource<any>([]);
   private charts: { [key: string]: Chart | null } = {};  public cols = 2;
   private destroy$ = new Subject<void>();
+
+  // PROPIEDADES para el filtro de proyectos
+  public availableProjects: DropdownItem[] = [];
+  public proyectosSelectedId: number | null = null;  
 
   public proyectosYears: number[] = [];
   public proyectosSelectedYear: number = new Date().getFullYear();
@@ -152,6 +158,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           this.clientesSelectedYear = this.clientesYears[0] || new Date().getFullYear();
         }
 
+        this.loadProjectsForFilters();
         // Usamos forkJoin para hacer ambas llamadas a la vez y esperar a que terminen
         forkJoin({
           proyectos: this.dashboardService.getProyectosSummary(this.proyectosSelectedYear, this.proyectosSelectedMonth),
@@ -170,14 +177,23 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // Método para cargar los proyectos basados en el filtro de año/mes
+  loadProjectsForFilters(): void {
+    this.dashboardService.getProjectsForFilter(this.proyectosSelectedYear, this.proyectosSelectedMonth).subscribe({
+      next: (projects) => {
+        this.availableProjects = projects;
+        this.proyectosSelectedId = null; // Reiniciar el proyecto seleccionado al cambiar el filtro
+      },
+      error: (err) => this.handleError(err, 'No se pudo obtener la lista de proyectos.')
+    });
+  }  
   /**
    * Carga los datos del dashboard para el AÑO SELECCIONADO.
    */
   loadProyectosData(): void {
     this.isLoading = true;
-    this.dashboardService.getProyectosSummary(this.proyectosSelectedYear, this.proyectosSelectedMonth).subscribe({
+    this.dashboardService.getProyectosSummary(this.proyectosSelectedYear, this.proyectosSelectedMonth, this.proyectosSelectedId).subscribe({
       next: (data) => {
-        console.log("Informacion Proyectos: ",data);
         this.proyectosData = data;
         this.setupVisuals(); // Actualiza los visuales
         this.isLoading = false;
@@ -201,9 +217,13 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
     onProyectosYearChange(): void {
     this.proyectosSelectedMonth = null;
+    this.proyectosSelectedId = null;
+    this.loadProjectsForFilters();
     this.loadProyectosData();
   }
   onProyectosMonthChange(): void {
+    this.proyectosSelectedId = null;
+    this.loadProjectsForFilters();
     this.loadProyectosData();
   }
 
@@ -213,6 +233,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   onClientesMonthChange(): void {
     this.loadClientesData();
+  }  
+
+  onProyectosChange(): void {
+    this.loadProyectosData();
   }  
 
   private setupVisuals(): void {
@@ -233,7 +257,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     
     this.dataSource.data = tableData;
     
-    // ✅ CAMBIO CRÍTICO: Re-vinculamos el paginador al dataSource DESPUÉS de actualizar los datos.
+    // Re-vinculamos el paginador al dataSource DESPUÉS de actualizar los datos.
     // Esto notifica al paginador sobre el nuevo conjunto de datos y lo hace funcionar.
     // Usamos un pequeño retraso (setTimeout) para asegurar que Angular ha procesado los cambios.
     setTimeout(() => {

@@ -15,13 +15,13 @@ export const roleGuard: CanActivateFn = (route, state) => {
     return router.parseUrl('/login');
   }
 
-  // ⭐️ CRÍTICO: userRoles() ahora devuelve Role[], por lo que accedemos a `role.name`
+  // Devuelve Role[], por lo que accedemos a `role.name`
   const userRoles = auth.userRoles();
   const userPermissions = auth.userPermissions(); // Asume que tienes este signal en AuthService
 
   // 1. Check for roles if defined
   if (requiredRoles && requiredRoles.length > 0) {
-    // ⭐️ CORRECCIÓN: Usar `some` para verificar si el `name` del objeto `Role` está en la lista de `requiredRoles`
+    // Usar `some` para verificar si el `name` del objeto `Role` está en la lista de `requiredRoles`
     const hasRequiredRole = requiredRoles.some((roleName: string) =>
         userRoles.some(userRole => userRole.name === `ROLE_${roleName}`)
     );
@@ -37,10 +37,10 @@ export const roleGuard: CanActivateFn = (route, state) => {
 
   // 2. Check for specific permission if defined
   if (requiredPermission) {
-    // ⭐️ CORRECCIÓN: Ahora se utiliza el signal `userPermissions` para chequear los permisos
+    // Se utiliza el signal `userPermissions` para chequear los permisos
     const hasRequiredPermission = userPermissions.includes(requiredPermission);
 
-    // ⭐️ ADICIÓN: Verificar si el usuario tiene el rol ADMIN, ya que podría estar en el `userRoles`
+    // Verificar si el usuario tiene el rol ADMIN, ya que podría estar en el `userRoles`
     const isAdmin = userRoles.some(userRole => userRole.name === 'ROLE_ADMIN');
 
     if (!hasRequiredPermission && !isAdmin) {
@@ -49,6 +49,5 @@ export const roleGuard: CanActivateFn = (route, state) => {
     }
   }
 
-  console.log(`RoleGuard: Access granted for route: ${fullPath}.`);
   return true;
 };
