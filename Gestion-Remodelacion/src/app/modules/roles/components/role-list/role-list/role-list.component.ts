@@ -121,6 +121,13 @@ export class RoleListComponent implements OnInit {
     this.loadRoles();
   }
 
+  applyFilterIfEmpty(filterValue: string): void {
+    // Si el usuario ha borrado todo el texto del campo de búsqueda
+    if (filterValue === '') {
+      this.applyFilter(); // Llama al filtro con un string vacío
+    }
+  }
+
   openRoleForm(role?: Role): void {
     const dialogRef = this.dialog.open(RoleFormComponent, {
       width: '600px',

@@ -36,13 +36,11 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('USER_READ')")
-    // Change to return Page<UserResponse> and accept Pageable
     public ResponseEntity<ApiResponse<Page<UserResponse>>> getAllUsers(
-            @PageableDefault(size = 10, sort = "id") Pageable pageable, // Default size and sort
-            @RequestParam(required = false) String searchTerm // Optional search term
+            @PageableDefault(size = 10, sort = "id") Pageable pageable,
+            @RequestParam(required = false) String filter 
     ) {
-        // You'll need to modify your UserService to accept Pageable and searchTerm
-        Page<UserResponse> usersPage = userService.findAll(pageable, searchTerm);
+        Page<UserResponse> usersPage = userService.findAll(pageable, filter);
         return ResponseEntity.ok(ApiResponse.success(usersPage));
     }
 

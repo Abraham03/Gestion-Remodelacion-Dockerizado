@@ -37,7 +37,6 @@ public class RoleService {
     public Page<RoleResponse> findAll(Pageable pageable, String searchTerm) {
         Page<Role> rolesPage;
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            // Correctly pass searchTerm to both 'name' and 'description' parameters
             rolesPage = roleRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchTerm, searchTerm, pageable);
         } else {
             rolesPage = roleRepository.findAll(pageable);

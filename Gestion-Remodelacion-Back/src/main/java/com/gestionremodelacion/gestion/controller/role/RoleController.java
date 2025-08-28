@@ -36,11 +36,10 @@ public class RoleController {
     @PreAuthorize("hasAuthority('ROLE_READ')")
     public ResponseEntity<ApiResponse<Page<RoleResponse>>> getAllRoles(
             @PageableDefault(size = 10, page = 0, sort = "id") Pageable pageable,
-            @RequestParam(required = false) String searchTerm) { // Add this parameter
+            @RequestParam(required = false) String searchTerm
+        ) { 
 
-        // Pass searchTerm to the service layer
         Page<RoleResponse> rolesResponse = roleService.findAll(pageable, searchTerm);
-
         return ResponseEntity.ok(ApiResponse.success(rolesResponse));
     }
 

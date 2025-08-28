@@ -8,6 +8,4 @@ export interface DashboardProyecto {
   estado: string; // Mapeado de estado original, luego a estadoDisplay
   progresoPorcentaje: number | null; // <-- CAMBIADO A number | null
   estadoDisplay: string; // Para mostrar el estado legible
-  // Puedes añadir más propiedades si las necesitas en el dashboard
-  // como nombreCliente, nombreEmpleadoResponsable, etc.
 }

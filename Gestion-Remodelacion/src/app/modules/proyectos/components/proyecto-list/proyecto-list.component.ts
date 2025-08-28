@@ -155,13 +155,21 @@ export class ProyectosListComponent implements AfterViewInit {
    * Aplica un filtro a la lista de proyectos.
    * @param event El evento del campo de entrada.
    */
-  applyFilter(event: Event): void {
-    this.filterValue = (event.target as HTMLInputElement).value
+  applyFilter(filterValue: String): void {
+    this.filterValue = filterValue
       .trim()
       .toLowerCase();
     this.paginator.pageIndex = 0; // Resetear a la primera página al aplicar un nuevo filtro
     this.loadProyectos();
   }
+
+      applyFilterIfEmpty(filterValue: string): void {
+    // Si el usuario ha borrado todo el texto del campo de búsqueda
+    if (filterValue === '') {
+      this.applyFilter(''); // Llama al filtro con un string vacío
+    }
+  }
+  
 
   // Nuevo método para asignar colores a los chips de estado
   getEstadoColor(estado: string): 'primary' | 'accent' | 'warn' | 'basic' {

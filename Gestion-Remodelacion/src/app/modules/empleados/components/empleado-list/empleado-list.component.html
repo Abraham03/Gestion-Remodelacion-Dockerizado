@@ -4,8 +4,9 @@
     <div class="table-actions">
       <mat-form-field appearance="outline" class="filter-field">
         <mat-label>Buscar empleado</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Juan Pérez">
-        <mat-icon matSuffix>search</mat-icon>
+        <input #filterValue matInput (keyup.enter)="applyFilter(filterValue.value)"
+          (input)="applyFilterIfEmpty(filterValue.value)" placeholder="Ej. Juan Pérez">
+        <mat-icon matSuffix (click)="applyFilter(filterValue.value)">search</mat-icon>
       </mat-form-field>
 
       <div class="table-actions">

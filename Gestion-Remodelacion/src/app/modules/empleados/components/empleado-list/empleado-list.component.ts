@@ -101,12 +101,19 @@ export class EmpleadoListComponent implements AfterViewInit {
       });
   }
 
-  applyFilter(event: Event): void {
-    this.filterValue = (event.target as HTMLInputElement).value
+  applyFilter(filterValue: String): void {
+    this.filterValue = filterValue
       .trim()
       .toLowerCase();
     this.paginator.pageIndex = 0; // Actualizar el índice del paginador
     this.loadEmpleados(); // Llamar al servicio para filtrar
+  }
+
+      applyFilterIfEmpty(filterValue: string): void {
+    // Si el usuario ha borrado todo el texto del campo de búsqueda
+    if (filterValue === '') {
+      this.applyFilter(''); // Llama al filtro con un string vacío
+    }
   }
 
   openForm(empleado?: Empleado): void {

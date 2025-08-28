@@ -18,11 +18,7 @@
   color: red;
 }
 
-.mat-column-username {
-  font-weight: 500;
-  // ✅ CAMBIO: Se prefija la variable con 'vars'.
-  color: vars.$color-primary;
-}
+
 
 .filter-field {
   width: 100%;
@@ -35,4 +31,10 @@
   align-items: center;
   flex-wrap: wrap;
   gap: vars.$spacing-s;
+}
+
+.mat-column-username {
+  font-weight: 500;
+  // ✅ CAMBIO: Se prefija la variable con 'vars'.
+  color: vars.$color-primary;
 }
