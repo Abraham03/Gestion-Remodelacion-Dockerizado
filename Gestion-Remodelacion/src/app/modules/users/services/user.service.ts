@@ -16,9 +16,9 @@ export class UserService extends BaseService<User> {
   }
 
   getUsers(
-    page: number,
-    size: number,
-    filter: string
+    page: number = 0,
+    size: number = 5,
+    filter: string = ''
   ): Observable<Page<User>> {
     let params = new HttpParams()
       .set('page', page.toString())

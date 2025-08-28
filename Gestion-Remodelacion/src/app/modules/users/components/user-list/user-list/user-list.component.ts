@@ -104,6 +104,21 @@ export class UserListComponent implements AfterViewInit{
     });
   }
 
+    applyFilter(filterValue: String): void {
+    this.filterValue = filterValue
+      .trim()
+      .toLowerCase();
+    this.paginator.pageIndex = 0; // Resetear a la primera página al aplicar un nuevo filtro
+    this.loadUsers();
+  }
+
+    applyFilterIfEmpty(filterValue: string): void {
+    // Si el usuario ha borrado todo el texto del campo de búsqueda
+    if (filterValue === '') {
+      this.applyFilter(''); // Llama al filtro con un string vacío
+    }
+  }
+
   deleteUser(id: number): void {
     if (confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
       this.userService.deleteUser(id).subscribe({

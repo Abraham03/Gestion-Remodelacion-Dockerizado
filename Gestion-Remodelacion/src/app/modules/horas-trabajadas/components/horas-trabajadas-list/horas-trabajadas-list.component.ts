@@ -130,11 +130,17 @@ export class HorasTrabajadasListComponent implements AfterViewInit {
    * Aplica el filtro a la tabla de horas trabajadas.
    * @param event Evento del teclado para obtener el valor del filtro.
    */
-  applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
+  applyFilter(filterValue: String): void {
     this.filterValue = filterValue.trim().toLowerCase();
     this.currentPage = 0; // Resetear la página al aplicar un filtro
     this.loadHorasTrabajadas();
+  }
+
+  applyFilterIfEmpty(filterValue: string): void {
+    // Si el usuario ha borrado todo el texto del campo de búsqueda
+    if (filterValue === '') {
+      this.applyFilter(''); // Llama al filtro con un string vacío
+    }
   }
 
   /**

@@ -4,8 +4,10 @@
     <div class="table-actions">
       <mat-form-field appearance="outline" class="filter-field">
         <mat-label>Filtrar</mat-label>
-        <input matInput placeholder="Ej. Juan Pérez" [(ngModel)]="filterValue" >
-        <mat-icon matSuffix>search</mat-icon>
+        <input #filterValue matInput placeholder="Ej. Juan Pérez" 
+        (keyup.enter)="applyFilter(filterValue.value)"
+        (input)="applyFilterIfEmpty(filterValue.value)"  >
+        <mat-icon matSuffix (click)="applyFilter(filterValue.value)">search</mat-icon>
       </mat-form-field>
       <button mat-flat-button color="primary" (click)="openUserForm()">
         <mat-icon>add</mat-icon> Registrar Usuario
@@ -56,6 +58,8 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
       </table>
+
+      
     </div>
     
     <mat-paginator

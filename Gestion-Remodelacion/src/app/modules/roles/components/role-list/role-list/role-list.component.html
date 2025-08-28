@@ -4,8 +4,9 @@
     <div class="table-actions">
       <mat-form-field appearance="outline" class="filter-field">
         <mat-label>Buscar Rol</mat-label>
-        <input matInput [(ngModel)]="searchTerm" (keyup.enter)="applyFilter()" placeholder="Nombre, descripción...">
-        <mat-icon matSuffix>search</mat-icon>
+        <input #filterValue matInput [(ngModel)]="searchTerm" (keyup.enter)="applyFilter()" 
+        (input)="applyFilterIfEmpty(filterValue.value)" placeholder="Nombre, descripción...">
+        <mat-icon matSuffix (click)="applyFilter()" >search</mat-icon>
       </mat-form-field>
       <button mat-flat-button color="primary" (click)="openRoleForm()" *ngIf="hasPermission('ROLE_CREATE')">
         <mat-icon>add</mat-icon> Nuevo Rol

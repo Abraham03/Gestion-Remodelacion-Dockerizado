@@ -49,11 +49,11 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Page<UserResponse> findAll(Pageable pageable, String searchTerm) {
-        log.info("Fetching all users with searchTerm: {}", searchTerm); // New log
+    public Page<UserResponse> findAll(Pageable pageable, String filter) {
+        log.info("Fetching all users with searchTerm: {}", filter); // New log
         Page<User> usersPage;
-        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            usersPage = userRepository.findByUsernameContainingIgnoreCase(searchTerm, pageable);
+        if (filter != null && !filter.trim().isEmpty()) {
+            usersPage = userRepository.findByUsernameContainingIgnoreCase(filter, pageable);
         } else {
             usersPage = userRepository.findAll(pageable);
         }

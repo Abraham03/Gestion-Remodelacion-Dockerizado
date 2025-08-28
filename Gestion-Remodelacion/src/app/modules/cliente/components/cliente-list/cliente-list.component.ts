@@ -99,12 +99,19 @@ export class ClienteListComponent implements AfterViewInit {
   });
   }
 
-  applyFilter(event: Event): void {
-    this.filterValue = (event.target as HTMLInputElement).value
+  applyFilter(filterValue: String): void {
+    this.filterValue = filterValue
       .trim()
       .toLowerCase();
     this.paginator.pageIndex = 0; // Resetear a la primera página al aplicar un nuevo filtro
     this.loadClientes();
+  }
+
+    applyFilterIfEmpty(filterValue: string): void {
+    // Si el usuario ha borrado todo el texto del campo de búsqueda
+    if (filterValue === '') {
+      this.applyFilter(''); // Llama al filtro con un string vacío
+    }
   }
   
   openForm(cliente?: Cliente): void {
@@ -143,7 +150,7 @@ export class ClienteListComponent implements AfterViewInit {
     this.loadClientes();
   }
 
-  // ⭐️ Nuevo método para capturar el cambio de orden
+  //Nuevo método para capturar el cambio de orden
   onSortChange(sort: Sort): void {
     if (sort.direction) {
       this.currentSort = sort.active;
@@ -155,7 +162,7 @@ export class ClienteListComponent implements AfterViewInit {
     this.loadClientes();
   }
 
-  // ⭐️ Métodos de exportación usando el servicio centralizado
+  //Métodos de exportación usando el servicio centralizado
   exportToExcel(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
     const apiUrl = this.clienteService.getApiUrl() + '/export/excel'; // ⭐️ Corrección: Se usa un nuevo método en el servicio para obtener la URL
