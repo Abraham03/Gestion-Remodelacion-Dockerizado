@@ -29,7 +29,6 @@ export class HeaderComponent implements OnDestroy {
   private sidebarService = inject(SidebarService);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
-
   // ⭐️ INYECCIÓN DEL SERVICIO Y ACCESO DIRECTO A SIGNALS
   authService = inject(AuthService);
 
