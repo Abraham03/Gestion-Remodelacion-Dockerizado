@@ -17,62 +17,73 @@ import com.gestionremodelacion.gestion.horastrabajadas.model.HorasTrabajadas;
 @Repository
 public interface HorasTrabajadasRepository extends JpaRepository<HorasTrabajadas, Long> {
 
-    List<HorasTrabajadas> findByCostoPorHoraActualIsNull();    
-    List<HorasTrabajadas> findByEmpleadoId(Long empleadoId);
-    List<HorasTrabajadas> findByProyectoId(Long proyectoId);
-    List<HorasTrabajadas> findByFechaBetween(Date startDate, Date endDate);
-    List<HorasTrabajadas> findByEmpleadoIdAndFechaBetween(Long empleadoId, Date startDate, Date endDate);
-    List<HorasTrabajadas> findByProyectoIdAndFechaBetween(Long proyectoId, Date startDate, Date endDate);
+        List<HorasTrabajadas> findByCostoPorHoraActualIsNull();
 
-    // Consulta optimizada que devuelve directamente el DTO.
-    @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
-            + "h.id, e.id, e.nombreCompleto, p.id, p.nombreProyecto, "
-            + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro) "
-            + "FROM HorasTrabajadas h JOIN h.empleado e JOIN h.proyecto p")
-    Page<HorasTrabajadasResponse> findAllWithDetails(Pageable pageable);
+        List<HorasTrabajadas> findByEmpleadoId(Long empleadoId);
 
-    // Consulta optimizada con filtro por nombre de empleado o proyecto.
-    @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
-            + "h.id, e.id, e.nombreCompleto, p.id, p.nombreProyecto, "
-            + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro) "
-            + "FROM HorasTrabajadas h JOIN h.empleado e JOIN h.proyecto p WHERE "
-            + "LOWER(e.nombreCompleto) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
-            + "LOWER(p.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%'))")
-    Page<HorasTrabajadasResponse> findByFilterWithDetails(@Param("filter") String filter, Pageable pageable);
+        List<HorasTrabajadas> findByProyectoId(Long proyectoId);
 
-    // Consulta para la exportación que devuelve la entidad completa.
-    @Query("SELECT h FROM HorasTrabajadas h JOIN FETCH h.empleado e JOIN FETCH h.proyecto p WHERE "
-            + "LOWER(e.nombreCompleto) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
-            + "LOWER(p.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%'))")
-    List<HorasTrabajadas> findByFilterForExport(@Param("filter") String filter, Sort sort);
+        List<HorasTrabajadas> findByFechaBetween(Date startDate, Date endDate);
 
-    /* ======================================================================= */
- /* MÉTODOS EXCLUSIVOS PARA DashboardService (Agregaciones)                 */
- /* ======================================================================= */
-    // -- Consultas filtradas por AÑO --
-    @Query("SELECT e.rolCargo, COUNT(DISTINCT e.id) FROM HorasTrabajadas h JOIN h.empleado e WHERE YEAR(h.fecha) = :year GROUP BY e.rolCargo")
-    List<Object[]> countEmpleadosByRolByYear(@Param("year") int year);
-    @Query("SELECT h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year GROUP BY h.proyecto.nombreProyecto")
-    List<Object[]> sumHorasByProyectoByYear(@Param("year") int year);
-    @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas), SUM(h.horas * h.costoPorHoraActual)"
-            + " FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
-    List<Object[]> sumHorasByEmpleadoAndProyectoByYear(@Param("year") int year);
+        List<HorasTrabajadas> findByEmpleadoIdAndFechaBetween(Long empleadoId, Date startDate, Date endDate);
 
-    // Consultas filtradas por AÑO Y MES --
-    @Query("SELECT e.rolCargo, COUNT(DISTINCT e.id) FROM HorasTrabajadas h JOIN h.empleado e WHERE YEAR(h.fecha) = :year AND MONTH(h.fecha) = :month GROUP BY e.rolCargo")
-    List<Object[]> countEmpleadosByRolByYearAndMonth(@Param("year") int year, @Param("month") int month);    
-    @Query("SELECT h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year AND MONTH(h.proyecto.fechaInicio) = :month GROUP BY h.proyecto.nombreProyecto")
-    List<Object[]> sumHorasByProyectoByYearAndMonth(@Param("year") int year, @Param("month") int month);
-    @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas), SUM(h.horas * h.costoPorHoraActual)" 
-           + "FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year AND MONTH(h.proyecto.fechaInicio) = :month GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
-    List<Object[]> sumHorasByEmpleadoAndProyectoByYearAndMonth(@Param("year") int year, @Param("month") int month);
+        List<HorasTrabajadas> findByProyectoIdAndFechaBetween(Long proyectoId, Date startDate, Date endDate);
 
-    // Consultas filtradas por ID de Proyecto
-    @Query("SELECT e.rolCargo, COUNT(DISTINCT e.id) FROM HorasTrabajadas h JOIN h.empleado e WHERE h.proyecto.id = :projectId GROUP BY e.rolCargo")
-    List<Object[]> countEmpleadosByRolByProjectId(@Param("projectId") Long projectId);    
-    @Query("SELECT h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE h.proyecto.id = :projectId GROUP BY h.proyecto.nombreProyecto")
-    List<Object[]> sumHorasByProyectoByProjectId(@Param("projectId") Long projectId);
-    @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas), SUM(h.horas * h.costoPorHoraActual)" 
-           + "FROM HorasTrabajadas h WHERE h.proyecto.id = :projectId GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
-    List<Object[]> sumHorasByEmpleadoAndProyectoByProjectId(@Param("projectId") Long projectId);    
+        // Consulta optimizada que devuelve directamente el DTO.
+        @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
+                        + "h.id, e.id, e.nombreCompleto, p.id, p.nombreProyecto, "
+                        + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro) "
+                        + "FROM HorasTrabajadas h JOIN h.empleado e JOIN h.proyecto p")
+        Page<HorasTrabajadasResponse> findAllWithDetails(Pageable pageable);
+
+        // Consulta optimizada con filtro por nombre de empleado o proyecto.
+        @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
+                        + "h.id, e.id, e.nombreCompleto, p.id, p.nombreProyecto, "
+                        + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro) "
+                        + "FROM HorasTrabajadas h JOIN h.empleado e JOIN h.proyecto p WHERE "
+                        + "LOWER(e.nombreCompleto) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
+                        + "LOWER(p.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%'))")
+        Page<HorasTrabajadasResponse> findByFilterWithDetails(@Param("filter") String filter, Pageable pageable);
+
+        // Consulta para la exportación que devuelve la entidad completa.
+        @Query("SELECT h FROM HorasTrabajadas h JOIN FETCH h.empleado e JOIN FETCH h.proyecto p WHERE "
+                        + "LOWER(e.nombreCompleto) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
+                        + "LOWER(p.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%'))")
+        List<HorasTrabajadas> findByFilterForExport(@Param("filter") String filter, Sort sort);
+
+        /* ======================================================================= */
+        /* MÉTODOS EXCLUSIVOS PARA DashboardService (Agregaciones) */
+        /* ======================================================================= */
+        // -- Consultas filtradas por AÑO --
+        @Query("SELECT e.rolCargo, COUNT(DISTINCT e.id) FROM HorasTrabajadas h JOIN h.empleado e WHERE YEAR(h.fecha) = :year GROUP BY e.rolCargo")
+        List<Object[]> countEmpleadosByRolByYear(@Param("year") int year);
+
+        @Query("SELECT h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year GROUP BY h.proyecto.nombreProyecto")
+        List<Object[]> sumHorasByProyectoByYear(@Param("year") int year);
+
+        @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas), SUM(h.horas * h.costoPorHoraActual)"
+                        + " FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
+        List<Object[]> sumHorasByEmpleadoAndProyectoByYear(@Param("year") int year);
+
+        // Consultas filtradas por AÑO Y MES --
+        @Query("SELECT e.rolCargo, COUNT(DISTINCT e.id) FROM HorasTrabajadas h JOIN h.empleado e WHERE YEAR(h.fecha) = :year AND MONTH(h.fecha) = :month GROUP BY e.rolCargo")
+        List<Object[]> countEmpleadosByRolByYearAndMonth(@Param("year") int year, @Param("month") int month);
+
+        @Query("SELECT h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year AND MONTH(h.proyecto.fechaInicio) = :month GROUP BY h.proyecto.nombreProyecto")
+        List<Object[]> sumHorasByProyectoByYearAndMonth(@Param("year") int year, @Param("month") int month);
+
+        @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas), SUM(h.horas * h.costoPorHoraActual)"
+                        + "FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year AND MONTH(h.proyecto.fechaInicio) = :month GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
+        List<Object[]> sumHorasByEmpleadoAndProyectoByYearAndMonth(@Param("year") int year, @Param("month") int month);
+
+        // Consultas filtradas por ID de Proyecto
+        @Query("SELECT e.rolCargo, COUNT(DISTINCT e.id) FROM HorasTrabajadas h JOIN h.empleado e WHERE h.proyecto.id = :projectId GROUP BY e.rolCargo")
+        List<Object[]> countEmpleadosByRolByProjectId(@Param("projectId") Long projectId);
+
+        @Query("SELECT h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE h.proyecto.id = :projectId GROUP BY h.proyecto.nombreProyecto")
+        List<Object[]> sumHorasByProyectoByProjectId(@Param("projectId") Long projectId);
+
+        @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas), SUM(h.horas * h.costoPorHoraActual)"
+                        + "FROM HorasTrabajadas h WHERE h.proyecto.id = :projectId GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
+        List<Object[]> sumHorasByEmpleadoAndProyectoByProjectId(@Param("projectId") Long projectId);
 }

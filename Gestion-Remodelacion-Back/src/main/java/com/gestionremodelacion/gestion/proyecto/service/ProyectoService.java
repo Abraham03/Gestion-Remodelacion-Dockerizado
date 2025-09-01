@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.gestionremodelacion.gestion.dto.response.ApiResponse;
 import com.gestionremodelacion.gestion.mapper.ProyectoMapper;
 import com.gestionremodelacion.gestion.proyecto.dto.request.ProyectoRequest;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoExcelDTO;
@@ -44,17 +43,18 @@ public class ProyectoService {
     @Transactional(readOnly = true)
     public ProyectoResponse getProyectoById(Long id) {
         Proyecto proyecto = proyectoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Proyecto no encontrado con ID: " + id));
         return proyectoMapper.toProyectoResponse(proyecto);
     }
 
     @Transactional
     public ProyectoResponse createProyecto(ProyectoRequest proyectoRequest) {
 
-        if(proyectoRequest.getCostoMaterialesConsolidado() == null){
+        if (proyectoRequest.getCostoMaterialesConsolidado() == null) {
             proyectoRequest.setCostoMaterialesConsolidado(BigDecimal.ZERO);
         }
-        if(proyectoRequest.getOtrosGastosDirectosConsolidado() == null){
+        if (proyectoRequest.getOtrosGastosDirectosConsolidado() == null) {
             proyectoRequest.setOtrosGastosDirectosConsolidado(BigDecimal.ZERO);
         }
         Proyecto proyecto = proyectoMapper.toProyecto(proyectoRequest);
@@ -66,28 +66,31 @@ public class ProyectoService {
     @Transactional
     public ProyectoResponse updateProyecto(Long id, ProyectoRequest proyectoRequest) {
         Proyecto proyecto = proyectoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Proyecto no encontrado con ID: " + id));
 
-        // 3. Manejar los campos numéricos que podrían venir como nulos desde el frontend
+        // 3. Manejar los campos numéricos que podrían venir como nulos desde el
+        // frontend
         if (proyectoRequest.getCostoMaterialesConsolidado() == null) {
             proyectoRequest.setCostoMaterialesConsolidado(BigDecimal.ZERO);
         }
         if (proyectoRequest.getOtrosGastosDirectosConsolidado() == null) {
             proyectoRequest.setOtrosGastosDirectosConsolidado(BigDecimal.ZERO);
-        }       
+        }
         proyectoMapper.updateProyectoFromRequest(proyectoRequest, proyecto);
         Proyecto updatedProyecto = proyectoRepository.save(proyecto);
         return proyectoMapper.toProyectoResponse(updatedProyecto);
     }
 
     @Transactional
-    public ApiResponse<Void> deleteProyecto(Long id) {
+    public void deleteProyecto(Long id) {
+        // 1. Verificar si el proyecto existe para evitar errores innecesarios
         if (!proyectoRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado con ID: " + id);
         }
-        
+
+        // 7. Si no hay dependencias, proceder a eliminar
         proyectoRepository.deleteById(id);
-        return ApiResponse.success(null);
     }
 
     private List<Proyecto> findAllProyectosForExport(String filter, String sort) {
@@ -96,7 +99,8 @@ public class ProyectoService {
             String[] sortParts = sort.split(",");
             if (sortParts.length == 2) {
                 String property = sortParts[0];
-                Sort.Direction direction = "desc".equalsIgnoreCase(sortParts[1]) ? Sort.Direction.DESC : Sort.Direction.ASC;
+                Sort.Direction direction = "desc".equalsIgnoreCase(sortParts[1]) ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
                 sortObj = Sort.by(direction, property);
             }
         }

@@ -69,7 +69,8 @@ public class ProyectoController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('PROYECTO_UPDATE')")
-    public ResponseEntity<ProyectoResponse> updateProyecto(@PathVariable Long id, @Valid @RequestBody ProyectoRequest proyectoRequest) {
+    public ResponseEntity<ProyectoResponse> updateProyecto(@PathVariable Long id,
+            @Valid @RequestBody ProyectoRequest proyectoRequest) {
         ProyectoResponse updatedProyecto = proyectoService.updateProyecto(id, proyectoRequest);
         return ResponseEntity.ok(updatedProyecto);
     }
@@ -78,7 +79,7 @@ public class ProyectoController {
     @PreAuthorize("hasAuthority('PROYECTO_DELETE')")
     public ResponseEntity<ApiResponse<Void>> deleteProyecto(@PathVariable Long id) {
         proyectoService.deleteProyecto(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Proyecto eliminado con éxito", null));
     }
 
     /**
@@ -95,7 +96,8 @@ public class ProyectoController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Proyectos.xlsx");
-        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentType(
+                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 
         return ResponseEntity.ok().headers(headers).body(excelStream.toByteArray());
     }
@@ -119,7 +121,6 @@ public class ProyectoController {
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Proyectos.pdf");
         headers.setContentType(MediaType.APPLICATION_PDF);
 
-        return ResponseEntity.ok().headers(headers
-        ).body(pdfStream.toByteArray());
+        return ResponseEntity.ok().headers(headers).body(pdfStream.toByteArray());
     }
 }
