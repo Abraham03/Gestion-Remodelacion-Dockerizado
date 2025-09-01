@@ -18,6 +18,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips'; // <-- Importar MatChipsModule
 import { ExportService } from '../../../../core/services/export.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-proyectos-list',
@@ -140,12 +141,21 @@ export class ProyectosListComponent implements AfterViewInit {
     if (confirm('¿Estás seguro de eliminar este proyecto?')) {
       this.proyectosService.deleteProyecto(id).subscribe({
         next: () => {
+          this.snackBar.open('Proyecto eliminado correctamente.', 'Cerrar', { duration: 3000 });
           this.loadProyectos(); // Recargar la lista después de la eliminación
-          // Opcional: Mostrar un mensaje de éxito (ej. con MatSnackBar)
         },
-        error: (err) => {
+        error: (err: HttpErrorResponse) => {
           console.error('Error al eliminar proyecto:', err);
-          // Opcional: Mostrar un mensaje de error
+          
+          let errorMessage = 'Ocurrió un error inesperado.';
+          if (err.status === 409) {
+            // Mensaje específico para el error de conflicto
+            errorMessage = err.error?.message || 'Este proyecto no se puede eliminar porque tiene registros asociados (ej. horas trabajadas).';
+          }
+          this.snackBar.open(errorMessage, 'Cerrar', {
+            duration: 7000, // Más tiempo para que el usuario pueda leerlo
+            panelClass: ['error-snackbar']
+          });                    
         },
       });
     }
