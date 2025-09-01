@@ -19,7 +19,7 @@ public class ProyectoExcelDTO implements Exportable {
     public List<String> getExportHeaders() {
         return Arrays.asList(
                 "Nombre Proyecto", "Cliente", "Responsable", "Estado", "Progreso (%)",
-                "Monto Contrato", "Monto Recibido", "Fecha Inicio", "Fecha Fin Estimada",
+                "Monto Contrato", "Monto Recibido","Costo Materiales","Otros Gastos Directos", "Costo Mano de Obra", "Fecha Inicio", "Fecha Fin Estimada",
                 "Fecha Finalización Real", "Dirección", "Notas"
         );
     }
@@ -43,6 +43,9 @@ public class ProyectoExcelDTO implements Exportable {
                 proyecto.getProgresoPorcentaje().toString(),
                 proyecto.getMontoContrato().toString(),
                 proyecto.getMontoRecibido().toString(),
+                proyecto.getCostoMaterialesConsolidado().toString(),
+                proyecto.getOtrosGastosDirectosConsolidado().toString(),
+                proyecto.getCostoManoDeObra().toString(),
                 fechaInicio,
                 fechaFinEstimada,
                 fechaFinalizacionReal,

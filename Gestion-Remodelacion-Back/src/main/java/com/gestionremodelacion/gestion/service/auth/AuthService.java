@@ -90,12 +90,7 @@ public class AuthService {
 
         // 2. Generar nuevo access token
         User user = refreshToken.getUser();
-        String newJwtToken = jwtUtils.generateTokenFromUsername(
-                user.getUsername(),
-                user.getRoles().stream()
-                        .map(Role::getName)
-                        .collect(Collectors.toList())
-        );
+ 
 
         // ⭐️ OBTENER ROLES Y PERMISOS SEPARADOS
         // Esto es necesario para devolver la lista de autoridades completa
@@ -108,7 +103,12 @@ public class AuthService {
                             .collect(Collectors.toSet())); // Agregar los permisos
                     return authorities.stream();
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());   
+
+       String newJwtToken = jwtUtils.generateTokenFromUsername(
+                user.getUsername(),
+                allAuthorities
+        );                
 
         List<String> roles = user.getRoles().stream()
                 .map(Role::getName)

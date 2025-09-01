@@ -73,9 +73,9 @@ public class HorasTrabajadasService {
         Proyecto proyecto = proyectoRepository.findById(horasTrabajadas.getProyecto().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado"));
         // 7. Actualizar el costo consolidado del proyecto
-        BigDecimal otrosGastosActuales = proyecto.getOtrosGastosDirectosConsolidado();
-        BigDecimal nuevosGastos = otrosGastosActuales.add(montoTotal);
-        proyecto.setOtrosGastosDirectosConsolidado(nuevosGastos);
+        BigDecimal costoManoDeObra = proyecto.getCostoManoDeObra();
+        BigDecimal nuevosGastos = costoManoDeObra.add(montoTotal);
+        proyecto.setCostoManoDeObra(nuevosGastos);
         // 8. Guardar la actualización del proyecto
         proyectoRepository.save(proyecto);    
 
@@ -121,17 +121,32 @@ public class HorasTrabajadasService {
         Proyecto proyecto = proyectoRepository.findById(horasTrabajadasOriginal.getProyecto().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado"));
         
-        BigDecimal nuevosGastos = proyecto.getOtrosGastosDirectosConsolidado().add(diferenciaCosto);
-        proyecto.setOtrosGastosDirectosConsolidado(nuevosGastos);
+        BigDecimal nuevosGastos = proyecto.getCostoManoDeObra().add(diferenciaCosto);
+        proyecto.setCostoManoDeObra(nuevosGastos);
         proyectoRepository.save(proyecto);
         return horasTrabajadasMapper.toHorasTrabajadasResponse(horasTrabajadasOriginal);
     }
 
     @Transactional
     public ApiResponse<Void> deleteHorasTrabajadas(Long id) {
-        if (!horasTrabajadasRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro de horas trabajadas no encontrado con ID: " + id);
-        }
+        // 1. Obtener el registro de horas original antes de eliminarlo
+        HorasTrabajadas horasTrabajadas = horasTrabajadasRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro de horas trabajadas no encontrado con ID: " + id));
+
+        // 2. Calcular el costo total del registro a eliminar
+        BigDecimal costoTotalEliminado = horasTrabajadas.getHoras().multiply(horasTrabajadas.getCostoPorHoraActual());
+
+        // 3. Obtener el proyecto asociado para actualizarlo
+        Proyecto proyecto = horasTrabajadas.getProyecto();
+        
+        // 4. Restar el costo del registro eliminado del costo de mano de obra consolidado del proyecto
+        BigDecimal nuevoCostoManoDeObra = proyecto.getCostoManoDeObra().subtract(costoTotalEliminado);
+        proyecto.setCostoManoDeObra(nuevoCostoManoDeObra);
+
+        // 5. Guardar la actualización del proyecto
+        proyectoRepository.save(proyecto);
+
+        // 6. Eliminar el registro de horas trabajadas               
         horasTrabajadasRepository.deleteById(id);
         return new ApiResponse<>(HttpStatus.OK.value(), "Registro de horas trabajadas eliminado exitosamente.", null);
     }
@@ -200,6 +215,7 @@ public class HorasTrabajadasService {
 
         // 2. Reiniciar el campo de gastos en cada proyecto para evitar duplicados
         for (Proyecto proyecto : todosLosProyectos) {
+            proyecto.setCostoManoDeObra(BigDecimal.ZERO);
             proyecto.setOtrosGastosDirectosConsolidado(BigDecimal.ZERO);
             proyectoRepository.save(proyecto);
         }
@@ -212,7 +228,8 @@ public class HorasTrabajadasService {
             if (registro.getProyecto() != null && registro.getCostoPorHoraActual() != null) {
                 Proyecto proyecto = registro.getProyecto();
                 BigDecimal costoTotal = registro.getHoras().multiply(registro.getCostoPorHoraActual());
-                proyecto.setOtrosGastosDirectosConsolidado(proyecto.getOtrosGastosDirectosConsolidado().add(costoTotal));
+
+                proyecto.setCostoManoDeObra(proyecto.getCostoManoDeObra().add(costoTotal));
                 proyectoRepository.save(proyecto);
             }
         }

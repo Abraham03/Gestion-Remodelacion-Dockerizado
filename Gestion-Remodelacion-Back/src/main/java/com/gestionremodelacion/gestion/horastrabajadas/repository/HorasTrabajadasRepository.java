@@ -50,26 +50,29 @@ public interface HorasTrabajadasRepository extends JpaRepository<HorasTrabajadas
  /* MÉTODOS EXCLUSIVOS PARA DashboardService (Agregaciones)                 */
  /* ======================================================================= */
     // -- Consultas filtradas por AÑO --
+    @Query("SELECT e.rolCargo, COUNT(DISTINCT e.id) FROM HorasTrabajadas h JOIN h.empleado e WHERE YEAR(h.fecha) = :year GROUP BY e.rolCargo")
+    List<Object[]> countEmpleadosByRolByYear(@Param("year") int year);
     @Query("SELECT h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year GROUP BY h.proyecto.nombreProyecto")
     List<Object[]> sumHorasByProyectoByYear(@Param("year") int year);
-    @Query("SELECT h.empleado.nombreCompleto, SUM(h.horas) FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year GROUP BY h.empleado.nombreCompleto")
-    List<Object[]> sumHorasByEmpleadoByYear(@Param("year") int year);
-    @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
+    @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas), SUM(h.horas * h.costoPorHoraActual)"
+            + " FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
     List<Object[]> sumHorasByEmpleadoAndProyectoByYear(@Param("year") int year);
 
     // Consultas filtradas por AÑO Y MES --
+    @Query("SELECT e.rolCargo, COUNT(DISTINCT e.id) FROM HorasTrabajadas h JOIN h.empleado e WHERE YEAR(h.fecha) = :year AND MONTH(h.fecha) = :month GROUP BY e.rolCargo")
+    List<Object[]> countEmpleadosByRolByYearAndMonth(@Param("year") int year, @Param("month") int month);    
     @Query("SELECT h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year AND MONTH(h.proyecto.fechaInicio) = :month GROUP BY h.proyecto.nombreProyecto")
     List<Object[]> sumHorasByProyectoByYearAndMonth(@Param("year") int year, @Param("month") int month);
-    @Query("SELECT h.empleado.nombreCompleto, SUM(h.horas) FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year AND MONTH(h.proyecto.fechaInicio) = :month GROUP BY h.empleado.nombreCompleto")
-    List<Object[]> sumHorasByEmpleadoByYearAndMonth(@Param("year") int year, @Param("month") int month);
-    @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year AND MONTH(h.proyecto.fechaInicio) = :month GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
+    @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas), SUM(h.horas * h.costoPorHoraActual)" 
+           + "FROM HorasTrabajadas h WHERE YEAR(h.proyecto.fechaInicio) = :year AND MONTH(h.proyecto.fechaInicio) = :month GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
     List<Object[]> sumHorasByEmpleadoAndProyectoByYearAndMonth(@Param("year") int year, @Param("month") int month);
 
     // Consultas filtradas por ID de Proyecto
+    @Query("SELECT e.rolCargo, COUNT(DISTINCT e.id) FROM HorasTrabajadas h JOIN h.empleado e WHERE h.proyecto.id = :projectId GROUP BY e.rolCargo")
+    List<Object[]> countEmpleadosByRolByProjectId(@Param("projectId") Long projectId);    
     @Query("SELECT h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE h.proyecto.id = :projectId GROUP BY h.proyecto.nombreProyecto")
     List<Object[]> sumHorasByProyectoByProjectId(@Param("projectId") Long projectId);
-    @Query("SELECT h.empleado.nombreCompleto, SUM(h.horas) FROM HorasTrabajadas h WHERE h.proyecto.id = :projectId GROUP BY h.empleado.nombreCompleto")
-    List<Object[]> sumHorasByEmpleadoByProjectId(@Param("projectId") Long projectId);
-    @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas) FROM HorasTrabajadas h WHERE h.proyecto.id = :projectId GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
+    @Query("SELECT h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto, SUM(h.horas), SUM(h.horas * h.costoPorHoraActual)" 
+           + "FROM HorasTrabajadas h WHERE h.proyecto.id = :projectId GROUP BY h.empleado.id, h.empleado.nombreCompleto, h.proyecto.id, h.proyecto.nombreProyecto")
     List<Object[]> sumHorasByEmpleadoAndProyectoByProjectId(@Param("projectId") Long projectId);    
 }

@@ -29,14 +29,14 @@ export class HeaderComponent implements OnDestroy {
   private sidebarService = inject(SidebarService);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
-  // ⭐️ INYECCIÓN DEL SERVICIO Y ACCESO DIRECTO A SIGNALS
+  // INYECCIÓN DEL SERVICIO Y ACCESO DIRECTO A SIGNALS
   authService = inject(AuthService);
 
   @Output() toggleSidebarEvent = new EventEmitter<void>();
 
   constructor() {}
 
-  // ⭐️ LÓGICA DE ROLES Y NOMBRES AHORA CON SIGNALS DIRECTOS
+  // LÓGICA DE ROLES Y NOMBRES AHORA CON SIGNALS DIRECTOS
   // Puedes acceder a ellos directamente en el template: `authService.currentUser()?.username`
 
   onToggleSidebar() {

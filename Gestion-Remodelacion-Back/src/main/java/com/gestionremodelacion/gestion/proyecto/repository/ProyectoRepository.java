@@ -34,7 +34,7 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
             + "p.direccionPropiedad, p.estado, p.fechaInicio, p.fechaFinEstimada, "
             + "p.fechaFinalizacionReal, p.empleadoResponsable.id, COALESCE(p.empleadoResponsable.nombreCompleto, 'No asignado'), "
             + "p.montoContrato, p.montoRecibido, p.fechaUltimoPagoRecibido, "
-            + "p.costoMaterialesConsolidado, p.otrosGastosDirectosConsolidado, "
+            + "p.costoMaterialesConsolidado, p.otrosGastosDirectosConsolidado,p.costoManoDeObra, "
             + "p.progresoPorcentaje, p.notasProyecto, p.fechaCreacion) "
             + "FROM Proyecto p")
     Page<ProyectoResponse> findAllWithDetails(Pageable pageable);
@@ -47,7 +47,7 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
             + "p.direccionPropiedad, p.estado, p.fechaInicio, p.fechaFinEstimada, "
             + "p.fechaFinalizacionReal, p.empleadoResponsable.id, COALESCE(p.empleadoResponsable.nombreCompleto, 'No asignado'), "
             + "p.montoContrato, p.montoRecibido, p.fechaUltimoPagoRecibido, "
-            + "p.costoMaterialesConsolidado, p.otrosGastosDirectosConsolidado, "
+            + "p.costoMaterialesConsolidado, p.otrosGastosDirectosConsolidado,p.costoManoDeObra, "
             + "p.progresoPorcentaje, p.notasProyecto, p.fechaCreacion) "
             + "FROM Proyecto p WHERE "
             + "LOWER(p.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
@@ -81,6 +81,8 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
     List<Object[]> findProyectosByYearAndMonth(@Param("year") Integer year, @Param("month") Integer month);    
 
     // Consultas filtradas por AÑO --
+    @Query("SELECT SUM(p.costoManoDeObra) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year")
+    BigDecimal sumCostoManoDeObraByYear(@Param("year") int year);
     @Query("SELECT COUNT(p) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year")
     Long countByYear(@Param("year") int year);
     @Query("SELECT SUM(p.montoRecibido) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year")
@@ -93,6 +95,8 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
     List<Object[]> countProyectosByEstadoByYear(@Param("year") int year);
 
     // Consultas filtradas por AÑO Y MES --
+    @Query("SELECT SUM(p.costoManoDeObra) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year AND MONTH(p.fechaInicio) = :month")
+    BigDecimal sumCostoManoDeObraByYearAndMonth(@Param("year") int year, @Param("month") int month);    
     @Query("SELECT COUNT(p) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year AND MONTH(p.fechaInicio) = :month")
     Long countByYearAndMonth(@Param("year") int year, @Param("month") int month);
     @Query("SELECT SUM(p.montoRecibido) FROM Proyecto p WHERE YEAR(p.fechaInicio) = :year AND MONTH(p.fechaInicio) = :month")
@@ -105,7 +109,9 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
     List<Object[]> countProyectosByEstadoByYearAndMonth(@Param("year") int year, @Param("month") int month);
 
 
-   // ✅ NUEVO: Consultas filtradas por ID de Proyecto
+   // Consultas filtradas por ID de Proyecto
+    @Query("SELECT SUM(p.costoManoDeObra) FROM Proyecto p WHERE p.id = :projectId")
+    BigDecimal sumCostoManoDeObraByProjectId(@Param("projectId") Long projectId);   
     @Query("SELECT SUM(p.montoRecibido) FROM Proyecto p WHERE p.id = :projectId")
     BigDecimal sumMontoRecibidoByProjectId(@Param("projectId") Long projectId);
     @Query("SELECT SUM(p.costoMaterialesConsolidado) FROM Proyecto p WHERE p.id = :projectId")

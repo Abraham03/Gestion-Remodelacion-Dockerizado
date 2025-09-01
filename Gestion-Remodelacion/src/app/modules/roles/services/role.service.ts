@@ -68,8 +68,6 @@ export class RoleService extends BaseService<Role>{
   }
 
   deleteRole(id: number): Observable<void> {
-    return this.http
-      .delete<ApiResponse<void>>(`${this.apiUrl}/${id}`)
-      .pipe(map((response) => response.data as void));
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

@@ -51,7 +51,7 @@
       <div class="kpi-icon-container color-warn"><mat-icon class="kpi-icon">trending_down</mat-icon></div>
       <div class="kpi-content">
         <p class="kpi-title">Costos y Gastos</p>
-        <p class="kpi-value">{{ (proyectosData?.costoMateriales + proyectosData?.otrosGastos || 0) | currency:'USD' }}</p>
+        <p class="kpi-value">{{ (proyectosData?.costoMateriales + proyectosData?.otrosGastos + proyectosData?.costoManoDeObra || 0) | currency:'USD' }}</p>
       </div>
     </mat-card>
     <mat-card class="kpi-card">
@@ -119,8 +119,10 @@
     <div class="table-filter">
       <mat-form-field appearance="outline">
         <mat-label>Buscar en registros...</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Ej: Abraham Chavez" #input>
-        <mat-icon matSuffix>search</mat-icon>
+        <input matInput #filterValue        
+        (keyup.enter)="applyFilter(filterValue.value)"
+        (input)="applyFilterIfEmpty(filterValue.value)"  placeholder="Ej: Abraham Chavez" #input>
+        <mat-icon matSuffix (click)="applyFilter(filterValue.value)">search</mat-icon>
       </mat-form-field>
     </div>
     <div class="table-container">
@@ -128,6 +130,8 @@
         <ng-container matColumnDef="empleado"><th mat-header-cell *matHeaderCellDef mat-sort-header> Empleado </th><td mat-cell *matCellDef="let row"> {{ row.nombreEmpleado }} </td></ng-container>
         <ng-container matColumnDef="proyecto"><th mat-header-cell *matHeaderCellDef mat-sort-header> Proyecto </th><td mat-cell *matCellDef="let row"> {{ row.nombreProyecto }} </td></ng-container>
         <ng-container matColumnDef="horas"><th mat-header-cell *matHeaderCellDef mat-sort-header> Horas Registradas </th><td mat-cell *matCellDef="let row"> {{ row.horas | number:'1.2-2' }}h </td></ng-container>
+        <ng-container matColumnDef="montoTotal"><th mat-header-cell *matHeaderCellDef mat-sort-header> Monto Total </th><td mat-cell *matCellDef="let row"> {{ row.montoTotal | currency:'USD' }} </td></ng-container>        
+
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         <tr class="mat-row" *matNoDataRow><td class="mat-cell" colspan="3">No se encontraron registros para el filtro "{{ input.value }}"</td></tr>

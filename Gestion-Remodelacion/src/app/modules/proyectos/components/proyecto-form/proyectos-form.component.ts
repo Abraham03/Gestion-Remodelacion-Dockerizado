@@ -181,6 +181,7 @@ export class ProyectosFormComponent implements OnInit {
       montoRecibido: [this.data?.montoRecibido || 0, Validators.min(0)],
       costoMaterialesConsolidado: [this.data?.costoMaterialesConsolidado || 0, Validators.min(0)],
       otrosGastosDirectosConsolidado: [this.data?.otrosGastosDirectosConsolidado || 0, Validators.min(0)],
+      costoManoDeObra: [this.data?.costoManoDeObra || 0, Validators.min(0)],
       progresoPorcentaje: [this.data?.progresoPorcentaje || 0, [Validators.min(0), Validators.max(100)]],
       notasProyecto: [this.data?.notasProyecto || ''],
       idCliente: [this.data?.idCliente || null, Validators.required],

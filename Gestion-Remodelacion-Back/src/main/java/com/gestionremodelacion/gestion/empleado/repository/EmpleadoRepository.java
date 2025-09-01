@@ -37,9 +37,6 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
     @Query("SELECT AVG(e.costoPorHora) FROM Empleado e WHERE e.activo = true")
     Double findAvgCostoPorHora();
 
-    @Query("SELECT e.rolCargo, COUNT(e) FROM Empleado e GROUP BY e.rolCargo")
-    List<Object[]> countEmpleadosByRol();
-
     // ✅ NUEVO: Métodos para filtrar por año y mes (basado en fecha de contratación)
     @Query("SELECT COUNT(e) FROM Empleado e WHERE YEAR(e.fechaContratacion) = :year")
     Long countByYear(@Param("year") int year);
