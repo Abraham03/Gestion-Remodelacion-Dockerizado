@@ -1,5 +1,6 @@
 package com.gestionremodelacion.gestion.proyecto.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,7 +50,15 @@ public class ProyectoService {
 
     @Transactional
     public ProyectoResponse createProyecto(ProyectoRequest proyectoRequest) {
+
+        if(proyectoRequest.getCostoMaterialesConsolidado() == null){
+            proyectoRequest.setCostoMaterialesConsolidado(BigDecimal.ZERO);
+        }
+        if(proyectoRequest.getOtrosGastosDirectosConsolidado() == null){
+            proyectoRequest.setOtrosGastosDirectosConsolidado(BigDecimal.ZERO);
+        }
         Proyecto proyecto = proyectoMapper.toProyecto(proyectoRequest);
+        proyecto.setCostoManoDeObra(BigDecimal.ZERO);
         Proyecto savedProyecto = proyectoRepository.save(proyecto);
         return proyectoMapper.toProyectoResponse(savedProyecto);
     }
@@ -59,6 +68,13 @@ public class ProyectoService {
         Proyecto proyecto = proyectoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado con ID: " + id));
 
+        // 3. Manejar los campos numéricos que podrían venir como nulos desde el frontend
+        if (proyectoRequest.getCostoMaterialesConsolidado() == null) {
+            proyectoRequest.setCostoMaterialesConsolidado(BigDecimal.ZERO);
+        }
+        if (proyectoRequest.getOtrosGastosDirectosConsolidado() == null) {
+            proyectoRequest.setOtrosGastosDirectosConsolidado(BigDecimal.ZERO);
+        }       
         proyectoMapper.updateProyectoFromRequest(proyectoRequest, proyecto);
         Proyecto updatedProyecto = proyectoRepository.save(proyecto);
         return proyectoMapper.toProyectoResponse(updatedProyecto);
@@ -69,6 +85,7 @@ public class ProyectoService {
         if (!proyectoRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado con ID: " + id);
         }
+        
         proyectoRepository.deleteById(id);
         return ApiResponse.success(null);
     }

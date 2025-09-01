@@ -9,84 +9,86 @@ import {
 import { EMPTY, Observable, catchError, switchMap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  const auth = inject(AuthService);
+const authService = inject(AuthService);
   const router = inject(Router);
+  const snackBar = inject(MatSnackBar);
 
-  // Excluir endpoints de autenticación
-  if (shouldSkipInterceptor(req)) {
+  // Excluir endpoints que no necesitan token
+  if (shouldSkipAuth(req)) {
     return next(req);
   }
 
-  const token = auth.getToken();
-  
- let authReq = req;
+  const token = authService.getToken();
+  let authReq = req;
 
-   if (token) { // Only add Authorization header if a token exists
+  if (token) {
     authReq = addTokenToRequest(req, token);
   }
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Manejar error 401 (No autorizado)
-      // If it's a 401 AND not a refresh token request itself (to avoid infinite loop)
+      // Si el error es 401, intentamos refrescar el token
       if (error.status === 401 && !req.url.includes('auth/refresh')) {
-        return handleUnauthorizedError(req, next, auth, router);
+        return handle401Error(authReq, next, authService, router, snackBar);
       }
+
       return throwError(() => error);
     })
   );
 };
 
-// --- Funciones auxiliares ---
+// --- Funciones Auxiliares ---
 
-function shouldSkipInterceptor(req: HttpRequest<unknown>): boolean {
+function shouldSkipAuth(req: HttpRequest<unknown>): boolean {
   const skipUrls = ['/auth/login', '/auth/refresh', '/auth/revoke'];
-  return skipUrls.some(url => req.url.includes(url)) || 
-         req.headers.has('Skip-Interceptor');
+  return skipUrls.some((url) => req.url.includes(url));
 }
 
-function addTokenToRequest(
-  req: HttpRequest<unknown>, 
-  token: string
-): HttpRequest<unknown> {
+function addTokenToRequest(req: HttpRequest<unknown>, token: string): HttpRequest<unknown> {
   return req.clone({
     setHeaders: {
-      Authorization: `Bearer ${token}`
-    }
+      Authorization: `Bearer ${token}`,
+    },
   });
 }
 
-
-function handleUnauthorizedError(
+function handle401Error(
   req: HttpRequest<unknown>,
   next: HttpHandlerFn,
-  auth: AuthService,
-  router: Router
-): 
-
-
-Observable<HttpEvent<unknown>> {
-  // Intento de renovación silenciosa
-  console.warn('JWTInterceptor: 401 Unauthorized. Attempting token refresh...'); // Add log
-  return auth.refreshToken().pipe(
+  authService: AuthService,
+  router: Router,
+  snackBar: MatSnackBar
+): Observable<HttpEvent<unknown>> {
+  
+  return authService.refreshToken().pipe(
     switchMap(() => {
-      const newToken = auth.getToken();
+      const newToken = authService.getToken();
       if (!newToken) {
-        console.error('JWTInterceptor: Token renewal failed, no new token. Logging out.'); // Add log
-        throw new Error('Token renewal failed'); // Propagate error to trigger catchError below
+        // Si el refresh no devuelve un token, la sesión es inválida
+        return logoutAndRedirect(authService, router, snackBar);
       }
-      console.log('JWTInterceptor: Token refreshed successfully. Retrying original request.'); // Add log
+      // Si el refresh es exitoso, reintentamos la petición original con el nuevo token
       return next(addTokenToRequest(req, newToken));
     }),
     catchError((refreshError) => {
-      console.error('JWTInterceptor: Refresh token failed. Redirecting to login.', refreshError); // Add log
-      auth.logout();
-      router.navigate(['/login'], { 
-        state: { sessionExpired: true } 
-      });
-      return EMPTY;
+      // Si el flujo de refresh falla (p. ej. el refresh token expiró o el reintento falló),
+      // entonces sí cerramos la sesión.
+      return logoutAndRedirect(authService, router, snackBar);
     })
   );
+}
+
+function logoutAndRedirect(authService: AuthService, router: Router, snackBar: MatSnackBar): Observable<HttpEvent<any>> {
+    authService.logout();
+    router.navigate(['/auth/login'], {
+      state: { sessionExpired: true },
+    });
+    snackBar.open('Tu sesión ha expirado. Por favor, inicia sesión de nuevo.', 'Cerrar', {
+      duration: 5000,
+      panelClass: ['error-snackbar'],
+    });
+    return EMPTY; // Detiene la cadena de observables
 }

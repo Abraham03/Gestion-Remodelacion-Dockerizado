@@ -63,9 +63,9 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public proyectosData: any;
   public clientesData: any;
-
+  filterValue: string = '';
   public isLoading = true;
-  public displayedColumns: string[] = ['empleado', 'proyecto', 'horas'];
+  public displayedColumns: string[] = ['empleado', 'proyecto', 'horas', 'montoTotal'];
   public dataSource = new MatTableDataSource<any>([]);
   private charts: { [key: string]: Chart | null } = {};  public cols = 2;
   private destroy$ = new Subject<void>();
@@ -252,7 +252,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     const tableData = this.proyectosData.horasPorEmpleadoProyecto.map((item: any[]) => ({
       nombreEmpleado: item[1], 
       nombreProyecto: item[3],
-      horas: item[4]
+      horas: item[4],
+      montoTotal: item[5]
     }));
     
     this.dataSource.data = tableData;
@@ -266,13 +267,22 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-    public applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
+    public applyFilter(filterValue: String): void {
+    this.filterValue = filterValue
+    .trim()
+    .toLowerCase();
     this.dataSource.filter = filterValue.trim().toLowerCase();
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
   }
+
+    applyFilterIfEmpty(filterValue: string): void {
+    // Si el usuario ha borrado todo el texto del campo de búsqueda
+    if (filterValue === '') {
+      this.applyFilter(''); // Llama al filtro con un string vacío
+    }
+  }  
 
  private setupCharts(): void {
     Object.values(this.charts).forEach(chart => chart?.destroy());

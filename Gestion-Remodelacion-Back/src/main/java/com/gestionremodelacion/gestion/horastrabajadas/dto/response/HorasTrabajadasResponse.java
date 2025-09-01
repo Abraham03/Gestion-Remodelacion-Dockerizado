@@ -16,6 +16,7 @@ public class HorasTrabajadasResponse {
     private BigDecimal costoPorHoraActual;
     private String actividadRealizada;
     private LocalDateTime fechaRegistro; // Cambiado a LocalDateTime
+    private BigDecimal montoTotal;
 
     public HorasTrabajadasResponse(Long id, Long idEmpleado, String nombreEmpleado, Long idProyecto,
             String nombreProyecto, LocalDate fecha, BigDecimal horas, BigDecimal costoPorHoraActual, String actividadRealizada,
@@ -28,6 +29,7 @@ public class HorasTrabajadasResponse {
         this.fecha = fecha;
         this.horas = horas;
         this.costoPorHoraActual = costoPorHoraActual;
+        this.montoTotal = (horas != null && costoPorHoraActual != null) ? horas.multiply(costoPorHoraActual) : BigDecimal.ZERO;
         this.actividadRealizada = actividadRealizada;
         this.fechaRegistro = fechaRegistro;
     }
@@ -96,6 +98,14 @@ public class HorasTrabajadasResponse {
     public void setCostoPorHoraActual(BigDecimal costoPorHoraActual) {
         this.costoPorHoraActual = costoPorHoraActual;
     }
+
+    public BigDecimal getMontoTotal() {
+        return montoTotal;
+    }
+
+    public void setMontoTotal(BigDecimal montoTotal) {
+        this.montoTotal = montoTotal;
+    }    
 
     public String getActividadRealizada() {
         return actividadRealizada;

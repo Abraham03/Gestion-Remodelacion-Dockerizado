@@ -21,6 +21,7 @@ import { Role } from '../../../../../core/models/role.model';
 import { User, UserRequest } from '../../../../../core/models/user.model';
 import { RoleService } from '../../../../roles/services/role.service';
 import { UserService } from '../../../services/user.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-user-form',
@@ -72,16 +73,13 @@ export class UserFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadRoles(); // Carga todos los roles disponibles al inicializar el formulario
-    console.log('Estado inicial de roles en ngOnInit:', this.roles);
   }
 
   loadRoles(): void {
     // El servicio devuelve directamente un array de Role[], no necesitas `data.content` aquí.
     this.roleService.getAllRolesForForm().subscribe({
       next: (roles) => {
-        console.log('UserFormComponent - Roles para el formulario:', roles);
         this.roles = roles; // `roles` ya es un array
-        console.log('UserFormComponent2 - Roles para el formulario:', roles);
       },
       error: (err) => {
         console.error('Error loading roles:', err);
@@ -103,16 +101,20 @@ export class UserFormComponent implements OnInit {
     if (this.isEditMode && userRequest.id) {
       this.userService.updateUser(userRequest.id, userRequest).subscribe({
         next: (res) => {
-          this.snackBar.open('Usuario actualizado correctamente.', 'Cerrar', {
-            duration: 3000,
-          });
+          this.snackBar.open('Usuario actualizado correctamente.', 'Cerrar', {duration: 3000,});
           this.dialogRef.close(true);
         },
-        error: (err) => {
-          console.error('Error updating user:', err);
-          this.snackBar.open('Error al actualizar el usuario.', 'Cerrar', {
-            duration: 3000,
-          });
+        error: (err: HttpErrorResponse) => {
+          // Specifically check for the 409 Conflict status
+          if (err.status === 409) {
+            this.snackBar.open('Error al actualizar: El nombre de usuario ya existe.', 'Cerrar', { duration: 4000 });
+            // Optionally, mark the username field as invalid
+            this.userForm.get('username')?.setErrors({ 'alreadyExists': true });
+          } else {
+            // Handle other potential errors
+            this.snackBar.open('Error al actualizar el usuario. Inténtalo de nuevo.', 'Cerrar', { duration: 3000 });
+          }
+
         },
       });
     } else {
@@ -123,11 +125,16 @@ export class UserFormComponent implements OnInit {
           });
           this.dialogRef.close(true);
         },
-        error: (err) => {
-          console.error('Error creating user:', err);
-          this.snackBar.open('Error al crear el usuario.', 'Cerrar', {
-            duration: 3000,
-          });
+        error: (err: HttpErrorResponse) => {
+          // Specifically check for the 409 Conflict status
+          if (err.status === 409) {
+            this.snackBar.open('Error: El nombre de usuario ya existe.', 'Cerrar', { duration: 4000 });
+            // Optionally, mark the username field as invalid
+            this.userForm.get('username')?.setErrors({ 'alreadyExists': true });
+          } else {
+            // Handle other potential errors
+            this.snackBar.open('Error al crear el usuario. Inténtalo de nuevo.', 'Cerrar', { duration: 3000 });
+          }
         },
       });
     }

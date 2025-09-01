@@ -62,21 +62,24 @@ public class Proyecto {
     @JoinColumn(name = "id_empleado_responsable")
     private Empleado empleadoResponsable;
 
-    @Column(name = "monto_contrato", nullable = false)
+    @Column(name = "monto_contrato", nullable = true)
     private BigDecimal montoContrato;
 
-    @Column(name = "monto_recibido", nullable = false)
+    @Column(name = "monto_recibido", nullable = true)
     private BigDecimal montoRecibido;
 
-    @Column(name = "fecha_ultimo_pago_recibido")
+    @Column(name = "fecha_ultimo_pago_recibido", nullable = true)
     @Temporal(TemporalType.DATE)
     private LocalDate fechaUltimoPagoRecibido;
 
-    @Column(name = "costo_materiales_consolidado", nullable = false)
+    @Column(name = "costo_materiales_consolidado", nullable = true)
     private BigDecimal costoMaterialesConsolidado;
 
-    @Column(name = "otros_gastos_directos_consolidado", nullable = false)
+    @Column(name = "otros_gastos_directos_consolidado", nullable = true)
     private BigDecimal otrosGastosDirectosConsolidado;
+
+    @Column(name = "costo_mano_de_obra", nullable = true)
+    private BigDecimal costoManoDeObra;
 
     @Column(name = "progreso_porcentaje", nullable = false)
     private Integer progresoPorcentaje;
@@ -259,5 +262,13 @@ public class Proyecto {
 
     public void setFechaCreacion(LocalDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    public BigDecimal getCostoManoDeObra() {
+        return costoManoDeObra;
+    }
+
+    public void setCostoManoDeObra(BigDecimal costoManoDeObra) {
+        this.costoManoDeObra = costoManoDeObra;
     }
 }

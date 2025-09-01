@@ -12,21 +12,18 @@ public class DashboardSummaryResponse {
     private final BigDecimal montoRecibido;
     private final BigDecimal costoMateriales;
     private final BigDecimal otrosGastos;
-    private final Double costoPromedioPorHora;
-
+    private final BigDecimal costoManoDeObra;
     // --- Datos para Gráficos y Tablas ---
     private final List<Object[]> empleadosPorRol;
     private final List<Object[]> horasPorProyecto;
-    private final List<Object[]> horasPorEmpleado;
     private final List<Object[]> proyectosPorEstado;
     private final List<Object[]> horasPorEmpleadoProyecto;
 
     public DashboardSummaryResponse(Long totalProyectos, Long empleadosActivos, BigDecimal balanceFinanciero,
-            BigDecimal montoRecibido, BigDecimal costoMateriales, BigDecimal otrosGastos,
+            BigDecimal montoRecibido, BigDecimal costoMateriales, BigDecimal otrosGastos, 
             List<Object[]> empleadosPorRol,
-            List<Object[]> horasPorProyecto, List<Object[]> horasPorEmpleado,
-            List<Object[]> proyectosPorEstado, List<Object[]> horasPorEmpleadoProyecto,
-            Double costoPromedioPorHora) {
+            List<Object[]> horasPorProyecto,
+            List<Object[]> proyectosPorEstado, List<Object[]> horasPorEmpleadoProyecto, BigDecimal costoManoDeObra) {
         this.totalProyectos = totalProyectos;
         this.empleadosActivos = empleadosActivos;
         this.balanceFinanciero = balanceFinanciero;
@@ -35,10 +32,9 @@ public class DashboardSummaryResponse {
         this.otrosGastos = otrosGastos;
         this.empleadosPorRol = empleadosPorRol;
         this.horasPorProyecto = horasPorProyecto;
-        this.horasPorEmpleado = horasPorEmpleado;
         this.proyectosPorEstado = proyectosPorEstado;
         this.horasPorEmpleadoProyecto = horasPorEmpleadoProyecto;
-        this.costoPromedioPorHora = costoPromedioPorHora;
+        this.costoManoDeObra = costoManoDeObra;
     }
 
     public Long getTotalProyectos() {
@@ -73,10 +69,6 @@ public class DashboardSummaryResponse {
         return horasPorProyecto;
     }
 
-    public List<Object[]> getHorasPorEmpleado() {
-        return horasPorEmpleado;
-    }
-
     public List<Object[]> getProyectosPorEstado() {
         return proyectosPorEstado;
     }
@@ -85,7 +77,8 @@ public class DashboardSummaryResponse {
         return horasPorEmpleadoProyecto;
     }
 
-    public Double getCostoPromedioPorHora() {
-        return costoPromedioPorHora;
+    public BigDecimal getCostoManoDeObra() {
+        return costoManoDeObra;
     }
+    
 }

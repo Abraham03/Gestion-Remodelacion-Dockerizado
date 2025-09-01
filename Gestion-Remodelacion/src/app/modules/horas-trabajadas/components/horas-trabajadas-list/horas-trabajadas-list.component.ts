@@ -43,6 +43,7 @@ export class HorasTrabajadasListComponent implements AfterViewInit {
     'nombreEmpleado',
     'nombreProyecto',
     'horas',
+    'montoTotal',
     'actividadRealizada',
     'acciones'
   ];

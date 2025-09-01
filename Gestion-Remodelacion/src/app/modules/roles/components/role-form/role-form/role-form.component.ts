@@ -11,6 +11,7 @@ import { Role, RoleRequest } from '../../../../../core/models/role.model';
 import { Permission } from '../../../../../core/models/permission.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RoleService } from '../../../services/role.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-role-form',
@@ -105,7 +106,6 @@ export class RoleFormComponent implements OnInit {
     // Opcional: Para forzar la validación de inmediato
     permissionFormArray.markAsDirty();
     permissionFormArray.updateValueAndValidity();
-    console.log('Permisos seleccionados:', permissionFormArray.value); 
 
   }
 
@@ -130,10 +130,15 @@ export class RoleFormComponent implements OnInit {
           this.snackBar.open('Rol actualizado correctamente.', 'Cerrar', { duration: 3000 });
           this.dialogRef.close(true);
         },
-        error: (err) => {
-          console.error('Error updating role:', err);
-          this.snackBar.open('Error al actualizar el rol.', 'Cerrar', { duration: 3000 });
-        }
+        error: (err: HttpErrorResponse) => {
+                if (err.status === 409) {
+                    this.snackBar.open('Error al actualizar: El nombre del rol ya existe.', 'Cerrar', { duration: 3000 });
+                    // Optionally, mark the role name field as invalid
+                    this.roleForm.get('name')?.setErrors({ 'alreadyExists': true });
+                } else {
+                    this.snackBar.open('Error al crear el rol. Inténtalo de nuevo.', 'Cerrar', { duration: 3000 });
+                }
+        },
       });
     } else {
       this.roleService.createRole(roleRequest).subscribe({
@@ -141,10 +146,15 @@ export class RoleFormComponent implements OnInit {
           this.snackBar.open('Rol creado correctamente.', 'Cerrar', { duration: 3000 });
           this.dialogRef.close(true);
         },
-        error: (err) => {
-          console.error('Error creating role:', err);
-          this.snackBar.open('Error al crear el rol.', 'Cerrar', { duration: 3000 });
-        }
+        error: (err: HttpErrorResponse) => {
+                if (err.status === 409) {
+                    this.snackBar.open('Error: El nombre del rol ya existe.', 'Cerrar', { duration: 3000 });
+                    // Optionally, mark the role name field as invalid
+                    this.roleForm.get('name')?.setErrors({ 'alreadyExists': true });
+                } else {
+                    this.snackBar.open('Error al crear el rol. Inténtalo de nuevo.', 'Cerrar', { duration: 3000 });
+                }
+        },
       });
     }
   }

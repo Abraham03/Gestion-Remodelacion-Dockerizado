@@ -25,6 +25,7 @@ public class ProyectoResponse {
     private LocalDate fechaUltimoPagoRecibido;
     private BigDecimal costoMaterialesConsolidado;
     private BigDecimal otrosGastosDirectosConsolidado;
+    private BigDecimal costoManoDeObra;
     private Integer progresoPorcentaje;
     private String notasProyecto;
     private LocalDateTime fechaCreacion;
@@ -34,7 +35,7 @@ public class ProyectoResponse {
             LocalDate fechaFinEstimada, LocalDate fechaFinalizacionReal, Long idEmpleadoResponsable,
             String nombreEmpleadoResponsable, BigDecimal montoContrato, BigDecimal montoRecibido,
             LocalDate fechaUltimoPagoRecibido, BigDecimal costoMaterialesConsolidado,
-            BigDecimal otrosGastosDirectosConsolidado, Integer progresoPorcentaje, String notasProyecto,
+            BigDecimal otrosGastosDirectosConsolidado, BigDecimal costoManoDeObra, Integer progresoPorcentaje, String notasProyecto,
             LocalDateTime fechaCreacion) {
         this.id = id;
         this.idCliente = idCliente;
@@ -53,6 +54,7 @@ public class ProyectoResponse {
         this.fechaUltimoPagoRecibido = fechaUltimoPagoRecibido;
         this.costoMaterialesConsolidado = costoMaterialesConsolidado;
         this.otrosGastosDirectosConsolidado = otrosGastosDirectosConsolidado;
+        this.costoManoDeObra = costoManoDeObra;
         this.progresoPorcentaje = progresoPorcentaje;
         this.notasProyecto = notasProyecto;
         this.fechaCreacion = fechaCreacion;
@@ -217,5 +219,13 @@ public class ProyectoResponse {
 
     public void setFechaCreacion(LocalDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    public BigDecimal getCostoManoDeObra() {
+        return costoManoDeObra;
+    }
+
+    public void setCostoManoDeObra(BigDecimal costoManoDeObra) {
+        this.costoManoDeObra = costoManoDeObra;
     }
 }

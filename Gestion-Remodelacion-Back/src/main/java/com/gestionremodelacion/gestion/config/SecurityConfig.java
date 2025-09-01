@@ -3,12 +3,15 @@ package com.gestionremodelacion.gestion.config;
 import java.util.List;
 
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -135,6 +138,14 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
+    // Este filtro se registra con la máxima prioridad para asegurar que se ejecute siempre.
+    @Bean
+    public FilterRegistrationBean<CorsFilter> corsFilterRegistrationBean() {
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(corsConfigurationSource()));
+        bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return bean;
+    }    
 
     @Bean
     public PasswordEncoder passwordEncoder() {

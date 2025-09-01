@@ -18,6 +18,7 @@ export interface Proyecto {
   fechaUltimoPagoRecibido: string | Date | null; // Añadido, puede ser null
   costoMaterialesConsolidado: number | null; // Añadido, puede ser null
   otrosGastosDirectosConsolidado: number | null; // Añadido, puede ser null
+  costoManoDeObra: number | null;
   progresoPorcentaje: number | null; // Añadido
   notasProyecto: string | null; // Añadido
   fechaCreacion: string | Date | null; // Changed to 'string | null' as it's backend-managed on creation

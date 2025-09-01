@@ -34,11 +34,14 @@ public class HorasTrabajadasExportDTO implements Exportable {
         String proyectoNombre = horasTrabajadas.getProyecto() != null
                 ? horasTrabajadas.getProyecto().getNombreProyecto() : "N/A";
 
+        String montoTotal = horasTrabajadas.getCostoPorHoraActual().multiply(horasTrabajadas.getHoras()).toString();      
+
         return Arrays.asList(Arrays.asList(
                 empleadoNombre,
                 proyectoNombre,
                 fecha,
                 horasTrabajadas.getHoras().toString(),
+                montoTotal,
                 horasTrabajadas.getActividadRealizada()
         ));
     }

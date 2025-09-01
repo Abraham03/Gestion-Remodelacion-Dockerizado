@@ -37,6 +37,7 @@ public abstract class HorasTrabajadasMapper {
     @Mapping(source = "proyecto.id", target = "idProyecto")
     @Mapping(source = "proyecto.nombreProyecto", target = "nombreProyecto")
     @Mapping(source = "costoPorHoraActual", target = "costoPorHoraActual") 
+    @Mapping(target = "montoTotal", ignore = true)
     public abstract HorasTrabajadasResponse toHorasTrabajadasResponse(HorasTrabajadas horasTrabajadas);
 
     /**
