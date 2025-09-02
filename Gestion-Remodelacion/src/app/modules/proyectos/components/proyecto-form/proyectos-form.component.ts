@@ -16,6 +16,8 @@ import { ClienteService } from '../../../cliente/services/cliente.service';
 import { EmpleadoService } from '../../../empleados/services/empleado.service';
 import { Proyecto } from '../../models/proyecto.model';
 import { Observable } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 // Define the DropdownItem interface here or in a common types file
 interface DropdownItem {
@@ -53,6 +55,7 @@ export class ProyectosFormComponent implements OnInit {
     private clientesService: ClienteService,
     private empleadoService: EmpleadoService,
     public dialogRef: MatDialogRef<ProyectosFormComponent>,
+    private snackBar: MatSnackBar,
     @Inject(MAT_DIALOG_DATA) public data: Proyecto | null
   ) {}
 
@@ -237,8 +240,10 @@ export class ProyectosFormComponent implements OnInit {
         next: (response) => {
           this.dialogRef.close(true);
         },
-        error: (error) => {
-          console.error('Error al actualizar el proyecto:', error);
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 404) {
+            this.snackBar.open('Error al actualizar: El proyecto no existe.', 'Cerrar', { duration: 4000 });
+          }
         },
       });
     } else {
@@ -246,8 +251,8 @@ export class ProyectosFormComponent implements OnInit {
         next: (response) => {
           this.dialogRef.close(true);
         },
-        error: (error) => {
-          console.error('Error al crear el proyecto:', error);
+        error: (error: HttpErrorResponse) => {
+          this.snackBar.open('Error al crear el proyecto. Inténtalo de nuevo.', 'Cerrar', { duration: 3000 });
         },
       });
     }

@@ -47,36 +47,43 @@ public class HorasTrabajadasController {
     @PreAuthorize("hasAuthority('HORASTRABAJADAS_READ')")
     public ResponseEntity<ApiResponse<Page<HorasTrabajadasResponse>>> getAllHorasTrabajadas(Pageable pageable,
             @RequestParam(name = "filter", required = false) String filter) {
-        Page<HorasTrabajadasResponse> horasTrabajadasPage = horasTrabajadasService.getAllHorasTrabajadas(pageable, filter);
-        return ResponseEntity.ok(ApiResponse.success(horasTrabajadasPage));
+        Page<HorasTrabajadasResponse> page = horasTrabajadasService.getAllHorasTrabajadas(pageable, filter);
+        return ResponseEntity
+                .ok(new ApiResponse<>(HttpStatus.OK.value(), "Registros de horas obtenidos con éxito", page));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('HORASTRABAJADAS_READ')")
-    public ResponseEntity<HorasTrabajadasResponse> getHorasTrabajadasById(@PathVariable Long id) {
-        HorasTrabajadasResponse horasTrabajadas = horasTrabajadasService.getHorasTrabajadasById(id);
-        return ResponseEntity.ok(horasTrabajadas);
+    public ResponseEntity<ApiResponse<HorasTrabajadasResponse>> getHorasTrabajadasById(@PathVariable Long id) {
+        HorasTrabajadasResponse response = horasTrabajadasService.getHorasTrabajadasById(id);
+        return ResponseEntity
+                .ok(new ApiResponse<>(HttpStatus.OK.value(), "Registro de horas obtenido con éxito", response));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('HORASTRABAJADAS_CREATE')")
-    public ResponseEntity<HorasTrabajadasResponse> createHorasTrabajadas(@Valid @RequestBody HorasTrabajadasRequest horasTrabajadasRequest) {
-        HorasTrabajadasResponse createdHorasTrabajadas = horasTrabajadasService.createHorasTrabajadas(horasTrabajadasRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdHorasTrabajadas);
+    public ResponseEntity<ApiResponse<HorasTrabajadasResponse>> createHorasTrabajadas(
+            @Valid @RequestBody HorasTrabajadasRequest horasTrabajadasRequest) {
+        HorasTrabajadasResponse response = horasTrabajadasService.createHorasTrabajadas(horasTrabajadasRequest);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Registro de horas creado con éxito", response));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('HORASTRABAJADAS_UPDATE')")
-    public ResponseEntity<HorasTrabajadasResponse> updateHorasTrabajadas(@PathVariable Long id, @Valid @RequestBody HorasTrabajadasRequest horasTrabajadasRequest) {
-        HorasTrabajadasResponse updatedHorasTrabajadas = horasTrabajadasService.updateHorasTrabajadas(id, horasTrabajadasRequest);
-        return ResponseEntity.ok(updatedHorasTrabajadas);
+    public ResponseEntity<ApiResponse<HorasTrabajadasResponse>> updateHorasTrabajadas(@PathVariable Long id,
+            @Valid @RequestBody HorasTrabajadasRequest horasTrabajadasRequest) {
+        HorasTrabajadasResponse response = horasTrabajadasService.updateHorasTrabajadas(id, horasTrabajadasRequest);
+        return ResponseEntity
+                .ok(new ApiResponse<>(HttpStatus.OK.value(), "Registro de horas actualizado con éxito", response));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('HORASTRABAJADAS_DELETE')")
     public ResponseEntity<ApiResponse<Void>> deleteHorasTrabajadas(@PathVariable Long id) {
-        ApiResponse<Void> apiResponse = horasTrabajadasService.deleteHorasTrabajadas(id);
-        return ResponseEntity.ok(apiResponse);
+        horasTrabajadasService.deleteHorasTrabajadas(id);
+        return ResponseEntity
+                .ok(new ApiResponse<>(HttpStatus.OK.value(), "Registro de horas eliminado con éxito", null));
     }
 
     @GetMapping("/export/excel")
@@ -90,7 +97,8 @@ public class HorasTrabajadasController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Horas_Trabajadas.xlsx");
-        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentType(
+                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 
         return ResponseEntity.ok().headers(headers).body(stream.toByteArray());
     }

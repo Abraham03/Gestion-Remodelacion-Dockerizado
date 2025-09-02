@@ -50,29 +50,34 @@ public class ProyectoController {
             Pageable pageable,
             @RequestParam(name = "filter", required = false) String filter) {
         Page<ProyectoResponse> proyectosPage = proyectoService.getAllProyectos(pageable, filter);
-        return ResponseEntity.ok(ApiResponse.success(proyectosPage));
+        return ResponseEntity
+                .ok(new ApiResponse<>(HttpStatus.OK.value(), "Proyectos obtenidos con éxito", proyectosPage));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('PROYECTO_READ')")
-    public ResponseEntity<ProyectoResponse> getProyectoById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ProyectoResponse>> getProyectoById(@PathVariable Long id) {
         ProyectoResponse proyecto = proyectoService.getProyectoById(id);
-        return ResponseEntity.ok(proyecto);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Proyecto obtenido con éxito", proyecto));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('PROYECTO_CREATE')")
-    public ResponseEntity<ProyectoResponse> createProyecto(@Valid @RequestBody ProyectoRequest proyectoRequest) {
+    public ResponseEntity<ApiResponse<ProyectoResponse>> createProyecto(
+            @Valid @RequestBody ProyectoRequest proyectoRequest) {
         ProyectoResponse createdProyecto = proyectoService.createProyecto(proyectoRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdProyecto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Proyecto creado con éxito", createdProyecto));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('PROYECTO_UPDATE')")
-    public ResponseEntity<ProyectoResponse> updateProyecto(@PathVariable Long id,
+    public ResponseEntity<ApiResponse<ProyectoResponse>> updateProyecto(@PathVariable Long id,
             @Valid @RequestBody ProyectoRequest proyectoRequest) {
         ProyectoResponse updatedProyecto = proyectoService.updateProyecto(id, proyectoRequest);
-        return ResponseEntity.ok(updatedProyecto);
+        return ResponseEntity
+                .ok(new ApiResponse<>(HttpStatus.OK.value(), "Proyecto actualizado con éxito", updatedProyecto));
     }
 
     @DeleteMapping("/{id}")
