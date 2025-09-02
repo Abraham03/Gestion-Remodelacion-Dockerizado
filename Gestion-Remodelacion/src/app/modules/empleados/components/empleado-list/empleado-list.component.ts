@@ -18,6 +18,7 @@ import { Empleado } from '../../models/empleado.model';
 import { EmpleadoFormComponent } from '../empleado-form/empleado-form.component';
 import { ExportService } from '../../../../core/services/export.service';
 import { Sort } from '@angular/material/sort';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-empleado-list',
@@ -151,13 +152,13 @@ export class EmpleadoListComponent implements AfterViewInit {
           });
           this.loadEmpleados();
         },
-        (error: any) => {
+        (error: HttpErrorResponse) => {
           console.error('Error al desactivar empleado:', error);
-          this.snackBar.open(
-            'Error al desactivar empleado. Inténtalo de nuevo más tarde.',
-            'Cerrar',
-            { duration: 5000 }
-          );
+          if (error.status == 409) {
+            this.snackBar.open('El empleado ya está desactivado', 'Cerrar', {
+              duration: 3000,
+            });
+          }
         }
       );
     }

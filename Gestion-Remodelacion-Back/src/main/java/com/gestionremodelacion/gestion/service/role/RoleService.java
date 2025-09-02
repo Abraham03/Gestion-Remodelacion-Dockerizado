@@ -8,13 +8,13 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.gestionremodelacion.gestion.dto.request.RoleRequest;
 import com.gestionremodelacion.gestion.dto.response.RoleResponse;
+import com.gestionremodelacion.gestion.exception.DuplicateResourceException;
+import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.RoleMapper;
 import com.gestionremodelacion.gestion.model.Permission;
 import com.gestionremodelacion.gestion.model.Role;
@@ -41,27 +41,24 @@ public class RoleService {
 
     @Transactional(readOnly = true)
     public Page<RoleResponse> findAll(Pageable pageable, String searchTerm) {
-        Page<Role> rolesPage;
-        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            rolesPage = roleRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchTerm,
-                    searchTerm, pageable);
-        } else {
-            rolesPage = roleRepository.findAll(pageable);
-        }
+        Page<Role> rolesPage = (searchTerm != null && !searchTerm.trim().isEmpty())
+                ? roleRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchTerm, searchTerm,
+                        pageable)
+                : roleRepository.findAll(pageable);
         return rolesPage.map(roleMapper::toRoleResponse);
     }
 
     @Transactional(readOnly = true)
     public RoleResponse findById(Long id) {
-        Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found with id " + id));
-        return roleMapper.toRoleResponse(role); // Usar el método del mapper
+        return roleRepository.findById(id)
+                .map(roleMapper::toRoleResponse)
+                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + id));
     }
 
     @Transactional
-    public Optional<RoleResponse> createRole(RoleRequest roleRequest) {
+    public RoleResponse createRole(RoleRequest roleRequest) {
         if (roleRepository.existsByName(roleRequest.getName())) {
-            return Optional.empty();
+            throw new DuplicateResourceException("El nombre del rol '" + roleRequest.getName() + "' ya existe.");
         }
         Role role = roleMapper.toRole(roleRequest); // Usar el método del mapper
 
@@ -69,26 +66,26 @@ public class RoleService {
         if (roleRequest.getPermissions() != null && !roleRequest.getPermissions().isEmpty()) {
             permissions = roleRequest.getPermissions().stream()
                     .map(permissionId -> permissionRepository.findById(permissionId)
-                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                    "Error: Permission '" + permissionId + "' not found.")))
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "Permiso no encontrado con ID: " + permissionId)))
                     .collect(Collectors.toSet());
         }
         role.setPermissions(permissions); // Asignar los permisos después del mapeo
 
         Role savedRole = roleRepository.save(role);
-        return Optional.of(roleMapper.toRoleResponse(savedRole));
+        return roleMapper.toRoleResponse(savedRole);
     }
 
     @Transactional
-    public Optional<RoleResponse> updateRole(Long id, RoleRequest roleRequest) {
+    public RoleResponse updateRole(Long id, RoleRequest roleRequest) {
         // 1. Buscamos el rol a actualizar
         Role existingRole = roleRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + id));
 
         // 2. Verificamos si el nombre del rol ha cambiado Y si el nuevo ya existe
         if (!existingRole.getName().equals(roleRequest.getName())
                 && roleRepository.existsByName(roleRequest.getName())) {
-            return Optional.empty();
+            throw new DuplicateResourceException("El nombre del rol '" + roleRequest.getName() + "' ya existe.");
         }
 
         // 3. Si no hay conflicto, actualizamos
@@ -99,25 +96,24 @@ public class RoleService {
         if (roleRequest.getPermissions() != null && !roleRequest.getPermissions().isEmpty()) {
             newPermissions = roleRequest.getPermissions().stream()
                     .map(permissionId -> permissionRepository.findById(permissionId)
-                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                    "Error: Permission '" + permissionId + "' not found.")))
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "Permiso no encontrado con ID: " + permissionId)))
                     .collect(Collectors.toSet());
         }
         // Reemplaza los permisos existentes
         existingRole.setPermissions(newPermissions);
         // Guardamos
         Role updatedRole = roleRepository.save(existingRole);
-        return Optional.of(roleMapper.toRoleResponse(updatedRole)); // Usar el método del mapper
+        return roleMapper.toRoleResponse(updatedRole);
     }
 
     @Transactional
     public void deleteRole(Long id) {
         // 1. Verificar si el rol existe
         Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + id));
 
-        // Considera implementar lógica para desvincular el rol de los usuarios antes de
-        // eliminarlo
+        // Desvincular el rol de los usuarios antes de eliminar
         List<User> usersWithRole = userRepository.findByRolesContaining(role);
         for (User user : usersWithRole) {
             user.removeRole(role);

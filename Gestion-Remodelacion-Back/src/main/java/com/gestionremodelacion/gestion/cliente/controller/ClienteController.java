@@ -10,9 +10,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize; // Importar Page
-import org.springframework.web.bind.annotation.DeleteMapping; // Importar Pageable
-import org.springframework.web.bind.annotation.GetMapping; // Importar PageableDefault
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -47,39 +47,41 @@ public class ClienteController {
     @PreAuthorize("hasAuthority('CLIENTE_READ')")
     public ResponseEntity<ApiResponse<Page<ClienteResponse>>> getAllClientes(Pageable pageable,
             @RequestParam(name = "filter", required = false) String filter) {
-        Page<ClienteResponse> clientesPage = clienteService.getAllClientes(pageable, filter);
-        return ResponseEntity.ok(ApiResponse.success(clientesPage));
+        Page<ClienteResponse> page = clienteService.getAllClientes(pageable, filter);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Clientes obtenidos con éxito", page));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('CLIENTE_READ')")
-    public ResponseEntity<ClienteResponse> getClienteById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ClienteResponse>> getClienteById(@PathVariable Long id) {
         ClienteResponse cliente = clienteService.getClienteById(id);
-        return ResponseEntity.ok(cliente);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Cliente obtenido con éxito", cliente));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('CLIENTE_CREATE')")
-    public ResponseEntity<ClienteResponse> createCliente(@Valid @RequestBody ClienteRequest clienteRequest) {
-        ClienteResponse createdCliente = clienteService.createCliente(clienteRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdCliente);
+    public ResponseEntity<ApiResponse<ClienteResponse>> createCliente(@Valid @RequestBody ClienteRequest request) {
+        ClienteResponse response = clienteService.createCliente(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Cliente creado con éxito", response));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('CLIENTE_UPDATE')")
-    public ResponseEntity<ClienteResponse> updateCliente(@PathVariable Long id, @Valid @RequestBody ClienteRequest clienteRequest) {
-        ClienteResponse updatedCliente = clienteService.updateCliente(id, clienteRequest);
-        return ResponseEntity.ok(updatedCliente);
+    public ResponseEntity<ApiResponse<ClienteResponse>> updateCliente(@PathVariable Long id,
+            @Valid @RequestBody ClienteRequest request) {
+        ClienteResponse response = clienteService.updateCliente(id, request);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Cliente actualizado con éxito", response));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('CLIENTE_DELETE')")
     public ResponseEntity<ApiResponse<Void>> deleteCliente(@PathVariable Long id) {
-        ApiResponse<Void> apiResponse = clienteService.deleteCliente(id);
-        return ResponseEntity.ok(apiResponse);
+        clienteService.deleteCliente(id);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Cliente eliminado con éxito", null));
     }
 
-    // ⭐️ Nuevo endpoint para exportar a Excel
+    // Nuevo endpoint para exportar a Excel
     @GetMapping("/export/excel")
     @PreAuthorize("hasAuthority('CLIENTE_READ')")
     public ResponseEntity<byte[]> exportClientsToExcel(
@@ -91,12 +93,13 @@ public class ClienteController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Clientes.xlsx");
-        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentType(
+                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 
         return ResponseEntity.ok().headers(headers).body(excelStream.toByteArray());
     }
 
-    // ⭐️ Nuevo endpoint para exportar a PDF
+    // Nuevo endpoint para exportar a PDF
     @GetMapping("/export/pdf")
     @PreAuthorize("hasAuthority('CLIENTE_READ')")
     public ResponseEntity<byte[]> exportClientsToPdf(

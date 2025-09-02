@@ -18,6 +18,7 @@ import { ClienteFormComponent } from '../cliente-form/cliente-form.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ExportService } from '../../../../core/services/export.service';
 import { MatSortModule, Sort } from '@angular/material/sort';
+import { HttpErrorResponse } from '@angular/common/http';
 @Component({
   selector: 'app-cliente-list',
   standalone: true,
@@ -134,9 +135,15 @@ export class ClienteListComponent implements AfterViewInit {
           this.loadClientes(); // Recargar la lista
           // TODO: Mostrar mensaje de éxito
         },
-        error: (err) => {
-          console.error('Error al eliminar cliente:', err);
-          // TODO: Mostrar mensaje de error
+        error: (err: HttpErrorResponse) => {
+          let error = 'Ocurrio un error inesperado.';
+          if (err.status === 409) {
+            error = err.error?.message || 'Este cliente no se puede eliminar porque tiene registros asociados (ej. Proyectos).';
+          }
+          this.snackBar.open(error, 'Cerrar', {
+            duration: 7000, // Más tiempo para que el usuario pueda leerlo
+            panelClass: ['error-snackbar']
+          });
         },
       });
     }

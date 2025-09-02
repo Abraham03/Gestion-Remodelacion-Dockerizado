@@ -16,6 +16,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { ExportService } from '../../../../core/services/export.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-horas-trabajadas-list',
@@ -173,12 +174,15 @@ export class HorasTrabajadasListComponent implements AfterViewInit {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
-            console.log('Registro eliminado con éxito');
+            this.snackBar.open('Registro eliminado correctamente', 'Cerrar', { duration: 5000 });
             this.loadHorasTrabajadas(); // Recargar la lista después de eliminar
           },
-          error: (err) => {
+          error: (err: HttpErrorResponse) => {
             console.error('Error al eliminar el registro:', err);
-            // Puedes mostrar un mensaje de error al usuario
+            if (err.status === 404) {
+              this.snackBar.open(err.error.message, 'Cerrar', { duration: 5000 });
+            }
+            
           },
         });
     }

@@ -1,11 +1,10 @@
 package com.gestionremodelacion.gestion.controller.role;
 
-import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,60 +40,39 @@ public class RoleController {
             @RequestParam(required = false) String searchTerm) {
 
         Page<RoleResponse> rolesResponse = roleService.findAll(pageable, searchTerm);
-        return ResponseEntity.ok(ApiResponse.success(rolesResponse));
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Roles obtenidos con éxito", rolesResponse));
     }
 
     @GetMapping("/{id}") // NEW: Get Role by ID
     @PreAuthorize("hasAuthority('ROLE_READ')")
     public ResponseEntity<ApiResponse<RoleResponse>> getRoleById(@PathVariable Long id) {
         RoleResponse role = roleService.findById(id);
-        return ResponseEntity.ok(ApiResponse.success(role));
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Role obtenido con éxito", role));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_CREATE')")
-    public ResponseEntity<ApiResponse<?>> createRole(@Valid @RequestBody RoleRequest role) {
-        Optional<RoleResponse> createdRole = roleService.createRole(role);
-        if (createdRole.isPresent()) {
-            ApiResponse<RoleResponse> successResponse = new ApiResponse<>(
-                    HttpStatus.OK.value(),
-                    "Role creado successfully",
-                    createdRole.get());
-            return ResponseEntity.ok(successResponse);
-        } else {
-            ApiResponse<Object> errorResponse = new ApiResponse<>(
-                    HttpStatus.NOT_FOUND.value(),
-                    "El nombre del rol ya existe",
-                    null);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-        }
+    public ResponseEntity<ApiResponse<RoleResponse>> createRole(@Valid @RequestBody RoleRequest role) {
+        RoleResponse createdRole = roleService.createRole(role);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Role creado con éxito", createdRole));
+
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_UPDATE')")
-    public ResponseEntity<ApiResponse<?>> updateRole(@PathVariable Long id, @Valid @RequestBody RoleRequest role) {
-        Optional<RoleResponse> updatedRole = roleService.updateRole(id, role);
-        if (updatedRole.isPresent()) {
-            ApiResponse<RoleResponse> successResponse = new ApiResponse<>(
-                    HttpStatus.OK.value(),
-                    "Role actualizado successfully",
-                    updatedRole.get());
-            return ResponseEntity.ok(successResponse);
-        } else {
-            ApiResponse<Object> errorResponse = new ApiResponse<>(
-                    HttpStatus.NOT_FOUND.value(),
-                    "El nombre del rol ya existe",
-                    null);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-        }
+    public ResponseEntity<ApiResponse<RoleResponse>> updateRole(@PathVariable Long id,
+            @Valid @RequestBody RoleRequest role) {
+        RoleResponse updatedRole = roleService.updateRole(id, role);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Role actualizado con éxito", updatedRole));
 
     }
 
-    @DeleteMapping("/{id}") // NEW: Delete Role by ID
+    @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_DELETE')")
     public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable Long id) {
         roleService.deleteRole(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Role eliminado con éxito", null));
     }
 
 }

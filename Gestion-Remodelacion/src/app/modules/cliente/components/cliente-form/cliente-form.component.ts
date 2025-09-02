@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 
 import { Cliente } from '../../models/cliente.model';
 import { ClienteService } from '../../services/cliente.service';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-cliente-form',
@@ -31,6 +33,7 @@ export class ClienteFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private clienteService: ClienteService,
+    private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ClienteFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: Cliente | null
   ) {
@@ -56,9 +59,10 @@ export class ClienteFormComponent implements OnInit {
           next: () => {
             this.dialogRef.close(true);
           },
-          error: (err) => {
-            console.error('Error al actualizar cliente:', err);
-            // TODO: Mostrar un MatSnackBar con el error
+          error: (err: HttpErrorResponse) => {
+            if (err.status === 409) {
+              this.snackBar.open(err.error?.message || 'Ocurrio un error inesperado.', 'Cerrar', { duration: 7000 });
+            }
           }
         });
       } else {
@@ -67,9 +71,10 @@ export class ClienteFormComponent implements OnInit {
           next: () => {
             this.dialogRef.close(true);
           },
-          error: (err) => {
-            console.error('Error al crear cliente:', err);
-            // TODO: Mostrar un MatSnackBar con el error
+          error: (err: HttpErrorResponse) => {
+            if (err.status === 409) {
+              this.snackBar.open(err.error?.message || 'Ocurrio un error inesperado.', 'Cerrar', { duration: 7000 });
+            }
           }
         });
       }

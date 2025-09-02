@@ -7,14 +7,12 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
-import com.gestionremodelacion.gestion.dto.response.ApiResponse;
 import com.gestionremodelacion.gestion.empleado.model.Empleado;
 import com.gestionremodelacion.gestion.empleado.repository.EmpleadoRepository;
+import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.request.HorasTrabajadasRequest;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasExportDTO;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse;
@@ -33,7 +31,8 @@ public class HorasTrabajadasService {
     private final ProyectoRepository proyectoRepository;
 
     public HorasTrabajadasService(HorasTrabajadasRepository horasTrabajadasRepository,
-            HorasTrabajadasMapper horasTrabajadasMapper, EmpleadoRepository empleadoRepository, ProyectoRepository proyectoRepository) {
+            HorasTrabajadasMapper horasTrabajadasMapper, EmpleadoRepository empleadoRepository,
+            ProyectoRepository proyectoRepository) {
         this.horasTrabajadasRepository = horasTrabajadasRepository;
         this.horasTrabajadasMapper = horasTrabajadasMapper;
         this.empleadoRepository = empleadoRepository;
@@ -42,113 +41,102 @@ public class HorasTrabajadasService {
 
     @Transactional(readOnly = true)
     public Page<HorasTrabajadasResponse> getAllHorasTrabajadas(Pageable pageable, String filter) {
-        if (filter != null && !filter.trim().isEmpty()) {
-            return horasTrabajadasRepository.findByFilterWithDetails(filter, pageable);
-        } else {
-            return horasTrabajadasRepository.findAllWithDetails(pageable);
-        }
+        return (filter != null && !filter.trim().isEmpty())
+                ? horasTrabajadasRepository.findByFilterWithDetails(filter, pageable)
+                : horasTrabajadasRepository.findAllWithDetails(pageable);
     }
 
     @Transactional(readOnly = true)
     public HorasTrabajadasResponse getHorasTrabajadasById(Long id) {
-        HorasTrabajadas horasTrabajadas = horasTrabajadasRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro de horas trabajadas no encontrado con ID: " + id));
-        return horasTrabajadasMapper.toHorasTrabajadasResponse(horasTrabajadas);
+        return horasTrabajadasRepository.findById(id)
+                .map(horasTrabajadasMapper::toHorasTrabajadasResponse)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Registro de horas trabajadas no encontrado con ID: " + id));
     }
 
     @Transactional
     public HorasTrabajadasResponse createHorasTrabajadas(HorasTrabajadasRequest horasTrabajadasRequest) {
-        // 1. Obtener el empleado y su costo actual
         Empleado empleado = empleadoRepository.findById(horasTrabajadasRequest.getIdEmpleado())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empleado no encontrado"));
-        // 2. Crear la entidad a partir del DTO
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Empleado no encontrado con ID: " + horasTrabajadasRequest.getIdEmpleado()));
+
+        Proyecto proyecto = proyectoRepository.findById(horasTrabajadasRequest.getIdProyecto())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Proyecto no encontrado con ID: " + horasTrabajadasRequest.getIdProyecto()));
+
         HorasTrabajadas horasTrabajadas = horasTrabajadasMapper.toHorasTrabajadas(horasTrabajadasRequest);
-        // 3. Establecer el costo por hora actual del empleado
+        horasTrabajadas.setEmpleado(empleado);
+        horasTrabajadas.setProyecto(proyecto);
         horasTrabajadas.setCostoPorHoraActual(empleado.getCostoPorHora());
-        // 4. Calcular el monto total de las horas trabajadas
-        BigDecimal montoTotal = horasTrabajadas.getHoras().multiply(horasTrabajadas.getCostoPorHoraActual());
-        // 5. Guardar la entidad de HorasTrabajadas
+
         HorasTrabajadas savedHorasTrabajadas = horasTrabajadasRepository.save(horasTrabajadas);
-        // 6. Obtener el proyecto asociado para actualizarlo
-        Proyecto proyecto = proyectoRepository.findById(horasTrabajadas.getProyecto().getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado"));
-        // 7. Actualizar el costo consolidado del proyecto
-        BigDecimal costoManoDeObra = proyecto.getCostoManoDeObra();
-        BigDecimal nuevosGastos = costoManoDeObra.add(montoTotal);
-        proyecto.setCostoManoDeObra(nuevosGastos);
-        // 8. Guardar la actualización del proyecto
-        proyectoRepository.save(proyecto);    
+
+        actualizarCostoManoDeObraProyecto(proyecto);
 
         return horasTrabajadasMapper.toHorasTrabajadasResponse(savedHorasTrabajadas);
     }
 
     @Transactional
     public HorasTrabajadasResponse updateHorasTrabajadas(Long id, HorasTrabajadasRequest horasTrabajadasRequest) {
-        // 1. Obtener el registro de horas original antes de la actualización
-        HorasTrabajadas horasTrabajadasOriginal = horasTrabajadasRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro de horas trabajadas no encontrado con ID: " + id));
+        HorasTrabajadas horasTrabajadas = horasTrabajadasRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Registro de horas trabajadas no encontrado con ID: " + id));
 
-        // 2. Obtener los valores antiguos para el cálculo
-        BigDecimal horasAntiguas = horasTrabajadasOriginal.getHoras();
-        BigDecimal costoAntiguo = horasTrabajadasOriginal.getCostoPorHoraActual();
-        BigDecimal costoTotalAntiguo = horasAntiguas.multiply(costoAntiguo);
+        Proyecto proyectoOriginal = horasTrabajadas.getProyecto();
 
-        // 3. Aplicar las actualizaciones del request al objeto original
-        horasTrabajadasMapper.updateHorasTrabajadasFromRequest(horasTrabajadasRequest, horasTrabajadasOriginal);
+        horasTrabajadasMapper.updateHorasTrabajadasFromRequest(horasTrabajadasRequest, horasTrabajadas);
 
-        // 4. Actualizar el costo por hora actual del registro si es necesario
-        if (horasTrabajadasRequest.getCostoPorHora() != null) {
-            horasTrabajadasOriginal.setCostoPorHoraActual(horasTrabajadasRequest.getCostoPorHora());
-        } else {
-            // Si el costo no viene en el request, asumimos que se mantiene el del empleado
-            Empleado empleado = empleadoRepository.findById(horasTrabajadasOriginal.getEmpleado().getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empleado no encontrado"));
-            horasTrabajadasOriginal.setCostoPorHoraActual(empleado.getCostoPorHora());
+        // Refrescar relaciones si han cambiado
+        if (!horasTrabajadas.getEmpleado().getId().equals(horasTrabajadasRequest.getIdEmpleado())) {
+            Empleado nuevoEmpleado = empleadoRepository.findById(horasTrabajadasRequest.getIdEmpleado())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Empleado no encontrado con ID: " + horasTrabajadasRequest.getIdEmpleado()));
+            horasTrabajadas.setEmpleado(nuevoEmpleado);
+            horasTrabajadas.setCostoPorHoraActual(nuevoEmpleado.getCostoPorHora());
         }
 
-        // 5. Calcular el nuevo costo total
-        BigDecimal horasNuevas = horasTrabajadasOriginal.getHoras();
-        BigDecimal costoNuevo = horasTrabajadasOriginal.getCostoPorHoraActual();
-        BigDecimal costoTotalNuevo = horasNuevas.multiply(costoNuevo);
+        if (!horasTrabajadas.getProyecto().getId().equals(horasTrabajadasRequest.getIdProyecto())) {
+            Proyecto nuevoProyecto = proyectoRepository.findById(horasTrabajadasRequest.getIdProyecto())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Proyecto no encontrado con ID: " + horasTrabajadasRequest.getIdProyecto()));
+            horasTrabajadas.setProyecto(nuevoProyecto);
+        }
 
-        // 6. Calcular la diferencia para ajustar el proyecto
-        BigDecimal diferenciaCosto = costoTotalNuevo.subtract(costoTotalAntiguo);
+        HorasTrabajadas updatedHorasTrabajadas = horasTrabajadasRepository.save(horasTrabajadas);
 
-        // 7. Guardar el registro de HorasTrabajadas actualizado
-        horasTrabajadasRepository.save(horasTrabajadasOriginal);
+        // Recalcular costos para ambos proyectos si el proyecto cambió
+        actualizarCostoManoDeObraProyecto(proyectoOriginal);
+        if (!proyectoOriginal.getId().equals(updatedHorasTrabajadas.getProyecto().getId())) {
+            actualizarCostoManoDeObraProyecto(updatedHorasTrabajadas.getProyecto());
+        }
 
-        // 8. Ajustar el costo consolidado del proyecto
-        Proyecto proyecto = proyectoRepository.findById(horasTrabajadasOriginal.getProyecto().getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado"));
-        
-        BigDecimal nuevosGastos = proyecto.getCostoManoDeObra().add(diferenciaCosto);
-        proyecto.setCostoManoDeObra(nuevosGastos);
-        proyectoRepository.save(proyecto);
-        return horasTrabajadasMapper.toHorasTrabajadasResponse(horasTrabajadasOriginal);
+        return horasTrabajadasMapper.toHorasTrabajadasResponse(updatedHorasTrabajadas);
     }
 
     @Transactional
-    public ApiResponse<Void> deleteHorasTrabajadas(Long id) {
-        // 1. Obtener el registro de horas original antes de eliminarlo
+    public void deleteHorasTrabajadas(Long id) {
         HorasTrabajadas horasTrabajadas = horasTrabajadasRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro de horas trabajadas no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Registro de horas trabajadas no encontrado con ID: " + id));
 
-        // 2. Calcular el costo total del registro a eliminar
-        BigDecimal costoTotalEliminado = horasTrabajadas.getHoras().multiply(horasTrabajadas.getCostoPorHoraActual());
+        Proyecto proyectoAfectado = horasTrabajadas.getProyecto();
 
-        // 3. Obtener el proyecto asociado para actualizarlo
-        Proyecto proyecto = horasTrabajadas.getProyecto();
-        
-        // 4. Restar el costo del registro eliminado del costo de mano de obra consolidado del proyecto
-        BigDecimal nuevoCostoManoDeObra = proyecto.getCostoManoDeObra().subtract(costoTotalEliminado);
-        proyecto.setCostoManoDeObra(nuevoCostoManoDeObra);
+        horasTrabajadasRepository.delete(horasTrabajadas);
 
-        // 5. Guardar la actualización del proyecto
+        // Asegurarse de que el proyecto no sea nulo antes de actualizar
+        if (proyectoAfectado != null) {
+            actualizarCostoManoDeObraProyecto(proyectoAfectado);
+        }
+    }
+
+    private void actualizarCostoManoDeObraProyecto(Proyecto proyecto) {
+        List<HorasTrabajadas> horasDelProyecto = horasTrabajadasRepository.findByProyectoId(proyecto.getId());
+        BigDecimal nuevoCostoTotal = horasDelProyecto.stream()
+                .map(h -> h.getHoras().multiply(h.getCostoPorHoraActual()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        proyecto.setCostoManoDeObra(nuevoCostoTotal);
         proyectoRepository.save(proyecto);
-
-        // 6. Eliminar el registro de horas trabajadas               
-        horasTrabajadasRepository.deleteById(id);
-        return new ApiResponse<>(HttpStatus.OK.value(), "Registro de horas trabajadas eliminado exitosamente.", null);
     }
 
     @Transactional(readOnly = true)
@@ -158,7 +146,8 @@ public class HorasTrabajadasService {
             String[] sortParts = sort.split(",");
             if (sortParts.length == 2) {
                 String property = sortParts[0];
-                Sort.Direction direction = "desc".equalsIgnoreCase(sortParts[1]) ? Sort.Direction.DESC : Sort.Direction.ASC;
+                Sort.Direction direction = "desc".equalsIgnoreCase(sortParts[1]) ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
                 sortObj = Sort.by(direction, property);
             }
         }
@@ -177,7 +166,8 @@ public class HorasTrabajadasService {
 
     /**
      * ✅ MÉTODO DE MIGRACIÓN 1: Corrige los registros históricos.
-     * Itera sobre todos los registros de horas trabajadas con 'costoPorHoraActual' nulo,
+     * Itera sobre todos los registros de horas trabajadas con 'costoPorHoraActual'
+     * nulo,
      * asigna el costo por hora actual del empleado y guarda el registro.
      * Nota: Este método solo debe ejecutarse una vez en el despliegue.
      */
@@ -185,20 +175,23 @@ public class HorasTrabajadasService {
     public void corregirCostosHorasHistoricas() {
         System.out.println("Iniciando corrección de costos por hora en registros históricos...");
 
-        // Usamos una consulta personalizada para obtener solo los registros que necesitan ser corregidos
+        // Usamos una consulta personalizada para obtener solo los registros que
+        // necesitan ser corregidos
         List<HorasTrabajadas> registrosSinCosto = horasTrabajadasRepository.findByCostoPorHoraActualIsNull();
 
         for (HorasTrabajadas registro : registrosSinCosto) {
-            // Se asume que la entidad Empleado ya está cargada debido a las anotaciones de relación
+            // Se asume que la entidad Empleado ya está cargada debido a las anotaciones de
+            // relación
             Empleado empleado = registro.getEmpleado();
             if (empleado != null && empleado.getCostoPorHora() != null) {
                 registro.setCostoPorHoraActual(empleado.getCostoPorHora());
                 horasTrabajadasRepository.save(registro);
             }
         }
-        System.out.println("Corrección de costos por hora completada. Registros actualizados: " + registrosSinCosto.size());
-    }    
-    
+        System.out.println(
+                "Corrección de costos por hora completada. Registros actualizados: " + registrosSinCosto.size());
+    }
+
     /**
      * ✅ MÉTODO DE MIGRACIÓN 2: Recalcula los gastos consolidados de los proyectos.
      * Este método se ejecuta DESPUÉS de corregir los costos de horas.
@@ -234,8 +227,6 @@ public class HorasTrabajadasService {
             }
         }
         System.out.println("Recálculo de gastos consolidados completado.");
-    }    
-
-
+    }
 
 }

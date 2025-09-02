@@ -5,18 +5,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.gestionremodelacion.gestion.dto.request.UserRequest;
 import com.gestionremodelacion.gestion.dto.response.UserResponse;
+import com.gestionremodelacion.gestion.exception.DuplicateResourceException;
+import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.UserMapper;
 import com.gestionremodelacion.gestion.model.Role;
 import com.gestionremodelacion.gestion.model.User;
@@ -24,15 +22,11 @@ import com.gestionremodelacion.gestion.repository.RefreshTokenRepository;
 import com.gestionremodelacion.gestion.repository.RoleRepository;
 import com.gestionremodelacion.gestion.repository.UserRepository;
 
-import jakarta.persistence.EntityNotFoundException;
-
 /**
  * Servicio para manejar la lógica de negocio relacionada con usuarios.
  */
 @Service
 public class UserService {
-
-    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
@@ -51,30 +45,25 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public Page<UserResponse> findAll(Pageable pageable, String filter) {
-        log.info("Fetching all users with searchTerm: {}", filter); // New log
-        Page<User> usersPage;
-        if (filter != null && !filter.trim().isEmpty()) {
-            usersPage = userRepository.findByUsernameContainingIgnoreCase(filter, pageable);
-        } else {
-            usersPage = userRepository.findAll(pageable);
-        }
-        log.debug("Found {} users on page {}.", usersPage.getTotalElements(), pageable.getPageNumber()); // New log
-
+        Page<User> usersPage = (filter != null && !filter.trim().isEmpty()
+                ? userRepository.findByUsernameContainingIgnoreCase(filter, pageable)
+                : userRepository.findAll(pageable));
         return usersPage.map(userMapper::toDto);
     }
 
     @Transactional(readOnly = true)
     public UserResponse findById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id " + id));
-        return userMapper.toDto(user);
+        return userRepository.findById(id)
+                .map(userMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+
     }
 
     @Transactional
-    public Optional<UserResponse> createUser(UserRequest userRequest) {
+    public UserResponse createUser(UserRequest userRequest) {
         // 1. Validar si el usuario ya existe
         if (userRepository.existsByUsername(userRequest.getUsername())) {
-            return Optional.empty();
+            throw new DuplicateResourceException("El nombre de usuario '" + userRequest.getUsername() + "' ya existe.");
         }
         User user = userMapper.toEntity(userRequest);
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
@@ -82,27 +71,26 @@ public class UserService {
 
         Set<Role> roles = userRequest.getRoles().stream()
                 .map(roleId -> roleRepository.findById(roleId)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                "Role not found with id " + roleId)))
+                        .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + roleId)))
                 .collect(Collectors.toSet());
+
         user.setRoles(roles);
 
         User savedUser = userRepository.save(user);
-        return Optional.of(userMapper.toDto(savedUser));
+        return userMapper.toDto(savedUser);
     }
 
     @Transactional
-    public Optional<UserResponse> updateUser(Long id, UserRequest userRequest) {
-        // 1. Buscar el usuario por ID a actualizar
+    public UserResponse updateUser(Long id, UserRequest userRequest) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
 
         // 2. Verificamos si el nombre de usuario ha cambiado Y si el nuevo ya existe
-        if (!existingUser.getUsername().equals(userRequest.getUsername()) &&
-                userRepository.existsByUsername(userRequest.getUsername())) {
-            return Optional.empty(); // Si ya existe, devolvemos un Optional vacío
+        if (!existingUser.getUsername().equals(userRequest.getUsername())
+                && userRepository.existsByUsername(userRequest.getUsername())) {
+            throw new DuplicateResourceException(
+                    "El nombre de usuario '" + userRequest.getUsername() + "' ya está en uso.");
         }
-
         // 3. Si no hay conflicto, actualizamos los datos
         existingUser.setUsername(userRequest.getUsername());
         existingUser.setEnabled(userRequest.isEnabled());
@@ -117,8 +105,7 @@ public class UserService {
         if (userRequest.getRoles() != null && !userRequest.getRoles().isEmpty()) {
             updatedRoles = userRequest.getRoles().stream()
                     .map(roleId -> roleRepository.findById(roleId)
-                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                    "Role not found with id " + roleId)))
+                            .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + roleId)))
                     .collect(Collectors.toSet());
         }
 
@@ -127,14 +114,14 @@ public class UserService {
         // 7. Guardar el usuario actualizado
         User updatedUser = userRepository.save(existingUser);
         // 8. Devolver el DTO del usuario actualizado
-        return Optional.of(userMapper.toDto(updatedUser));
+        return userMapper.toDto(updatedUser);
     }
 
     @Transactional
     public void deleteById(Long id) {
         // 1. Verificar si el usuario existe para lanzar una excepción si no es así.
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
 
         // 2. Eliminar todos los tokens de actualización asociados a este usuario.
         // Esto previene el error de clave foránea.
@@ -148,12 +135,11 @@ public class UserService {
     @Transactional
     public UserResponse updateUserRoles(Long id, Set<String> roleNames) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
 
         Set<Role> newRoles = roleNames.stream()
                 .map(roleName -> roleRepository.findByName(roleName) // Assuming findByName exists in RoleRepository
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                "Role not found with name: " + roleName)))
+                        .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con nombre: " + roleName)))
                 .collect(Collectors.toSet());
 
         existingUser.setRoles(newRoles);

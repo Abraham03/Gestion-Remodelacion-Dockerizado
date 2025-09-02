@@ -7,11 +7,10 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
+import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.ProyectoMapper;
 import com.gestionremodelacion.gestion.proyecto.dto.request.ProyectoRequest;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoExcelDTO;
@@ -33,19 +32,16 @@ public class ProyectoService {
 
     @Transactional(readOnly = true)
     public Page<ProyectoResponse> getAllProyectos(Pageable pageable, String filter) {
-        if (filter != null && !filter.trim().isEmpty()) {
-            return proyectoRepository.findByFilterWithDetails(filter, pageable);
-        } else {
-            return proyectoRepository.findAllWithDetails(pageable);
-        }
+        return (filter != null && !filter.trim().isEmpty())
+                ? proyectoRepository.findByFilterWithDetails(filter, pageable)
+                : proyectoRepository.findAllWithDetails(pageable);
     }
 
     @Transactional(readOnly = true)
     public ProyectoResponse getProyectoById(Long id) {
-        Proyecto proyecto = proyectoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Proyecto no encontrado con ID: " + id));
-        return proyectoMapper.toProyectoResponse(proyecto);
+        return proyectoRepository.findById(id)
+                .map(proyectoMapper::toProyectoResponse)
+                .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con ID: " + id));
     }
 
     @Transactional
@@ -66,8 +62,7 @@ public class ProyectoService {
     @Transactional
     public ProyectoResponse updateProyecto(Long id, ProyectoRequest proyectoRequest) {
         Proyecto proyecto = proyectoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Proyecto no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con ID: " + id));
 
         // 3. Manejar los campos numéricos que podrían venir como nulos desde el
         // frontend
@@ -86,7 +81,7 @@ public class ProyectoService {
     public void deleteProyecto(Long id) {
         // 1. Verificar si el proyecto existe para evitar errores innecesarios
         if (!proyectoRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado con ID: " + id);
+            throw new ResourceNotFoundException("Proyecto no encontrado con ID: " + id);
         }
 
         // 7. Si no hay dependencias, proceder a eliminar
@@ -105,11 +100,9 @@ public class ProyectoService {
             }
         }
 
-        if (filter != null && !filter.trim().isEmpty()) {
-            return proyectoRepository.findByFilterForExport(filter, sortObj);
-        } else {
-            return proyectoRepository.findAll(sortObj);
-        }
+        return (filter != null && !filter.trim().isEmpty())
+                ? proyectoRepository.findByFilterForExport(filter, sortObj)
+                : proyectoRepository.findAll(sortObj);
     }
 
     @Transactional(readOnly = true)

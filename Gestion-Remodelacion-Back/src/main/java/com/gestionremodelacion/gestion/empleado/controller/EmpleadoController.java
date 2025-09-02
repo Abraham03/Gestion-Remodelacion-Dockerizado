@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable; // Importar Page
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus; // Importar Pageable
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity; // Importar PageableDefault para valores por defecto
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,46 +49,51 @@ public class EmpleadoController {
     public ResponseEntity<ApiResponse<Page<EmpleadoResponse>>> getAllEmpleados(
             Pageable pageable,
             @RequestParam(name = "filter", required = false) String filter) {
-        Page<EmpleadoResponse> empleadosPage = empleadoService.getAllEmpleados(pageable, filter);
-        return ResponseEntity.ok(ApiResponse.success(empleadosPage));
+        Page<EmpleadoResponse> page = empleadoService.getAllEmpleados(pageable, filter);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Empleados obtenidos con éxito", page));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('EMPLEADO_READ')")
-    public ResponseEntity<EmpleadoResponse> getEmpleadoById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<EmpleadoResponse>> getEmpleadoById(@PathVariable Long id) {
         EmpleadoResponse empleado = empleadoService.getEmpleadoById(id);
-        return ResponseEntity.ok(empleado);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Empleado obtenido con éxito", empleado));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('EMPLEADO_CREATE')")
-    public ResponseEntity<EmpleadoResponse> createEmpleado(@Valid @RequestBody EmpleadoRequest empleadoRequest) {
-        EmpleadoResponse createdEmpleado = empleadoService.createEmpleado(empleadoRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdEmpleado);
+    public ResponseEntity<ApiResponse<EmpleadoResponse>> createEmpleado(
+            @Valid @RequestBody EmpleadoRequest empleadoRequest) {
+        EmpleadoResponse response = empleadoService.createEmpleado(empleadoRequest);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Empleado creado con éxito", response));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('EMPLEADO_UPDATE')")
-    public ResponseEntity<EmpleadoResponse> updateEmpleado(@PathVariable Long id, @Valid @RequestBody EmpleadoRequest empleadoRequest) {
-        EmpleadoResponse updatedEmpleado = empleadoService.updateEmpleado(id, empleadoRequest);
-        return ResponseEntity.ok(updatedEmpleado);
+    public ResponseEntity<ApiResponse<EmpleadoResponse>> updateEmpleado(@PathVariable Long id,
+            @Valid @RequestBody EmpleadoRequest empleadoRequest) {
+        EmpleadoResponse response = empleadoService.updateEmpleado(id, empleadoRequest);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Empleado actualizado con éxito", response));
     }
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAuthority('EMPLEADO_UPDATE')")
     public ResponseEntity<ApiResponse<Void>> changeEmpleadoStatus(@PathVariable Long id, @RequestParam Boolean activo) {
-        ApiResponse<Void> apiResponse = empleadoService.changeEmpleadoStatus(id, activo);
-        return ResponseEntity.ok(apiResponse);
+        empleadoService.changeEmpleadoStatus(id, activo);
+        String statusMessage = activo ? "activado" : "desactivado";
+        return ResponseEntity
+                .ok(new ApiResponse<>(HttpStatus.OK.value(), "Empleado " + statusMessage + " con éxito.", null));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('EMPLEADO_DELETE')")
     public ResponseEntity<ApiResponse<Void>> deactivateEmpleado(@PathVariable Long id) {
-        ApiResponse<Void> apiResponse = empleadoService.deactivateEmpleado(id);
-        return ResponseEntity.ok(apiResponse);
+        empleadoService.deleteEmpleado(id);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Empleado desactivado con éxito.", null));
     }
 
-    // ⭐️ NUEVO: Endpoint para exportar a Excel
+    // Endpoint para exportar a Excel
     @GetMapping("/export/excel")
     @PreAuthorize("hasAuthority('EMPLEADO_READ')")
     public ResponseEntity<byte[]> exportEmpleadosToExcel(
@@ -101,12 +106,13 @@ public class EmpleadoController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Empleados.xlsx");
-        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentType(
+                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 
         return ResponseEntity.ok().headers(headers).body(excelStream.toByteArray());
     }
 
-    // ⭐️ NUEVO: Endpoint para exportar a PDF
+    // Endpoint para exportar a PDF
     @GetMapping("/export/pdf")
     @PreAuthorize("hasAuthority('EMPLEADO_READ')")
     public ResponseEntity<byte[]> exportEmpleadosToPdf(
