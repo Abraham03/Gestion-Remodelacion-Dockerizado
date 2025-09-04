@@ -10,6 +10,7 @@ import { Cliente } from '../../models/cliente.model';
 import { ClienteService } from '../../services/cliente.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-cliente-form',
@@ -35,7 +36,8 @@ export class ClienteFormComponent implements OnInit {
     private clienteService: ClienteService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ClienteFormComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: Cliente | null
+    @Inject(MAT_DIALOG_DATA) public data: Cliente | null,
+    private notificationService: NotificationService
   ) {
     this.form = this.fb.group({
       id: [data?.id || null],
@@ -57,6 +59,8 @@ export class ClienteFormComponent implements OnInit {
         // Actualizar cliente existente
         this.clienteService.updateCliente(clienteToSend.id, clienteToSend).subscribe({
           next: () => {
+            this.notificationService.notifyDataChange();
+            this.snackBar.open('Cliente actualizado correctamente.', 'Cerrar', { duration: 3000 });
             this.dialogRef.close(true);
           },
           error: (err: HttpErrorResponse) => {
@@ -69,6 +73,8 @@ export class ClienteFormComponent implements OnInit {
         // Añadir nuevo cliente
         this.clienteService.createCliente(clienteToSend).subscribe({
           next: () => {
+            this.notificationService.notifyDataChange();
+            this.snackBar.open('Cliente creado correctamente.', 'Cerrar', { duration: 3000 });
             this.dialogRef.close(true);
           },
           error: (err: HttpErrorResponse) => {

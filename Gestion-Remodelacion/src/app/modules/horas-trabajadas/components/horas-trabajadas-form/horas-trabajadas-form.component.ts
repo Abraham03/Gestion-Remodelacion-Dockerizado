@@ -13,9 +13,11 @@ import { Observable } from 'rxjs';
 import { HorasTrabajadas } from '../../models/horas-trabajadas';
 import { HorasTrabajadasService } from '../../services/horas-trabajadas.service';
 import { EmpleadoService } from '../../../empleados/services/empleado.service';
-import { ClienteService } from '../../../cliente/services/cliente.service';
 import { ProyectosService } from '../../../proyectos/services/proyecto.service';
 import { DropdownItem } from '../../../../core/models/dropdown-item.model';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-horas-trabajadas-form',
@@ -45,9 +47,10 @@ export class HorasTrabajadasFormComponent {
     private fb: FormBuilder,
     private horasTrabajadasService: HorasTrabajadasService,
     private empleadoService: EmpleadoService,
-    private proyectosService: ProyectosService,   // Asumo que el ProyectoService ya existe para el dropdown.
-    private clienteService: ClienteService, // Usaremos este para proyectos (si es necesario) o se podría crear un ProyectoService.
+    private proyectosService: ProyectosService,   
+    private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<HorasTrabajadasFormComponent>,
+    private notificationService: NotificationService,
     @Inject(MAT_DIALOG_DATA) public data: HorasTrabajadas | null // 'data' contendrá el objeto a editar
   ) {}
 
@@ -106,15 +109,6 @@ export class HorasTrabajadasFormComponent {
 
   loadDropdownData(): void {
     this.empleados$ = this.empleadoService.getEmpleadosForDropdown();
-    // Aquí necesitarás un servicio de Proyectos que exponga un método similar a getClientesForDropdown
-    // Si ya tienes 'ProyectosService', úsalo:
-    // this.proyectos$ = this.proyectosService.getProyectosForDropdown();
-    // Si no, puedes crearlo en 'src/app/modules/proyectos/services/proyecto.service.ts'
-    // Asumiendo que existe un 'proyectosService' en 'src/app/modules/proyectos/services/proyecto.service.ts'
-    // Y que tiene un método getProyectosForDropdown que devuelve Observable<DropdownItem[]>
-    // Para este ejemplo, lo simulo si no lo tienes:
-    // Puedes inyectar ProyectosService en este componente si lo necesitas.
-    // Por ahora, para que compile, lo dejo como un observable vacío o lo cargaré asumiendo que tienes un servicio de proyectos.
     this.proyectos$ = (this.proyectosService as any).getProyectosForDropdown(); // Se asume que ProyectosService tiene este método
   }
 
@@ -130,6 +124,7 @@ export class HorasTrabajadasFormComponent {
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.snackBar.open('Por favor, completa todos los campos.', 'Cerrar', { duration: 3000 });
       console.error('Formulario inválido:', this.form.errors);
       return;
     }
@@ -149,22 +144,32 @@ export class HorasTrabajadasFormComponent {
       // Actualizar
       this.horasTrabajadasService.updateHorasTrabajadas(horasTrabajadasData).subscribe({
         next: (response) => {
-          this.dialogRef.close(true); // Cerrar y enviar señal de éxito
+          this.snackBar.open('Horas trabajadas actualizadas correctamente.', 'Cerrar', { duration: 3000 });
+          this.notificationService.notifyDataChange();
+          this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error al actualizar horas trabajadas:', error);
-          // TODO: Manejo de errores más amigable (SnackBar)
+          if (error.status === 409) {
+            this.snackBar.open(error.error?.message || 'Ocurrio un error inesperado.', 'Cerrar', { duration: 7000 });
+          }else{
+            this.snackBar.open('Ocurrio un error inesperado.', 'Cerrar', { duration: 7000 });
+          }
         },
       });
     } else {
       // Crear
       this.horasTrabajadasService.addHorasTrabajadas(horasTrabajadasData).subscribe({
         next: (response) => {
-          this.dialogRef.close(true); // Cerrar y enviar señal de éxito
+          this.snackBar.open('Horas trabajadas creadas correctamente.', 'Cerrar', { duration: 3000 });
+          this.notificationService.notifyDataChange();
+          this.dialogRef.close(true);
         },
-        error: (error) => {
-          console.error('Error al crear horas trabajadas:', error);
-          // TODO: Manejo de errores más amigable (SnackBar)
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 409) {
+            this.snackBar.open(error.error?.message || 'Ocurrio un error inesperado.', 'Cerrar', { duration: 7000 });
+          }else{
+            this.snackBar.open('Ocurrio un error inesperado.', 'Cerrar', { duration: 7000 });
+          }
         },
       });
     }

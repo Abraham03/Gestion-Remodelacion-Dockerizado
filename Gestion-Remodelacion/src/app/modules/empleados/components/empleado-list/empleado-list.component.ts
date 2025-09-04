@@ -1,4 +1,4 @@
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import {
   MatPaginatorModule,
   MatPaginator,
+  PageEvent,
 } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -36,7 +37,7 @@ import { HttpErrorResponse } from '@angular/common/http';
   templateUrl: './empleado-list.component.html',
   styleUrls: ['./empleado-list.component.scss'],
 })
-export class EmpleadoListComponent implements AfterViewInit {
+export class EmpleadoListComponent implements OnInit, AfterViewInit {
   empleados: Empleado[] = [];
   displayedColumns: string[] = [
     'nombreCompleto',
@@ -62,12 +63,12 @@ export class EmpleadoListComponent implements AfterViewInit {
     private empleadoService: EmpleadoService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private cdr: ChangeDetectorRef
   ) {}
 
+  ngOnInit(): void {}
   ngAfterViewInit(): void {
-    // La suscripción se hace aquí para evitar el error 'Cannot read properties of undefined'
-    this.paginator.page.subscribe(() => this.loadEmpleados());
     // Carga inicial de datos
     this.loadEmpleados();
   }
@@ -86,9 +87,13 @@ export class EmpleadoListComponent implements AfterViewInit {
             this.dataSource.data = response.content;
             this.totalElements = response.totalElements;
 
+            if (this.paginator){
             this.paginator.length = response.totalElements;
             this.paginator.pageIndex = response.number;
             this.paginator.pageSize = response.size;
+            }
+            
+            this.cdr.detectChanges();
           
         },
         error: (error) => {
@@ -150,6 +155,7 @@ export class EmpleadoListComponent implements AfterViewInit {
           this.snackBar.open('Empleado desactivado exitosamente', 'Cerrar', {
             duration: 3000,
           });
+          this.cdr.detectChanges();
           this.loadEmpleados();
         },
         (error: HttpErrorResponse) => {
@@ -162,6 +168,12 @@ export class EmpleadoListComponent implements AfterViewInit {
         }
       );
     }
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = this.paginator.pageIndex;
+    this.pageSize = this.paginator.pageSize;
+    this.loadEmpleados();
   }
 
   onSortChange(sort: Sort) {

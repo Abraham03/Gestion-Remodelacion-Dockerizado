@@ -8,6 +8,7 @@
         (input)="applyFilterIfEmpty(filterValue.value)" >
         <mat-icon matSuffix (click)="applyFilter(filterValue.value)">search</mat-icon>
       </mat-form-field>
+      
       <div class="table-actions">
         <button mat-flat-button color="primary" (click)="openForm()">
           <mat-icon>add</mat-icon>
@@ -81,6 +82,12 @@
         </tr>
       </table>
     </div>
-    <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons class="table-paginator"></mat-paginator>
+    <mat-paginator 
+    [length]="totalElements"
+    [pageSize]="pageSize"
+    [pageIndex]="currentPage"
+    [pageSizeOptions]="[5, 10, 20]" 
+    (page)="onPageChange($event)" showFirstLastButtons 
+    class="table-paginator"></mat-paginator>
   </div>
 </div>

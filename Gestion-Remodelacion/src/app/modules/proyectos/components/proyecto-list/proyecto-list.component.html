@@ -94,6 +94,12 @@
         </tr>
       </table>
     </div>
-    <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons class="table-paginator"></mat-paginator>
+    <mat-paginator
+    [length]="totalElements"
+    [pageSize]="pageSize"
+    [pageIndex]="currentPage" 
+    [pageSizeOptions]="[5, 10, 20]" 
+    (page)="onPageChange($event)" showFirstLastButtons 
+    class="table-paginator"></mat-paginator>
   </div>
 </div>

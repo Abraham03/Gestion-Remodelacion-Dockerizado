@@ -78,7 +78,12 @@
         </tr>
       </table>
     </div>
-    <mat-paginator [length]="totalElements" [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
+    <mat-paginator 
+      [length]="totalElements" 
+      [pageSize]="pageSize"
+      [pageIndex]="pageNumber"
+      [pageSizeOptions]="[5, 10, 20]" 
+      (page)="onPageChange($event)"  showFirstLastButtons
       class="table-paginator"></mat-paginator>
   </div>
 </div>

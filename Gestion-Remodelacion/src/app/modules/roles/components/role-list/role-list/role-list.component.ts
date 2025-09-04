@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, signal, ViewChild } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import {
   MatPaginator,
@@ -39,7 +39,7 @@ import { PermissionDialogComponent } from '../../dialogs/permission-dialog/permi
   templateUrl: './role-list.component.html',
   styleUrls: ['./role-list.component.scss'],
 })
-export class RoleListComponent implements OnInit {
+export class RoleListComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = [
     'name',
     'description',
@@ -61,19 +61,16 @@ export class RoleListComponent implements OnInit {
     private roleService: RoleService,
     private dialog: MatDialog,
     private authService: AuthService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.loadRoles();
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
-    this.dataSource.sort.sortChange.subscribe(() => (this.paginator.pageIndex = 0));
-    this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
-    this.totalElements.set(this.dataSource.data.length);
+    this.loadRoles();
   }
 
   loadRoles(): void {
@@ -91,9 +88,17 @@ export class RoleListComponent implements OnInit {
           this.dataSource.data = data.content;
           this.totalElements.set(data.totalElements);
 
+          // Asegura que la paginación se actualice
+          this.pageIndex.set(data.number);
+          this.pageSize.set(data.size);
+
+          // Verificacion ddel paginator y cdr.detectChanges
+          if (this.paginator){
           this.paginator.length = data.totalElements;
           this.paginator.pageIndex = data.number;
           this.paginator.pageSize = data.size;
+          }
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Error loading roles:', err);

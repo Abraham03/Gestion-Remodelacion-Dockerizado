@@ -22,6 +22,7 @@ import { User, UserRequest } from '../../../../../core/models/user.model';
 import { RoleService } from '../../../../roles/services/role.service';
 import { UserService } from '../../../services/user.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-user-form',
@@ -42,15 +43,16 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class UserFormComponent implements OnInit {
   userForm: FormGroup;
   isEditMode: boolean;
-  roles: Role[] = []; // Para almacenar todos los roles disponibles
+  roles: Role[] = []; 
 
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<UserFormComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: User | undefined, // 'data' puede ser un User o undefined
+    @Inject(MAT_DIALOG_DATA) public data: User | undefined,
     private userService: UserService,
-    private roleService: RoleService, // Inyectar RoleService
-    private snackBar: MatSnackBar
+    private roleService: RoleService, 
+    private snackBar: MatSnackBar,
+    private notificationService: NotificationService
   ) {
     this.isEditMode = !!data;
     this.userForm = this.fb.group({
@@ -102,6 +104,7 @@ export class UserFormComponent implements OnInit {
       this.userService.updateUser(userRequest.id, userRequest).subscribe({
         next: (res) => {
           this.snackBar.open('Usuario actualizado correctamente.', 'Cerrar', {duration: 3000,});
+          this.notificationService.notifyDataChange();
           this.dialogRef.close(true);
         },
         error: (err: HttpErrorResponse) => {
@@ -123,6 +126,7 @@ export class UserFormComponent implements OnInit {
           this.snackBar.open('Usuario creado correctamente.', 'Cerrar', {
             duration: 3000,
           });
+          this.notificationService.notifyDataChange();
           this.dialogRef.close(true);
         },
         error: (err: HttpErrorResponse) => {

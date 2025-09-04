@@ -1,4 +1,4 @@
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import {
   MatPaginator,
@@ -37,7 +37,7 @@ import { HttpErrorResponse } from '@angular/common/http';
   templateUrl: './cliente-list.component.html',
   styleUrls: ['./cliente-list.component.scss'],
 })
-export class ClienteListComponent implements AfterViewInit {
+export class ClienteListComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<Cliente>([]);
   displayedColumns: string[] = [
     'nombreCliente',
@@ -61,12 +61,12 @@ export class ClienteListComponent implements AfterViewInit {
     private clienteService: ClienteService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private cdr: ChangeDetectorRef
   ) {}
 
+  ngOnInit(): void {}
   ngAfterViewInit(): void {
-    // La suscripción se hace aqui para evitar el error 'Cannot read properties of undefined'
-    this.paginator.page.subscribe(() => this.loadClientes());
     this.loadClientes();
   }
 
@@ -74,8 +74,8 @@ export class ClienteListComponent implements AfterViewInit {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
     this.clienteService
       .getClientes(
-        this.paginator.pageIndex,
-        this.paginator.pageSize,
+        this.pageNumber,
+        this.pageSize,
         this.filterValue,
         sortParam 
       )
@@ -84,9 +84,9 @@ export class ClienteListComponent implements AfterViewInit {
           this.dataSource.data = response.content;
           this.totalElements = response.totalElements;
 
-          this.paginator.length = response.totalElements;
-          this.paginator.pageIndex = response.number;
-          this.pageSize = response.size;
+          this.pageNumber = response.number;
+          
+          this.cdr.detectChanges();
 
         },
         error:(err) => {

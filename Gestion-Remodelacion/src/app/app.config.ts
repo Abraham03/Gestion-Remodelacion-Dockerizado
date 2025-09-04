@@ -7,6 +7,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { responseInterceptor } from './core/interceptors/response.interceptor';
+import { cachingInterceptor } from './core/interceptors/caching.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,8 +16,9 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withInterceptors([
         jwtInterceptor,
-        responseInterceptor      
+        responseInterceptor,
+        cachingInterceptor
       ])
-    )
+    ),
   ]
 };

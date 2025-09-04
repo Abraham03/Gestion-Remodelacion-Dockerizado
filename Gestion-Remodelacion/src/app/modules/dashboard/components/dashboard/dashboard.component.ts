@@ -32,6 +32,7 @@ import { Chart, registerables } from 'chart.js';
 import { DashboardService } from '../../services/dashboard.service';
 import { DashboardProyecto } from '../../models/dashboard-proyecto.model';
 import { DropdownItem } from '../../../../core/models/dropdown-item.model';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 Chart.register(...registerables);
 
@@ -100,12 +101,14 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private dashboardService: DashboardService,
     private snackBar: MatSnackBar,
-    private breakpointObserver: BreakpointObserver
+    private breakpointObserver: BreakpointObserver,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
     this.setupResponsiveCols();
     this.loadInitialData();
+    this.notificationService.dataUpdated$.subscribe(() => this.loadInitialData());
   }
 
   ngAfterViewInit(): void {

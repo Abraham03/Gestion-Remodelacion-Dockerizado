@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, signal, ViewChild } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
@@ -31,12 +31,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatTooltipModule,
     MatButtonModule,
     MatSnackBarModule,
-    FormsModule // Agregado FormsModule
+    FormsModule 
   ],
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss']
 })
-export class UserListComponent implements AfterViewInit{
+export class UserListComponent implements OnInit, AfterViewInit{
   displayedColumns: string[] = ['username', 'enabled', 'roles', 'actions'];
   dataSource = new MatTableDataSource<User>();
   totalElements: number = 0;
@@ -51,16 +51,20 @@ export class UserListComponent implements AfterViewInit{
   constructor(
     private userService: UserService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) { }
 
+  ngOnInit(): void {
+    this.loadUsers();
+  }
   ngAfterViewInit(){
+    this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
     this.paginator.page.subscribe((event: PageEvent) => {
       this.currentPage = event.pageIndex;
       this.pageSize = event.pageSize;
       this.loadUsers();
     })
-    this.loadUsers();
   }
 
   loadUsers(): void {
@@ -73,10 +77,11 @@ export class UserListComponent implements AfterViewInit{
         next: (response) => {
             this.dataSource.data = response.content;
             this.totalElements = response.totalElements;
-
+            if(this.paginator){
             this.paginator.length = response.totalElements;
             this.paginator.pageIndex = response.number;
-            this.paginator.pageSize = response.size;
+            }
+            this.cdr.detectChanges();
           
         },
         error: (error) => {
