@@ -12,6 +12,7 @@ import { Permission } from '../../../../../core/models/permission.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RoleService } from '../../../services/role.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-role-form',
@@ -39,7 +40,8 @@ export class RoleFormComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: Role | undefined,
     private roleService: RoleService,
     private permissionService: PermissionService, // Inyectar PermissionService
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private notificationService: NotificationService
   ) {
     this.isEditMode = !!data;
     this.roleForm = this.fb.group({
@@ -128,6 +130,7 @@ export class RoleFormComponent implements OnInit {
       this.roleService.updateRole(roleRequest.id, roleRequest).subscribe({
         next: (res) => {
           this.snackBar.open('Rol actualizado correctamente.', 'Cerrar', { duration: 3000 });
+          this.notificationService.notifyDataChange();
           this.dialogRef.close(true);
         },
         error: (err: HttpErrorResponse) => {
@@ -144,6 +147,7 @@ export class RoleFormComponent implements OnInit {
       this.roleService.createRole(roleRequest).subscribe({
         next: (res) => {
           this.snackBar.open('Rol creado correctamente.', 'Cerrar', { duration: 3000 });
+          this.notificationService.notifyDataChange();
           this.dialogRef.close(true);
         },
         error: (err: HttpErrorResponse) => {

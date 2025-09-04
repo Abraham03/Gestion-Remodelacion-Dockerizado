@@ -12,6 +12,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-empleado-form',
@@ -40,7 +41,8 @@ export class EmpleadoFormComponent implements OnInit {
     private empleadoService: EmpleadoService,
     public dialogRef: MatDialogRef<EmpleadoFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: Empleado,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private notificationService: NotificationService
   ) {
     this.empleadoForm = this.fb.group({
       id: [null],
@@ -95,6 +97,7 @@ export class EmpleadoFormComponent implements OnInit {
         this.empleadoService.updateEmpleado(this.data.id!, empleado).subscribe(
           () => {
             this.snackBar.open('Empleado actualizado', 'Cerrar', { duration: 3000 });
+            this.notificationService.notifyDataChange();
             this.dialogRef.close(true);
           },
           (error) => {
@@ -109,6 +112,7 @@ export class EmpleadoFormComponent implements OnInit {
         this.empleadoService.createEmpleado(empleado).subscribe(
           () => {
             this.snackBar.open('Empleado creado', 'Cerrar', { duration: 3000 });
+            this.notificationService.notifyDataChange();
             this.dialogRef.close(true);
           },
           (error) => {

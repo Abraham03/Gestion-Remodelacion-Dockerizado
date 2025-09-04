@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
@@ -40,7 +40,7 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrls: ['./proyecto-list.component.scss'],
   providers: [DatePipe],
 })
-export class ProyectosListComponent implements AfterViewInit {
+export class ProyectosListComponent implements OnInit, AfterViewInit {
   proyectos: Proyecto[] = [];
   dataSource = new MatTableDataSource<Proyecto>([]);
   displayedColumns: string[] = [
@@ -67,18 +67,14 @@ export class ProyectosListComponent implements AfterViewInit {
     private proyectosService: ProyectosService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private cdr: ChangeDetectorRef
   ) {}
 
+  ngOnInit(): void {
+  }
   ngAfterViewInit(): void {
-    // Almacena la referencia a la suscripción
-    this.paginator.page.subscribe((event: PageEvent) => {
-      // 1. Actualiza las variables de estado con los valores del evento
-      this.currentPage = event.pageIndex;
-      this.pageSize = event.pageSize;
-      // 2. Llama al método de carga de datos con los nuevos valores
-      this.loadProyectos();
-    });
+
     this.loadProyectos();
   }
 
@@ -100,9 +96,9 @@ export class ProyectosListComponent implements AfterViewInit {
           this.dataSource.data = response.content;
           this.totalElements = response.totalElements;
 
-          this.paginator.length = response.totalElements;
           this.paginator.pageIndex = response.number;
-          this.paginator.pageSize = response.size;
+
+          this.cdr.detectChanges();
         },
         error: (error) => {
           console.error('Error al cargar empleados:', error);
@@ -198,6 +194,12 @@ export class ProyectosListComponent implements AfterViewInit {
     }
   }
 
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadProyectos();
+  }
+
   onSortChange(sort: Sort) {
     if (sort.direction) {
       this.currentSort = sort.active;
@@ -211,7 +213,7 @@ export class ProyectosListComponent implements AfterViewInit {
 
   exportToExcel(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    const apiUrl = this.proyectosService.getApiUrl() + '/export/excel'; // ⭐️ Corrección: Se usa un nuevo método en el servicio para obtener la URL
+    const apiUrl = this.proyectosService.getApiUrl() + '/export/excel'; // Se usa un nuevo método en el servicio para obtener la URL
     this.exportService
       .exportToExcel(apiUrl, this.filterValue, sortParam)
       .subscribe({
@@ -233,7 +235,7 @@ export class ProyectosListComponent implements AfterViewInit {
 
   exportToPdf(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    const apiUrl = this.proyectosService.getApiUrl() + '/export/pdf'; // ⭐️ Corrección: Se usa un nuevo método en el servicio para obtener la URL
+    const apiUrl = this.proyectosService.getApiUrl() + '/export/pdf'; // Se usa un nuevo método en el servicio para obtener la URL
     this.exportService
       .exportToPdf(apiUrl, this.filterValue, sortParam)
       .subscribe({

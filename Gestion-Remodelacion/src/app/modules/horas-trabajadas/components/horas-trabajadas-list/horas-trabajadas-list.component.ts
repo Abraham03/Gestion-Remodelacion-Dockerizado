@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
-import { AfterViewInit, Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -38,7 +38,7 @@ import { HttpErrorResponse } from '@angular/common/http';
   templateUrl: './horas-trabajadas-list.component.html',
   styleUrl: './horas-trabajadas-list.component.scss'
 })
-export class HorasTrabajadasListComponent implements AfterViewInit {
+export class HorasTrabajadasListComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = [
     'fecha',
     'nombreEmpleado',
@@ -72,27 +72,26 @@ export class HorasTrabajadasListComponent implements AfterViewInit {
     private horasTrabajadasService: HorasTrabajadasService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private cdr: ChangeDetectorRef
   ) {}
 
+  ngOnInit(): void {
+  }
   ngAfterViewInit() {
-    // Suscripción a los eventos de paginación
+    this.dataSource.sort = this.sort;
+
     this.paginator.page.pipe(takeUntil(this.destroy$)).subscribe((event: PageEvent) => {
       this.currentPage = event.pageIndex;
       this.pageSize = event.pageSize;
       this.loadHorasTrabajadas();
     });
-
-    // Suscripción a los eventos de ordenamiento
-    this.sort.sortChange.pipe(takeUntil(this.destroy$)).subscribe((sort: Sort) => {
-        this.currentSort = sort.active;
-        this.sortDirection = sort.direction;
-        this.currentPage = 0; // Resetear a la primera página al cambiar el orden
-        this.loadHorasTrabajadas();
-    });
-
     this.loadHorasTrabajadas();
+  }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
     /**
@@ -111,9 +110,14 @@ export class HorasTrabajadasListComponent implements AfterViewInit {
         next: (response) => {
             this.dataSource.data = response.content;
             this.totalElements = response.totalElements;
+
+            if(this.paginator){
             this.paginator.length = response.totalElements;
             this.paginator.pageIndex = response.number;
-            this.paginator.pageSize = response.size;
+            this.paginator.pageSize = response.size;              
+            }
+            
+            this.cdr.detectChanges();
           
         },
         error: (error) => {
@@ -188,14 +192,9 @@ export class HorasTrabajadasListComponent implements AfterViewInit {
     }
   }
 
-  onSortChange(sort: Sort) {
-    if (sort.direction) {
-      this.currentSort = sort.active;
-      this.sortDirection = sort.direction;
-    } else {
-      this.currentSort = 'nombreCompleto'; // Default sort
-      this.sortDirection = 'asc';
-    }
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
     this.loadHorasTrabajadas();
   }
 

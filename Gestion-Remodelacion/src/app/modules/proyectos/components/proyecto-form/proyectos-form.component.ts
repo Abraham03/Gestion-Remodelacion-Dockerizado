@@ -18,6 +18,7 @@ import { Proyecto } from '../../models/proyecto.model';
 import { Observable } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 // Define the DropdownItem interface here or in a common types file
 interface DropdownItem {
@@ -56,6 +57,7 @@ export class ProyectosFormComponent implements OnInit {
     private empleadoService: EmpleadoService,
     public dialogRef: MatDialogRef<ProyectosFormComponent>,
     private snackBar: MatSnackBar,
+    private notificationService: NotificationService,
     @Inject(MAT_DIALOG_DATA) public data: Proyecto | null
   ) {}
 
@@ -228,16 +230,12 @@ export class ProyectosFormComponent implements OnInit {
       fechaUltimoPagoRecibido: this.formatDateForBackend(formValue.fechaUltimoPagoRecibido),
     };
 
-    // Ajuste para cliente y empleado: Si el formValue tiene idCliente/idEmpleadoResponsable,
-    // asegúrate de que el objeto Proyecto tenga los objetos Cliente/Empleado anidados
-    // o que el servicio de Angular solo espere los IDs.
-    // En tu proyecto.model.ts, tienes idCliente y idEmpleadoResponsable como numbers.
-    // Esto es correcto para enviar. El backend se encargará de buscar el objeto completo.
-    // No necesitas crear objetos Cliente o Empleado aquí en el frontend.
 
     if (this.data) {
       this.proyectosService.updateProyecto(projectData).subscribe({
         next: (response) => {
+          this.snackBar.open('Proyecto actualizado correctamente.', 'Cerrar', { duration: 3000 });
+          this.notificationService.notifyDataChange();
           this.dialogRef.close(true);
         },
         error: (error: HttpErrorResponse) => {
@@ -249,6 +247,8 @@ export class ProyectosFormComponent implements OnInit {
     } else {
       this.proyectosService.addProyecto(projectData).subscribe({
         next: (response) => {
+          this.snackBar.open('Proyecto creado correctamente.', 'Cerrar', { duration: 3000 });
+          this.notificationService.notifyDataChange();
           this.dialogRef.close(true);
         },
         error: (error: HttpErrorResponse) => {
