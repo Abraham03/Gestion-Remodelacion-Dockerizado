@@ -22,12 +22,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionremodelacion.gestion.dto.response.ApiResponse;
+import com.gestionremodelacion.gestion.empresa.model.Empresa.PlanSuscripcion;
 import com.gestionremodelacion.gestion.export.ExporterService;
 import com.gestionremodelacion.gestion.proyecto.dto.request.ProyectoRequest;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoExcelDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoPdfDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoResponse;
 import com.gestionremodelacion.gestion.proyecto.service.ProyectoService;
+import com.gestionremodelacion.gestion.security.annotations.RequiresPlan;
 import com.itextpdf.text.DocumentException;
 
 import jakarta.validation.Valid;
@@ -88,10 +90,11 @@ public class ProyectoController {
     }
 
     /**
-     * ✅ NUEVO: Endpoint para exportar a Excel.
+     * Endpoint para exportar a Excel.
      */
     @GetMapping("/export/excel")
-    @PreAuthorize("hasAuthority('PROYECTO_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
+    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportProyectosToExcel(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws IOException {
@@ -108,10 +111,11 @@ public class ProyectoController {
     }
 
     /**
-     * ✅ NUEVO: Endpoint para exportar a PDF.
+     * Endpoint para exportar a PDF.
      */
     @GetMapping("/export/pdf")
-    @PreAuthorize("hasAuthority('PROYECTO_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_PDF')")
+    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportProyectosToPdf(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws DocumentException, IOException {

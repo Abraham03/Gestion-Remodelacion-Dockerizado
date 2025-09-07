@@ -9,7 +9,7 @@
         (input)="applyFilterIfEmpty(filterValue.value)"  >
         <mat-icon matSuffix (click)="applyFilter(filterValue.value)">search</mat-icon>
       </mat-form-field>
-      <button mat-flat-button color="primary" (click)="openUserForm()">
+      <button mat-flat-button color="primary" *ngIf="canCreate" (click)="openUserForm()">
         <mat-icon>add</mat-icon> Registrar Usuario
       </button>
     </div>
@@ -45,10 +45,10 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef> Acciones </th>
           <td mat-cell *matCellDef="let user">
-            <button mat-icon-button color="accent" (click)="openUserForm(user)">
+            <button mat-icon-button color="accent" *ngIf="canEdit" (click)="openUserForm(user)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="deleteUser(user.id)">
+            <button mat-icon-button color="warn" *ngIf="canDelete" (click)="deleteUser(user.id)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

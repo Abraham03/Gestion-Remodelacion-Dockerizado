@@ -13,6 +13,8 @@ export interface User {
   expirationDate?: string; // Fecha de expiración del token (útil para lógica de renovación)
   type?: string; // Tipo de token, usualmente "Bearer"
   authorities: string[]; // Si tu backend aún envía una lista plana de strings de autoridades, inclúyela aquí.
+  empresaId: number;
+  plan: string;
 }
 
 // Para la petición de creación/actualización, podemos enviar solo nombres de roles

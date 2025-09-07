@@ -15,7 +15,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Role } from '../../../../../core/models/role.model';
 import { User, UserRequest } from '../../../../../core/models/user.model';
@@ -37,6 +37,7 @@ import { NotificationService } from '../../../../../core/services/notification.s
     MatCheckboxModule,
     MatSelectModule,
   ],
+  providers: [DatePipe],
   templateUrl: './user-form.component.html',
   styleUrls: ['./user-form.component.scss'],
 })

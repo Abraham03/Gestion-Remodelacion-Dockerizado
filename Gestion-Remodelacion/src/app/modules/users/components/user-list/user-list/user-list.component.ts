@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { User } from '../../../../../core/models/user.model';
 import { UserService } from '../../../services/user.service';
@@ -33,10 +33,16 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatSnackBarModule,
     FormsModule 
   ],
+  providers: [DatePipe],
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss']
 })
 export class UserListComponent implements OnInit, AfterViewInit{
+  // Propiedades de permisos basados en el plan
+  canCreate = false;
+  canEdit = false;
+  canDelete = false;
+
   displayedColumns: string[] = ['username', 'enabled', 'roles', 'actions'];
   dataSource = new MatTableDataSource<User>();
   totalElements: number = 0;
@@ -52,11 +58,12 @@ export class UserListComponent implements OnInit, AfterViewInit{
     private userService: UserService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
-    this.loadUsers();
+    this.setPermissions();
   }
   ngAfterViewInit(){
     this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
@@ -65,6 +72,13 @@ export class UserListComponent implements OnInit, AfterViewInit{
       this.pageSize = event.pageSize;
       this.loadUsers();
     })
+    this.loadUsers();
+  }
+
+  private setPermissions(): void {
+    this.canCreate = this.authService.hasPermission('USER_CREATE');
+    this.canEdit = this.authService.hasPermission('USER_EDIT');
+    this.canDelete = this.authService.hasPermission('USER_DELETE');
   }
 
   loadUsers(): void {

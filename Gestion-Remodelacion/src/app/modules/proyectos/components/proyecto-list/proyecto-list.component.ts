@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
@@ -19,6 +19,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips'; // <-- Importar MatChipsModule
 import { ExportService } from '../../../../core/services/export.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../../../core/services/auth.service';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-proyectos-list',
@@ -32,6 +35,7 @@ import { HttpErrorResponse } from '@angular/common/http';
     MatPaginatorModule,
     MatFormFieldModule,
     MatInputModule,
+    MatTooltipModule,
     MatSortModule,
     MatChipsModule,
     MatProgressBarModule,
@@ -40,7 +44,16 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrls: ['./proyecto-list.component.scss'],
   providers: [DatePipe],
 })
-export class ProyectosListComponent implements OnInit, AfterViewInit {
+export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy {  
+  // Propiedades de permisos basados en el plan
+  canExportExcel = false;
+  canExportPdf = false;
+  canCreate = false;
+  canEdit = false;
+  canDelete = false;
+
+  private destroy$ = new Subject<void>();
+
   proyectos: Proyecto[] = [];
   dataSource = new MatTableDataSource<Proyecto>([]);
   displayedColumns: string[] = [
@@ -68,14 +81,53 @@ export class ProyectosListComponent implements OnInit, AfterViewInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private exportService: ExportService,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService,
+    private notificationService: NotificationService
+  ) 
+  {
+        console.log(`ProyectosListComponent está usando NotificationService con ID: ${(this.notificationService as any).instanceId}`);
+
+  }
 
   ngOnInit(): void {
+    this.setPermissions();
+    this.notificationService.dataChanges$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('Cambio detectado en ProyectosListComponent, recargando datos...');
+        this.loadProyectos();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
   ngAfterViewInit(): void {
 
     this.loadProyectos();
+  }
+
+    /**
+   * ✅ NUEVO MÉTODO
+   * Centraliza la lógica de permisos para mantener el HTML limpio.
+   * Combina la lógica de permisos (authorities) y planes de suscripción.
+   */
+  private setPermissions(): void {
+    // Permisos basados en roles/authorities
+    this.canCreate = this.authService.hasPermission('PROYECTO_CREATE');
+    this.canEdit = this.authService.hasPermission('PROYECTO_UPDATE');
+    this.canDelete = this.authService.hasPermission('PROYECTO_DELETE');
+    
+    // Permisos basados en el plan del usuario
+    const userPlan = this.authService.currentUserPlan(); // Obtiene el valor de la señal
+    
+    // Lógica: Solo los planes NEGOCIOS y PROFESIONAL pueden exportar.
+    const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
+
+    this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
+    this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
   }
 
   /**

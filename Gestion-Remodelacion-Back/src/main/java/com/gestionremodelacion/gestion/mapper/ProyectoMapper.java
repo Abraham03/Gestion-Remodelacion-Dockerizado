@@ -51,6 +51,7 @@ public abstract class ProyectoMapper {
     @Mapping(target = "id", ignore = true) // Ignore ID for new entity creation
     @Mapping(target = "fechaCreacion", ignore = true)
     @Mapping(target = "costoManoDeObra", ignore = true)
+    @Mapping(target = "empresa", ignore = true)
     public abstract Proyecto toProyecto(ProyectoRequest request);
 
     /**
@@ -61,7 +62,8 @@ public abstract class ProyectoMapper {
     @Mapping(target = "empleadoResponsable", expression = "java(getEmpleadoById(request.getIdEmpleadoResponsable()))")
     @Mapping(target = "id", ignore = true) // ID should not be updated from request
     @Mapping(target = "fechaCreacion", ignore = true) // FechaCreacion should not be updated from request
-    @Mapping(target = "costoManoDeObra", ignore = true) // <-- ❌ AGREGAR ESTA LÍNEA
+    @Mapping(target = "costoManoDeObra", ignore = true)
+    @Mapping(target = "empresa", ignore = true) // ✅ CORREGIDO: Ignora el campo empresa al actualizar.
     public abstract void updateProyectoFromRequest(ProyectoRequest request, @MappingTarget Proyecto proyecto);
 
     // Helper methods to fetch Cliente and Empleado, used in expressions above
@@ -70,7 +72,8 @@ public abstract class ProyectoMapper {
             return null; // Or throw an exception if cliente is always required
         }
         return clienteRepository.findById(idCliente)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente no encontrado con ID: " + idCliente));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Cliente no encontrado con ID: " + idCliente));
     }
 
     protected Empleado getEmpleadoById(Long idEmpleadoResponsable) {
@@ -78,7 +81,8 @@ public abstract class ProyectoMapper {
             return null;
         }
         return empleadoRepository.findById(idEmpleadoResponsable)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empleado responsable no encontrado con ID: " + idEmpleadoResponsable));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Empleado responsable no encontrado con ID: " + idEmpleadoResponsable));
     }
 
 }

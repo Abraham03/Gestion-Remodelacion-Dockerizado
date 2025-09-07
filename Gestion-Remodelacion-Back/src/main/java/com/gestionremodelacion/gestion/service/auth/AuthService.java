@@ -3,7 +3,6 @@ package com.gestionremodelacion.gestion.service.auth;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Set;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,7 +16,6 @@ import com.gestionremodelacion.gestion.dto.request.RefreshTokenRequest;
 import com.gestionremodelacion.gestion.dto.response.AuthResponse;
 import com.gestionremodelacion.gestion.model.Permission;
 import com.gestionremodelacion.gestion.model.RefreshToken;
-import com.gestionremodelacion.gestion.model.Role;
 import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.security.jwt.JwtUtils;
 import com.gestionremodelacion.gestion.service.impl.UserDetailsImpl;
@@ -54,12 +52,12 @@ public class AuthService {
 
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-            // ⭐️ OBTENER ROLES Y AUTORIDADES POR SEPARADO
-            List<String> authorities = userDetails.getAuthorities().stream()
+            // OBTENER ROLES Y AUTORIDADES POR SEPARADO
+            List<String> permissions = userDetails.getUserPermissions().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
 
-            List<String> roles = userDetails.getUserRoles().stream() // 👈 SE AGREGA: Necesitas un método en UserDetailsImpl para obtener solo los roles
+            List<String> roles = userDetails.getUserRoles().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
 
@@ -71,11 +69,12 @@ public class AuthService {
                     jwtToken,
                     userDetails.getId(),
                     userDetails.getUsername(),
-                    authorities, // 👈 SE PASAN las autoridades (permisos + roles)
-                    roles, // 👈 SE PASAN solo los roles
+                    permissions,
+                    roles,
                     jwtUtils.getExpirationDateFromToken(jwtToken),
-                    refreshToken.getToken()
-            );
+                    refreshToken.getToken(),
+                    userDetails.getEmpresa().getId(),
+                    userDetails.getEmpresa().getPlan().toString());
 
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("Credenciales inválidas");
@@ -90,46 +89,42 @@ public class AuthService {
 
         // 2. Generar nuevo access token
         User user = refreshToken.getUser();
- 
 
-        // ⭐️ OBTENER ROLES Y PERMISOS SEPARADOS
-        // Esto es necesario para devolver la lista de autoridades completa
-        List<String> allAuthorities = user.getRoles().stream()
-                .flatMap(role -> {
-                    Set<String> authorities = new java.util.HashSet<>();
-                    authorities.add(role.getName()); // Agregar el nombre del rol
-                    authorities.addAll(role.getPermissions().stream()
-                            .map(Permission::getName)
-                            .collect(Collectors.toSet())); // Agregar los permisos
-                    return authorities.stream();
-                })
-                .collect(Collectors.toList());   
-
-       String newJwtToken = jwtUtils.generateTokenFromUsername(
-                user.getUsername(),
-                allAuthorities
-        );                
+        // RECOPILAR PERMISOS Y ROLES POR SEPARADO (LÓGICA CLAVE)
+        List<String> permissions = user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(Permission::getName)
+                .distinct() // Asegura que no haya permisos duplicados
+                .collect(Collectors.toList());
 
         List<String> roles = user.getRoles().stream()
-                .map(Role::getName)
+                .map(role -> role.getName().startsWith("ROLE_") ? role.getName() : "ROLE_" + role.getName())
                 .collect(Collectors.toList());
+
+        String newJwtToken = jwtUtils.generateTokenFromUsername(
+                user.getUsername(),
+                permissions,
+                roles,
+                user.getEmpresa());
 
         return new AuthResponse(
                 newJwtToken,
                 user.getId(),
                 user.getUsername(),
-                allAuthorities, // 👈 SE PASAN las autoridades (permisos + roles)
-                roles, // 👈 SE PASAN solo los roles
+                permissions,
+                roles,
                 jwtUtils.getExpirationDateFromToken(newJwtToken),
-                refreshToken.getToken()
-        );
+                refreshToken.getToken(),
+                user.getEmpresa().getId(),
+                user.getEmpresa().getPlan().toString());
     }
 
     @Transactional
     public void logout(String token) {
         try {
-            //Date expirationDate = jwtUtils.getExpirationDateFromToken(token);
-            Date expirationDate = jwtUtils.getExpirationDateFromExpiredToken(token); // 👈 Asumimos que existe un método similar
+            // Date expirationDate = jwtUtils.getExpirationDateFromToken(token);
+            Date expirationDate = jwtUtils.getExpirationDateFromExpiredToken(token); // 👈 Asumimos que existe un método
+                                                                                     // similar
 
             tokenBlacklistService.blacklistToken(token, expirationDate.toInstant());
             refreshTokenService.revokeByToken(token);

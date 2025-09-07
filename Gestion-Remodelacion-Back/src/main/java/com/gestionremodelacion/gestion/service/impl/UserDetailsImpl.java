@@ -2,12 +2,13 @@ package com.gestionremodelacion.gestion.service.impl;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.gestionremodelacion.gestion.model.Permission;
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.model.User;
 
 /**
@@ -26,15 +27,17 @@ public class UserDetailsImpl implements UserDetails {
     private final Long id;
     private final String username;
     private final String password;
+    private final Empresa empresa;
     private final Collection<? extends GrantedAuthority> authorities;
-    private final Collection<? extends GrantedAuthority> userRoles; // 👈 SE AGREGA: Colección para solo los roles
+    private final Collection<? extends GrantedAuthority> userRoles;
 
     // Constructor principal
-    public UserDetailsImpl(Long id, String username, String password,
+    public UserDetailsImpl(Long id, String username, String password, Empresa empresa,
             Collection<? extends GrantedAuthority> authorities, Collection<? extends GrantedAuthority> userRoles) {
         this.id = id;
         this.username = username;
         this.password = password;
+        this.empresa = empresa;
         this.authorities = authorities;
         this.userRoles = userRoles;
     }
@@ -49,29 +52,26 @@ public class UserDetailsImpl implements UserDetails {
         Set<GrantedAuthority> authorities = new java.util.HashSet<>();
         Set<GrantedAuthority> userRoles = new java.util.HashSet<>();
 
-        // 1. Recopilar roles y agregarlos a ambas colecciones
+        // 1. Recopilar roles, agregar prefijo "ROLE_" y añadirlos a ambas colecciones
         user.getRoles().forEach(role -> {
-            String roleName = role.getName();
-            if (!roleName.startsWith("ROLE_")) {
-                roleName = "ROLE_" + roleName;
-            }
-            authorities.add(new SimpleGrantedAuthority(roleName));
-            userRoles.add(new SimpleGrantedAuthority(roleName));
+            String roleName = role.getName().startsWith("ROLE_") ? role.getName() : "ROLE_" + role.getName();
+            SimpleGrantedAuthority roleAuthority = new SimpleGrantedAuthority(roleName);
+            authorities.add(roleAuthority);
+            userRoles.add(roleAuthority);
         });
         // 2. Recopilar permisos y agregarlos solo a la colección de authorities
         user.getRoles().stream()
                 .flatMap(role -> role.getPermissions().stream())
-                .map(Permission::getName)
-                .map(SimpleGrantedAuthority::new)
+                .map(permission -> new SimpleGrantedAuthority(permission.getName()))
                 .forEach(authorities::add);
 
         return new UserDetailsImpl(
                 user.getId(),
                 user.getUsername(),
                 user.getPassword(),
+                user.getEmpresa(),
                 authorities,
-                userRoles
-        );
+                userRoles);
     }
 
     // Getters y métodos requeridos por UserDetails
@@ -79,14 +79,33 @@ public class UserDetailsImpl implements UserDetails {
         return id;
     }
 
-    // ⭐️ SE AGREGA: Nuevo getter para los roles
+    /**
+     * Devuelve la colección COMPLETA de autoridades (roles + permisos).
+     * Usado por Spring Security para las comprobaciones de @PreAuthorize.
+     */
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
+
+    /**
+     * Devuelve una colección que contiene ÚNICAMENTE los roles del usuario.
+     * Usado para construir el claim 'roles' en el JWT.
+     */
     public Collection<? extends GrantedAuthority> getUserRoles() {
         return userRoles;
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+    /**
+     * 
+     * Devuelve una colección que contiene ÚNICAMENTE los permisos del usuario.
+     * Lo hace filtrando la lista completa de authorities para excluir los roles.
+     * Usado para construir el claim 'authorities' en el JWT.
+     */
+    public Collection<? extends GrantedAuthority> getUserPermissions() {
+        return authorities.stream()
+                .filter(authority -> !userRoles.contains(authority))
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -117,5 +136,9 @@ public class UserDetailsImpl implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
     }
 }

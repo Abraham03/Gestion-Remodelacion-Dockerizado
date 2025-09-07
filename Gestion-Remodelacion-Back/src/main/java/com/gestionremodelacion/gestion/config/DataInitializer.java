@@ -9,7 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.gestionremodelacion.gestion.horastrabajadas.service.HorasTrabajadasService;
 import com.gestionremodelacion.gestion.model.Permission;
 import com.gestionremodelacion.gestion.model.Role;
 import com.gestionremodelacion.gestion.model.User;
@@ -26,17 +25,15 @@ public class DataInitializer {
     private final PermissionRepository permissionRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final HorasTrabajadasService horasTrabajadasService;
 
     public DataInitializer(RoleRepository roleRepository,
             PermissionRepository permissionRepository,
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder, HorasTrabajadasService horasTrabajadasService) {
+            PasswordEncoder passwordEncoder) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.horasTrabajadasService = horasTrabajadasService;
     }
 
     @PostConstruct
@@ -50,25 +47,29 @@ public class DataInitializer {
                 "PROYECTO_READ", "PROYECTO_CREATE", "PROYECTO_UPDATE", "PROYECTO_DELETE",
                 "CLIENTE_READ", "CLIENTE_CREATE", "CLIENTE_UPDATE", "CLIENTE_DELETE",
                 "EMPLEADO_READ", "EMPLEADO_CREATE", "EMPLEADO_UPDATE", "EMPLEADO_DELETE",
-                "DASHBOARD_VIEW", "HORASTRABAJADAS_READ", "HORASTRABAJADAS_CREATE", "HORASTRABAJADAS_UPDATE", "HORASTRABAJADAS_DELETE",
-                "USER_UPDATE_ROLES" // Añadir si decides usarlo para granularidad
-        ));
+                "DASHBOARD_VIEW", "HORASTRABAJADAS_READ", "HORASTRABAJADAS_CREATE", "HORASTRABAJADAS_UPDATE",
+                "HORASTRABAJADAS_DELETE",
+                "USER_UPDATE_ROLES", "EXPORT_EXCEL", "EXPORT_PDF"));
 
-        // Obtener o crear todos los permisos y asegurarse de que estén gestionados por JPA
+        // Obtener o crear todos los permisos y asegurarse de que estén gestionados por
+        // JPA
         Set<Permission> allPermissions = allPermissionsNames.stream()
                 .map(name -> permissionRepository.findByName(name) // Esto retorna Optional<Permission>
-                .orElseGet(() -> { // Si el Optional está vacío, se ejecuta este Supplier
-                    Permission newPermission = new Permission();
-                    newPermission.setName(name);
-                    newPermission.setDescription("Permiso para " + name.replace("_", " ").toLowerCase());
-                    return permissionRepository.save(newPermission); // Guarda y retorna el nuevo permiso
-                }))
+                        .orElseGet(() -> { // Si el Optional está vacío, se ejecuta este Supplier
+                            Permission newPermission = new Permission();
+                            newPermission.setName(name);
+                            newPermission.setDescription("Permiso para " + name.replace("_", " ").toLowerCase());
+                            return permissionRepository.save(newPermission); // Guarda y retorna el nuevo permiso
+                        }))
                 .collect(Collectors.toSet());
 
         // 2. Definir y guardar el rol ADMIN y asignar todos los permisos
-        // Usar orElse(null) y luego verificar si es null es una opción, pero orElseGet es más idiomático.
-        // Aquí lo mantenemos como lo tenías, pero `Optional.ofNullable(roleRepository.findByName("ADMIN").orElse(null))`
-        // sería la forma correcta si `findByName` en `RoleRepository` retorna directamente `Role` y no `Optional<Role>`.
+        // Usar orElse(null) y luego verificar si es null es una opción, pero orElseGet
+        // es más idiomático.
+        // Aquí lo mantenemos como lo tenías, pero
+        // `Optional.ofNullable(roleRepository.findByName("ADMIN").orElse(null))`
+        // sería la forma correcta si `findByName` en `RoleRepository` retorna
+        // directamente `Role` y no `Optional<Role>`.
         // Asumiendo que `roleRepository.findByName("ADMIN")` retorna `Optional<Role>`:
         Role adminRole = roleRepository.findByName("ADMIN")
                 .orElseGet(() -> {
@@ -80,8 +81,10 @@ public class DataInitializer {
                 });
 
         // Si el rol ADMIN ya existía, asegúrate de que tenga todos los permisos
-        // Esto es importante si añades nuevos permisos en futuras versiones y quieres que ADMIN los tenga automáticamente.
-        // Solo actualiza si el conjunto de permisos difiere para evitar writes innecesarios.
+        // Esto es importante si añades nuevos permisos en futuras versiones y quieres
+        // que ADMIN los tenga automáticamente.
+        // Solo actualiza si el conjunto de permisos difiere para evitar writes
+        // innecesarios.
         if (!adminRole.getPermissions().equals(allPermissions)) {
             adminRole.setPermissions(allPermissions);
             roleRepository.save(adminRole);
@@ -100,10 +103,12 @@ public class DataInitializer {
             userRepository.save(adminUser);
         }
 
-        // ✅ AÑADIR LA LÓGICA DE MIGRACIÓN AQUÍ
-        System.out.println("Iniciando migración de datos...");
-        horasTrabajadasService.corregirCostosHorasHistoricas();
-        horasTrabajadasService.recalcularGastosConsolidadosProyectos();
-        System.out.println("Migración de datos finalizada.");        
+        /*
+         * System.out.println("Iniciando migración de datos...");
+         * horasTrabajadasService.corregirCostosHorasHistoricas();
+         * horasTrabajadasService.recalcularGastosConsolidadosProyectos();
+         * System.out.println("Migración de datos finalizada.");
+         */
+
     }
 }

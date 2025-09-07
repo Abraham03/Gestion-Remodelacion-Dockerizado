@@ -12,6 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.gestionremodelacion.gestion.config.JwtProperties;
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.service.impl.UserDetailsImpl;
 
 import io.jsonwebtoken.Claims;
@@ -41,25 +42,45 @@ public class JwtUtils {
     public String generateJwtToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 
+        // 1. Extraer solo los PERMISOS usando el nuevo método.
+        List<String> permissions = userPrincipal.getUserPermissions().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        // 2. Extraer solo los ROLES.
+        List<String> roles = userPrincipal.getUserRoles().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        Empresa empresa = userPrincipal.getEmpresa();
+
         return buildToken(
                 userPrincipal.getUsername(),
-                userPrincipal.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList())
-        );
+                permissions,
+                roles,
+                empresa.getId(),
+                empresa.getPlan().toString());
     }
 
-    public String generateTokenFromUsername(String username, List<String> roles) {
-        return buildToken(username, roles);
+    public String generateTokenFromUsername(String username, List<String> permissions, List<String> roles,
+            Empresa empresa) {
+        return buildToken(username, permissions, roles, empresa.getId(), empresa.getPlan().toString());
     }
 
-    private String buildToken(String subject, List<String> roles) {
+    private String buildToken(String subject, List<String> permissions, List<String> roles, Long empresaId,
+            String plan) {
         return Jwts.builder()
                 .setSubject(subject)
-                .claim("roles", roles)
                 .setIssuer(jwtProperties.getIssuer())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationMs()))
+
+                // --- CLAIMS PERSONALIZADOS ---
+                .claim("authorities", permissions) // ✅ Contiene solo permisos (ej: "PROYECTO_READ")
+                .claim("roles", roles) // ✅ Contiene solo roles (ej: "ROLE_ADMIN")
+                .claim("empresaId", empresaId) // ✅ Contiene el ID de la empresa
+                .claim("plan", plan) // ✅ Contiene el plan de la empresa
+
                 .signWith(key)
                 .compact();
     }
@@ -77,7 +98,8 @@ public class JwtUtils {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(authToken);
             return true;
-        } catch (ExpiredJwtException | MalformedJwtException | UnsupportedJwtException | SignatureException | IllegalArgumentException e) {
+        } catch (ExpiredJwtException | MalformedJwtException | UnsupportedJwtException | SignatureException
+                | IllegalArgumentException e) {
             return false;
         }
     }
@@ -90,16 +112,19 @@ public class JwtUtils {
                 .getBody();
     }
 
-    // ✅ Nuevo método para obtener la fecha de expiración de un token caducado
+    // Método para obtener la fecha de expiración de un token caducado
     public Date getExpirationDateFromExpiredToken(String token) {
         try {
-            // Intenta parsear el token, si falla con ExpiredJwtException, decodifica el cuerpo
+            // Intenta parsear el token, si falla con ExpiredJwtException, decodifica el
+            // cuerpo
             return extractClaim(token, Claims::getExpiration);
         } catch (ExpiredJwtException e) {
-            // Si el token ha expirado, podemos obtener la información directamente de la excepción
+            // Si el token ha expirado, podemos obtener la información directamente de la
+            // excepción
             return e.getClaims().getExpiration();
         } catch (Exception e) {
-            // Para cualquier otra excepción (ej. malformed token), puedes manejarlo como desees
+            // Para cualquier otra excepción (ej. malformed token), puedes manejarlo como
+            // desees
             throw new RuntimeException("Error al extraer la fecha de expiración del token", e);
         }
     }

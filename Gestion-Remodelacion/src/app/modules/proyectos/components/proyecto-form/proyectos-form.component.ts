@@ -1,6 +1,6 @@
 // src/app/modules/proyectos/components/proyectos-form/proyectos-form.component.ts
 
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
@@ -15,7 +15,7 @@ import { ProyectosService } from '../../services/proyecto.service';
 import { ClienteService } from '../../../cliente/services/cliente.service';
 import { EmpleadoService } from '../../../empleados/services/empleado.service';
 import { Proyecto } from '../../models/proyecto.model';
-import { Observable } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -42,9 +42,10 @@ interface DropdownItem {
   ],
   templateUrl: './proyectos-form.component.html',
   styleUrls: ['./proyectos-form.component.scss'],
-  providers: [provideNativeDateAdapter()],
+  providers: [provideNativeDateAdapter()]
 })
-export class ProyectosFormComponent implements OnInit {
+export class ProyectosFormComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   form!: FormGroup;
   estadosProyecto: string[] = ['Pendiente', 'En Progreso', 'En Pausa', 'Finalizado', 'Cancelado'];
   clientes$!: Observable<DropdownItem[]>;
@@ -59,11 +60,21 @@ export class ProyectosFormComponent implements OnInit {
     private snackBar: MatSnackBar,
     private notificationService: NotificationService,
     @Inject(MAT_DIALOG_DATA) public data: Proyecto | null
-  ) {}
+  ) 
+  {
+        console.log(`ProyectosFormComponent está usando NotificationService con ID: ${(this.notificationService as any).instanceId}`);
+
+  }
 
   ngOnInit(): void {
     this.initForm();
     this.loadDropdownData();
+    this.notificationService.dataChanges$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('Cambio detectado en ProyectosFormComponent, recargando dropdowns...');
+        this.loadDropdownData();
+  });
     if (this.data) {
       const patchedData: any = { ...this.data };
 
@@ -91,6 +102,11 @@ export class ProyectosFormComponent implements OnInit {
 
       this.form.patchValue(patchedData);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**

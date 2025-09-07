@@ -79,9 +79,9 @@ public class UserController {
     @PutMapping("/{id}/roles")
     @PreAuthorize("hasAuthority('USER_UPDATE_ROLES')")
     public ResponseEntity<ApiResponse<UserResponse>> updateUserRoles(@PathVariable Long id,
-            @RequestBody Set<String> roleNames) {
+            @RequestBody Set<Long> roleId) {
         // Asumiendo que userService.updateRolesForUser(id, roleNames) existe
-        UserResponse updatedUser = userService.updateUserRoles(id, roleNames);
+        UserResponse updatedUser = userService.updateUserRoles(id, roleId);
         return ResponseEntity
                 .ok(new ApiResponse<>(HttpStatus.OK.value(), "Roles de usuario actualizados con éxito", updatedUser));
     }

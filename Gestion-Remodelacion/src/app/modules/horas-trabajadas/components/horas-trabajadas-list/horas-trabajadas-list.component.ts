@@ -35,10 +35,17 @@ import { HttpErrorResponse } from '@angular/common/http';
     DecimalPipe,
     MatSortModule 
   ],
+  providers: [DatePipe],
   templateUrl: './horas-trabajadas-list.component.html',
   styleUrl: './horas-trabajadas-list.component.scss'
 })
 export class HorasTrabajadasListComponent implements OnInit, AfterViewInit {
+   // Propiedades de permisos basados en el plan
+  canExportExcel = false;
+  canExportPdf = false;
+  canCreate = false;
+  canEdit = false;
+  canDelete = false; 
   displayedColumns: string[] = [
     'fecha',
     'nombreEmpleado',
@@ -61,22 +68,17 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit {
 
   private destroy$ = new Subject<void>();
 
-  // Inyecta AuthService
-  private authService = inject(AuthService);
-
-  // Variables para controlar la visibilidad de los botones
-  canCreate = false;
-  canEdit = false;
-  canDelete = false;
   constructor(
     private horasTrabajadasService: HorasTrabajadasService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private exportService: ExportService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    this.setPermissions();
   }
   ngAfterViewInit() {
     this.dataSource.sort = this.sort;
@@ -92,6 +94,21 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private setPermissions(): void {
+    this.canCreate = this.authService.hasPermission('HORASTRABAJADAS_CREATE');
+    this.canEdit = this.authService.hasPermission('HORASTRABAJADAS_UPDATE');
+    this.canDelete = this.authService.hasPermission('HORASTRABAJADAS_DELETE');
+
+    // Permisos basados en el plan del usuario
+    const userPlan = this.authService.currentUserPlan(); // Obtiene el valor de la señal
+
+    // Lógica: Solo los planes NEGOCIOS y PROFESIONAL pueden exportar.
+    const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
+
+    this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
+    this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
   }
 
     /**

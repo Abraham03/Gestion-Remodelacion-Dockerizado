@@ -17,6 +17,9 @@ export class AuthService implements OnDestroy {
   userPermissions = computed(() => this._currentUser()?.authorities || []);
   userRoles = computed(() => this._currentUser()?.roles || []); // ⭐️ Ahora devuelve Role[]
 
+  currentUserPlan = computed(() => this._currentUser()?.plan || null);
+  currentUserEmpresaId = computed(() => this._currentUser()?.empresaId || null);
+
   private destroy$ = new Subject<void>();
   private readonly SESSION_WARNING_TIME = 5 * 60 * 1000;
   private readonly CHECK_INTERVAL = 60 * 1000;
@@ -91,7 +94,7 @@ export class AuthService implements OnDestroy {
   }
 
   hasRole(roleName: string): boolean {
-    // ⭐️ MODIFICACIÓN: Buscar si algún objeto Role en el array tiene ese nombre
+    // Buscar si algún objeto Role en el array tiene ese nombre
     return this.userRoles().some(role => role.name === roleName);
   }
 
@@ -150,7 +153,9 @@ export class AuthService implements OnDestroy {
       roles: userRoles, // ⭐️ Asignamos el nuevo array de objetos Role
       accountNonExpired: true,
       accountNonLocked: true,
-      credentialsNonExpired: true
+      credentialsNonExpired: true,
+      empresaId: response.empresaId,
+      plan: response.plan
     };
   }
 
