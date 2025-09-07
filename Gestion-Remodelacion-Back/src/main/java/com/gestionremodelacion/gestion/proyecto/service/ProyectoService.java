@@ -10,77 +10,130 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gestionremodelacion.gestion.cliente.model.Cliente;
+import com.gestionremodelacion.gestion.cliente.repository.ClienteRepository;
+import com.gestionremodelacion.gestion.empleado.model.Empleado;
+import com.gestionremodelacion.gestion.empleado.repository.EmpleadoRepository;
+import com.gestionremodelacion.gestion.exception.BusinessRuleException;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.ProyectoMapper;
+import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.proyecto.dto.request.ProyectoRequest;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoExcelDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoPdfDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoResponse;
 import com.gestionremodelacion.gestion.proyecto.model.Proyecto;
 import com.gestionremodelacion.gestion.proyecto.repository.ProyectoRepository;
+import com.gestionremodelacion.gestion.service.user.UserService;
 
 @Service
 public class ProyectoService {
 
     private final ProyectoRepository proyectoRepository;
     private final ProyectoMapper proyectoMapper;
+    private final UserService userService;
+    private final ClienteRepository clienteRepository;
+    private final EmpleadoRepository empleadoRepository;
 
-    public ProyectoService(ProyectoRepository proyectoRepository, ProyectoMapper proyectoMapper) {
+    public ProyectoService(ProyectoRepository proyectoRepository, ProyectoMapper proyectoMapper,
+            UserService userService, ClienteRepository clienteRepository, EmpleadoRepository empleadoRepository) {
         this.proyectoRepository = proyectoRepository;
         this.proyectoMapper = proyectoMapper;
+        this.userService = userService;
+        this.clienteRepository = clienteRepository;
+        this.empleadoRepository = empleadoRepository;
     }
 
     @Transactional(readOnly = true)
     public Page<ProyectoResponse> getAllProyectos(Pageable pageable, String filter) {
-        return (filter != null && !filter.trim().isEmpty())
-                ? proyectoRepository.findByFilterWithDetails(filter, pageable)
-                : proyectoRepository.findAllWithDetails(pageable);
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        String effectiveFilter = (filter != null && !filter.trim().isEmpty()) ? filter.trim().toLowerCase() : null;
+
+        return proyectoRepository.findByFilterWithDetails(empresaId, effectiveFilter, pageable);
     }
 
     @Transactional(readOnly = true)
     public ProyectoResponse getProyectoById(Long id) {
-        return proyectoRepository.findById(id)
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        return proyectoRepository.findByIdAndEmpresaId(id, empresaId)
                 .map(proyectoMapper::toProyectoResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con ID: " + id));
     }
 
     @Transactional
     public ProyectoResponse createProyecto(ProyectoRequest proyectoRequest) {
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
 
-        if (proyectoRequest.getCostoMaterialesConsolidado() == null) {
-            proyectoRequest.setCostoMaterialesConsolidado(BigDecimal.ZERO);
-        }
-        if (proyectoRequest.getOtrosGastosDirectosConsolidado() == null) {
-            proyectoRequest.setOtrosGastosDirectosConsolidado(BigDecimal.ZERO);
+        Cliente cliente = clienteRepository.findByIdAndEmpresaId(proyectoRequest.getIdCliente(), empresaId)
+                .orElseThrow(() -> new BusinessRuleException(
+                        "El cliente seleccionado no existe o no pertenece a tu empresa."));
+
+        Empleado empleadoResponsable = null;
+        if (proyectoRequest.getIdEmpleadoResponsable() != null) {
+            empleadoResponsable = empleadoRepository
+                    .findByIdAndEmpresaId(proyectoRequest.getIdEmpleadoResponsable(), empresaId)
+                    .orElseThrow(() -> new BusinessRuleException(
+                            "El empleado responsable seleccionado no existe o no pertenece a tu empresa."));
         }
         Proyecto proyecto = proyectoMapper.toProyecto(proyectoRequest);
+        proyecto.setEmpresa(currentUser.getEmpresa());
+        proyecto.setCliente(cliente);
+        proyecto.setEmpleadoResponsable(empleadoResponsable);
+
+        proyecto.setMontoRecibido(BigDecimal.ZERO);
+        proyecto.setCostoMaterialesConsolidado(proyectoRequest.getCostoMaterialesConsolidado() != null
+                ? proyectoRequest.getCostoMaterialesConsolidado()
+                : BigDecimal.ZERO);
+        proyecto.setOtrosGastosDirectosConsolidado(proyectoRequest.getOtrosGastosDirectosConsolidado() != null
+                ? proyectoRequest.getOtrosGastosDirectosConsolidado()
+                : BigDecimal.ZERO);
         proyecto.setCostoManoDeObra(BigDecimal.ZERO);
+
         Proyecto savedProyecto = proyectoRepository.save(proyecto);
         return proyectoMapper.toProyectoResponse(savedProyecto);
     }
 
     @Transactional
     public ProyectoResponse updateProyecto(Long id, ProyectoRequest proyectoRequest) {
-        Proyecto proyecto = proyectoRepository.findById(id)
+
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        Proyecto proyecto = proyectoRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con ID: " + id));
 
-        // 3. Manejar los campos numéricos que podrían venir como nulos desde el
-        // frontend
-        if (proyectoRequest.getCostoMaterialesConsolidado() == null) {
-            proyectoRequest.setCostoMaterialesConsolidado(BigDecimal.ZERO);
+        Cliente cliente = clienteRepository.findByIdAndEmpresaId(proyectoRequest.getIdCliente(), empresaId)
+                .orElseThrow(() -> new BusinessRuleException(
+                        "El cliente seleccionado no existe o no pertenece a tu empresa."));
+
+        Empleado empleadoResponsable = null;
+        if (proyectoRequest.getIdEmpleadoResponsable() != null) {
+            empleadoResponsable = empleadoRepository
+                    .findByIdAndEmpresaId(proyectoRequest.getIdEmpleadoResponsable(), empresaId)
+                    .orElseThrow(() -> new BusinessRuleException(
+                            "El empleado responsable seleccionado no existe o no pertenece a tu empresa."));
         }
-        if (proyectoRequest.getOtrosGastosDirectosConsolidado() == null) {
-            proyectoRequest.setOtrosGastosDirectosConsolidado(BigDecimal.ZERO);
-        }
+
         proyectoMapper.updateProyectoFromRequest(proyectoRequest, proyecto);
+        proyecto.setCliente(cliente);
+        proyecto.setEmpleadoResponsable(empleadoResponsable);
+
         Proyecto updatedProyecto = proyectoRepository.save(proyecto);
         return proyectoMapper.toProyectoResponse(updatedProyecto);
     }
 
     @Transactional
     public void deleteProyecto(Long id) {
-        // 1. Verificar si el proyecto existe para evitar errores innecesarios
-        if (!proyectoRepository.existsById(id)) {
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        // 1. Verificar si el proyecto pertenece a la empresa actual
+        if (!proyectoRepository.existsByIdAndEmpresaId(id, empresaId)) {
             throw new ResourceNotFoundException("Proyecto no encontrado con ID: " + id);
         }
 
@@ -89,6 +142,9 @@ public class ProyectoService {
     }
 
     private List<Proyecto> findAllProyectosForExport(String filter, String sort) {
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
         Sort sortObj = Sort.by(Sort.Direction.ASC, "nombreProyecto");
         if (sort != null && !sort.isEmpty()) {
             String[] sortParts = sort.split(",");
@@ -101,7 +157,7 @@ public class ProyectoService {
         }
 
         return (filter != null && !filter.trim().isEmpty())
-                ? proyectoRepository.findByFilterForExport(filter, sortObj)
+                ? proyectoRepository.findByFilterForExport(empresaId, filter, sortObj)
                 : proyectoRepository.findAll(sortObj);
     }
 

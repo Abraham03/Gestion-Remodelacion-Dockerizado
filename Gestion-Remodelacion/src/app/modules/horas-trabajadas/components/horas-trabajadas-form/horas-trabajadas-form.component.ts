@@ -35,7 +35,7 @@ import { HttpErrorResponse } from '@angular/common/http';
   ],
   templateUrl: './horas-trabajadas-form.component.html',
   styleUrl: './horas-trabajadas-form.component.scss',
-    providers: [provideNativeDateAdapter()] // Necesario para MatDatepicker
+  providers: [provideNativeDateAdapter()]
 
 })
 export class HorasTrabajadasFormComponent {

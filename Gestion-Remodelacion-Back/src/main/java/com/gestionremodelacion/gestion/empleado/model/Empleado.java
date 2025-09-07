@@ -4,11 +4,16 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -43,6 +48,10 @@ public class Empleado {
 
     @Column(name = "fecha_registro", updatable = false, nullable = false)
     private LocalDateTime fechaRegistro;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_empresa", nullable = false)
+    private Empresa empresa;
 
     public Empleado() {
         this.activo = true;
@@ -124,5 +133,13 @@ public class Empleado {
 
     public void setFechaRegistro(LocalDateTime fechaRegistro) {
         this.fechaRegistro = fechaRegistro;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Empresa empresa) {
+        this.empresa = empresa;
     }
 }

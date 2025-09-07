@@ -36,7 +36,7 @@ public abstract class HorasTrabajadasMapper {
     @Mapping(source = "empleado.nombreCompleto", target = "nombreEmpleado")
     @Mapping(source = "proyecto.id", target = "idProyecto")
     @Mapping(source = "proyecto.nombreProyecto", target = "nombreProyecto")
-    @Mapping(source = "costoPorHoraActual", target = "costoPorHoraActual") 
+    @Mapping(source = "costoPorHoraActual", target = "costoPorHoraActual")
     @Mapping(target = "montoTotal", ignore = true)
     public abstract HorasTrabajadasResponse toHorasTrabajadasResponse(HorasTrabajadas horasTrabajadas);
 
@@ -45,10 +45,11 @@ public abstract class HorasTrabajadasMapper {
      * HorasTrabajadasResponse.
      *
      * @param horasTrabajadasList La lista de entidades HorasTrabajadas a
-     * mapear.
+     *                            mapear.
      * @return La lista de DTOs HorasTrabajadasResponse mapeados.
      */
-    public abstract List<HorasTrabajadasResponse> toHorasTrabajadasResponseList(List<HorasTrabajadas> horasTrabajadasList);
+    public abstract List<HorasTrabajadasResponse> toHorasTrabajadasResponseList(
+            List<HorasTrabajadas> horasTrabajadasList);
 
     /**
      * Mapea un DTO HorasTrabajadasRequest a una nueva entidad HorasTrabajadas.
@@ -64,6 +65,7 @@ public abstract class HorasTrabajadasMapper {
     @Mapping(target = "fechaRegistro", ignore = true) // Manejado por @PrePersist en la entidad
     @Mapping(target = "empleado", expression = "java(getEmpleadoById(request.getIdEmpleado()))")
     @Mapping(target = "proyecto", expression = "java(getProyectoById(request.getIdProyecto()))")
+    @Mapping(target = "empresa", ignore = true)
     public abstract HorasTrabajadas toHorasTrabajadas(HorasTrabajadasRequest request);
 
     /**
@@ -72,15 +74,18 @@ public abstract class HorasTrabajadasMapper {
      * los IDs del request si han cambiado. 'id' y 'fechaRegistro' son ignorados
      * ya que no deben ser actualizados desde el request.
      *
-     * @param request El DTO HorasTrabajadasRequest con los datos actualizados.
+     * @param request         El DTO HorasTrabajadasRequest con los datos
+     *                        actualizados.
      * @param horasTrabajadas La entidad HorasTrabajadas existente a actualizar.
      */
     @Mapping(target = "id", ignore = true) // El ID no debe ser actualizado desde el request
     @Mapping(target = "costoPorHoraActual", ignore = true) // <-- Se agrega esta línea
     @Mapping(target = "fechaRegistro", ignore = true) // FechaRegistro no debe ser actualizada desde el request
-    @Mapping(target = "empleado", expression = "java(getEmpleadoById(request.getIdEmpleado()))") // Siempre intentamos resolver
-    @Mapping(target = "proyecto", expression = "java(getProyectoById(request.getIdProyecto()))") // Siempre intentamos resolver
-    public abstract void updateHorasTrabajadasFromRequest(HorasTrabajadasRequest request, @MappingTarget HorasTrabajadas horasTrabajadas);
+    @Mapping(target = "empleado", expression = "java(getEmpleadoById(request.getIdEmpleado()))")
+    @Mapping(target = "proyecto", expression = "java(getProyectoById(request.getIdProyecto()))")
+    @Mapping(target = "empresa", ignore = true)
+    public abstract void updateHorasTrabajadasFromRequest(HorasTrabajadasRequest request,
+            @MappingTarget HorasTrabajadas horasTrabajadas);
 
     // --- Métodos auxiliares para buscar entidades por ID ---
     /**
@@ -92,11 +97,13 @@ public abstract class HorasTrabajadasMapper {
      */
     protected Empleado getEmpleadoById(Long idEmpleado) {
         if (idEmpleado == null) {
-            // Decidir si es un error o si se permite un empleado nulo (para un PUT/PATCH parcial)
+            // Decidir si es un error o si se permite un empleado nulo (para un PUT/PATCH
+            // parcial)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El ID del empleado no puede ser nulo.");
         }
         return empleadoRepository.findById(idEmpleado)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empleado no encontrado con ID: " + idEmpleado));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Empleado no encontrado con ID: " + idEmpleado));
     }
 
     /**
@@ -108,11 +115,13 @@ public abstract class HorasTrabajadasMapper {
      */
     protected Proyecto getProyectoById(Long idProyecto) {
         if (idProyecto == null) {
-            // Decidir si es un error o si se permite un proyecto nulo (para un PUT/PATCH parcial)
+            // Decidir si es un error o si se permite un proyecto nulo (para un PUT/PATCH
+            // parcial)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El ID del proyecto no puede ser nulo.");
         }
         return proyectoRepository.findById(idProyecto)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proyecto no encontrado con ID: " + idProyecto));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Proyecto no encontrado con ID: " + idProyecto));
     }
 
 }

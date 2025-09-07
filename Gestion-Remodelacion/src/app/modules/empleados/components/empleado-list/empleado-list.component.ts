@@ -1,7 +1,7 @@
 import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,6 +20,7 @@ import { EmpleadoFormComponent } from '../empleado-form/empleado-form.component'
 import { ExportService } from '../../../../core/services/export.service';
 import { Sort } from '@angular/material/sort';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-empleado-list',
@@ -34,10 +35,18 @@ import { HttpErrorResponse } from '@angular/common/http';
     MatFormFieldModule,
     MatInputModule,
   ],
+  providers: [DatePipe],
   templateUrl: './empleado-list.component.html',
   styleUrls: ['./empleado-list.component.scss'],
 })
 export class EmpleadoListComponent implements OnInit, AfterViewInit {
+    // Propiedades de permisos basados en el plan
+  canExportExcel = false;
+  canExportPdf = false;
+  canCreate = false;
+  canEdit = false;
+  canDelete = false;
+
   empleados: Empleado[] = [];
   displayedColumns: string[] = [
     'nombreCompleto',
@@ -64,13 +73,34 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private exportService: ExportService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.setPermissions();
+  }
   ngAfterViewInit(): void {
     // Carga inicial de datos
     this.loadEmpleados();
+  }
+
+  private setPermissions(): void {
+    // Permisos basados en roles/authorities
+    this.canCreate = this.authService.hasPermission('CLIENTE_CREATE');
+    this.canEdit = this.authService.hasPermission('CLIENTE_UPDATE');
+    this.canDelete = this.authService.hasPermission('CLIENTE_DELETE');
+
+    // Permisos basados en el plan del usuario
+    const userPlan = this.authService.currentUserPlan(); // Obtiene el valor de la señal
+
+    // Lógica: Solo los planes NEGOCIOS y PROFESIONAL pueden exportar.
+    const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
+
+    this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
+    this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
+
+
   }
 
   loadEmpleados(): void {

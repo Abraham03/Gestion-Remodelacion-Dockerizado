@@ -14,23 +14,35 @@ import com.gestionremodelacion.gestion.cliente.model.Cliente;
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
-    /* ======================================================================= */
- /* MÉTODOS PARA ClienteService (CRUD, Paginación, etc.)                    */
- /* ======================================================================= */
-    Optional<Cliente> findByNombreCliente(String nombreCliente);
+   /* ======================================================================= */
+   /* MÉTODOS PARA ClienteService (CRUD, Paginación, etc.) */
+   /* ======================================================================= */
+   Optional<Cliente> findByIdAndEmpresaId(Long id, Long empresaId);
 
-    Page<Cliente> findByNombreClienteContainingIgnoreCaseOrTelefonoContactoContainingIgnoreCase(String nombreCliente, String telefonoContacto, Pageable pageable);
+   Page<Cliente> findAllByEmpresaId(Long empresaId, Pageable pageable);
 
-    List<Cliente> findByNombreClienteContainingIgnoreCaseOrTelefonoContactoContainingIgnoreCase(String nombreCliente, String telefonoContacto, Sort sort);
+   List<Cliente> findAllByEmpresaId(Long empresaId, Sort sort);
 
-    /* ======================================================================= */
- /* MÉTODOS EXCLUSIVOS PARA DashboardService (Agregaciones)                 */
- /* ======================================================================= */
-    // Cuenta clientes por mes para un año específico.
-    @Query("SELECT YEAR(c.fechaRegistro) AS anio, MONTH(c.fechaRegistro) AS mes, COUNT(c) FROM Cliente c WHERE YEAR(c.fechaRegistro) = :year GROUP BY anio, mes ORDER BY anio, mes")
-    List<Object[]> countClientesByMonthForYear(@Param("year") int year);
+   boolean existsByIdAndEmpresaId(Long id, Long empresaId);
 
-    // ✅ NUEVO: Cuenta clientes para un mes y año específicos.
-    @Query("SELECT COUNT(c) FROM Cliente c WHERE YEAR(c.fechaRegistro) = :year AND MONTH(c.fechaRegistro) = :month")
-    Long countByYearAndMonth(@Param("year") int year, @Param("month") int month);
+   Page<Cliente> findByEmpresaIdAndNombreClienteContainingIgnoreCaseOrEmpresaIdAndTelefonoContactoContainingIgnoreCase(
+         Long empresaId1, String nombreCliente, Long empresaId2, String telefonoContacto, Pageable pageable);
+
+   List<Cliente> findByEmpresaIdAndNombreClienteContainingIgnoreCaseOrEmpresaIdAndTelefonoContactoContainingIgnoreCase(
+         Long empresaId1, String nombreCliente, Long empresaId2, String telefonoContacto, Sort sort);
+
+   /* ======================================================================= */
+   /* MÉTODOS EXCLUSIVOS PARA DashboardService (Agregaciones) */
+   /* ======================================================================= */
+   // Cuenta clientes por mes para un año específico.
+   @Query("SELECT YEAR(c.fechaRegistro) AS anio, MONTH(c.fechaRegistro) AS mes, COUNT(c) FROM Cliente c " +
+         "WHERE c.empresa.id = :empresaId AND YEAR(c.fechaRegistro) = :year " +
+         "GROUP BY anio, mes ORDER BY anio, mes")
+   List<Object[]> countClientesByMonthForYearAndEmpresa(@Param("empresaId") Long empresaId, @Param("year") int year);
+
+   // Cuenta clientes para un mes y año específicos.
+   @Query("SELECT COUNT(c) FROM Cliente c WHERE c.empresa.id = :empresaId AND " +
+         "YEAR(c.fechaRegistro) = :year AND MONTH(c.fechaRegistro) = :month")
+   Long countByYearAndMonthAndEmpresa(@Param("empresaId") Long empresaId, @Param("year") int year,
+         @Param("month") int month);
 }

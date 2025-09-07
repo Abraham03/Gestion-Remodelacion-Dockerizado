@@ -22,6 +22,7 @@ import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.repository.PermissionRepository;
 import com.gestionremodelacion.gestion.repository.RoleRepository;
 import com.gestionremodelacion.gestion.repository.UserRepository;
+import com.gestionremodelacion.gestion.service.user.UserService;
 
 @Service
 public class RoleService {
@@ -30,13 +31,15 @@ public class RoleService {
     private final PermissionRepository permissionRepository;
     private final RoleMapper roleMapper;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     public RoleService(RoleRepository roleRepository, PermissionRepository permissionRepository, RoleMapper roleMapper,
-            UserRepository userRepository) {
+            UserRepository userRepository, UserService userService) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.roleMapper = roleMapper;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @Transactional(readOnly = true)
@@ -109,12 +112,15 @@ public class RoleService {
 
     @Transactional
     public void deleteRole(Long id) {
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
         // 1. Verificar si el rol existe
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + id));
 
         // Desvincular el rol de los usuarios antes de eliminar
-        List<User> usersWithRole = userRepository.findByRolesContaining(role);
+        List<User> usersWithRole = userRepository.findByRolesContainingAndEmpresaId(role, empresaId);
         for (User user : usersWithRole) {
             user.removeRole(role);
             userRepository.save(user);

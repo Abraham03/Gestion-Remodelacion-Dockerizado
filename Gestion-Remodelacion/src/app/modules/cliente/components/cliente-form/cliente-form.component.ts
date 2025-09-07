@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogContent, MatDialogActions, MatDialogTitle } from '@angular/material/dialog';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +11,7 @@ import { ClienteService } from '../../services/cliente.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 @Component({
   selector: 'app-cliente-form',
@@ -25,6 +26,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
     MatDialogActions,
     MatDialogTitle
   ],
+  providers: [provideNativeDateAdapter()],
   templateUrl: './cliente-form.component.html',
   styleUrls: ['./cliente-form.component.scss']
 })

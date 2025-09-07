@@ -10,15 +10,15 @@
       </mat-form-field>
       
       <div class="table-actions">
-        <button mat-flat-button color="primary" (click)="openForm()">
+        <button mat-flat-button color="primary" *ngIf="canCreate" (click)="openForm()">
           <mat-icon>add</mat-icon>
-          Agregar Cliente
+          Agregar Horas
         </button>
-        <button mat-flat-button color="accent" (click)="exportToExcel()">
+        <button mat-flat-button color="accent" *ngIf="canExportExcel" (click)="exportToExcel()">
           <mat-icon>file_download</mat-icon>
           Excel
         </button>
-        <button mat-flat-button color="primary" (click)="exportToPdf()">
+        <button mat-flat-button color="primary" *ngIf="canExportPdf" (click)="exportToPdf()">
           <mat-icon>picture_as_pdf</mat-icon>
           PDF
         </button>
@@ -63,10 +63,10 @@
         <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let row">
-            <button mat-icon-button color="primary" (click)="openForm(row)" matTooltip="Editar">
+            <button mat-icon-button color="primary" *ngIf="canEdit" (click)="openForm(row)" matTooltip="Editar">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="deleteHorasTrabajadas(row.id!)" matTooltip="Eliminar">
+            <button mat-icon-button color="warn" *ngIf="canDelete" (click)="deleteHorasTrabajadas(row.id!)" matTooltip="Eliminar">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

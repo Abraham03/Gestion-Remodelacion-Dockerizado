@@ -5,10 +5,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.gestionremodelacion.gestion.empleado.model.Empleado;
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.proyecto.model.Proyecto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,11 +27,15 @@ public class HorasTrabajadas {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_empresa", nullable = false)
+    private Empresa empresa;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_empleado", nullable = false)
     private Empleado empleado;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_proyecto", nullable = false)
     private Proyecto proyecto;
 
@@ -56,12 +62,13 @@ public class HorasTrabajadas {
     protected void onCreate() {
         this.fechaRegistro = LocalDateTime.now();
     }
+
     public BigDecimal getCostoPorHoraActual() {
         return costoPorHoraActual;
     }
 
     public void setCostoPorHoraActual(BigDecimal costoPorHoraActual) {
-        this.costoPorHoraActual = costoPorHoraActual; 
+        this.costoPorHoraActual = costoPorHoraActual;
     }
 
     // Getters y Setters
@@ -119,5 +126,13 @@ public class HorasTrabajadas {
 
     public void setFechaRegistro(LocalDateTime fechaRegistro) {
         this.fechaRegistro = fechaRegistro;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Empresa empresa) {
+        this.empresa = empresa;
     }
 }

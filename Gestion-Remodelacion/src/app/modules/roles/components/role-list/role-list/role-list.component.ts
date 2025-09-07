@@ -11,7 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Role } from '../../../../../core/models/role.model';
 import { AuthService } from '../../../../../core/services/auth.service';
@@ -36,10 +36,16 @@ import { PermissionDialogComponent } from '../../dialogs/permission-dialog/permi
     MatSnackBarModule,
     FormsModule,
   ],
+  providers: [DatePipe],
   templateUrl: './role-list.component.html',
   styleUrls: ['./role-list.component.scss'],
 })
 export class RoleListComponent implements OnInit, AfterViewInit {
+  // Propiedades de permisos basados en el plan
+  canCreate = false;
+  canEdit = false;
+  canDelete = false;
+
   displayedColumns: string[] = [
     'name',
     'description',
@@ -62,15 +68,22 @@ export class RoleListComponent implements OnInit, AfterViewInit {
     private dialog: MatDialog,
     private authService: AuthService,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef  
   ) {}
 
   ngOnInit(): void {
+    this.setPermissions();
   }
 
   ngAfterViewInit(): void {
     this.dataSource.sort = this.sort;
     this.loadRoles();
+  }
+
+  private setPermissions(): void {
+    this.canCreate = this.authService.hasPermission('ROLE_CREATE');
+    this.canEdit = this.authService.hasPermission('ROLE_UPDATE');
+    this.canDelete = this.authService.hasPermission('ROLE_DELETE');
   }
 
   loadRoles(): void {

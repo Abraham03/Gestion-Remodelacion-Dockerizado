@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { RoleService } from '../../../services/role.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NotificationService } from '../../../../../core/services/notification.service';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 @Component({
   selector: 'app-role-form',
@@ -26,6 +27,7 @@ import { NotificationService } from '../../../../../core/services/notification.s
     MatButtonModule,
     MatCheckboxModule
   ],
+  providers: [provideNativeDateAdapter()],
   templateUrl: './role-form.component.html',
   styleUrls: ['./role-form.component.scss']
 })

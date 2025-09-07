@@ -10,18 +10,26 @@
       </mat-form-field>
 
       <div class="table-actions">
-        <button mat-flat-button color="primary" (click)="openForm()">
+        <button mat-flat-button color="primary" *ngIf="canCreate" (click)="openForm()">
           <mat-icon>add</mat-icon>
           Agregar Proyecto
         </button>
-        <button mat-flat-button color="accent" (click)="exportToExcel()">
+        <button mat-flat-button color="accent" *ngIf="canExportExcel" (click)="exportToExcel()">
           <mat-icon>file_download</mat-icon>
           Excel
         </button>
-        <button mat-flat-button color="primary" (click)="exportToPdf()">
+        <button mat-flat-button color="accent" *ngIf="!canExportExcel" disabled matTooltip="Mejora tu plan para exportar a Excel">
+            <mat-icon>file_download</mat-icon>
+            Excel
+        </button>        
+        <button mat-flat-button color="primary" *ngIf="canExportPdf" (click)="exportToPdf()">
           <mat-icon>picture_as_pdf</mat-icon>
           PDF
         </button>
+        <button mat-flat-button color="primary" *ngIf="!canExportPdf" disabled matTooltip="Mejora tu plan para exportar a PDF">
+            <mat-icon>picture_as_pdf</mat-icon>
+            PDF
+        </button>        
       </div>
     </div>
   </div>
@@ -75,10 +83,10 @@
         <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let proyecto" class="mat-column-acciones">
-            <button mat-icon-button color="primary" (click)="openForm(proyecto)" matTooltip="Editar">
+            <button mat-icon-button color="primary" *ngIf="canEdit" (click)="openForm(proyecto)" matTooltip="Editar">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="deleteProyecto(proyecto.id!)" matTooltip="Eliminar">
+            <button mat-icon-button color="warn" *ngIf="canDelete" (click)="deleteProyecto(proyecto.id!)" matTooltip="Eliminar">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

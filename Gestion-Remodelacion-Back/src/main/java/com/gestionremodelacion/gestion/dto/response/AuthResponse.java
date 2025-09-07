@@ -14,8 +14,11 @@ public class AuthResponse {
     private final List<String> roles;
     private final Date expirationDate;
     private final String refreshToken;
+    private final Long empresaId;
+    private final String plan;
 
-    public AuthResponse(String token, Long id, String username, List<String> authorities, List<String> roles, Date expirationDate, String refreshToken) {
+    public AuthResponse(String token, Long id, String username, List<String> authorities, List<String> roles,
+            Date expirationDate, String refreshToken, Long empresaId, String plan) {
         this.token = token;
         this.id = id;
         this.username = username;
@@ -23,6 +26,8 @@ public class AuthResponse {
         this.roles = roles;
         this.expirationDate = expirationDate;
         this.refreshToken = refreshToken;
+        this.empresaId = empresaId;
+        this.plan = plan;
     }
 
     // Getters
@@ -56,5 +61,13 @@ public class AuthResponse {
 
     public List<String> getRoles() {
         return roles;
+    }
+
+    public Long getEmpresaId() {
+        return empresaId;
+    }
+
+    public String getPlan() {
+        return plan;
     }
 }

@@ -7,12 +7,15 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionremodelacion.gestion.dto.request.UserRequest;
 import com.gestionremodelacion.gestion.dto.response.UserResponse;
+import com.gestionremodelacion.gestion.exception.BusinessRuleException;
 import com.gestionremodelacion.gestion.exception.DuplicateResourceException;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.UserMapper;
@@ -45,15 +48,48 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public Page<UserResponse> findAll(Pageable pageable, String filter) {
-        Page<User> usersPage = (filter != null && !filter.trim().isEmpty()
-                ? userRepository.findByUsernameContainingIgnoreCase(filter, pageable)
-                : userRepository.findAll(pageable));
+        User currentUser = getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        String effectiveFilter = (filter != null && !filter.trim().isEmpty()) ? filter.trim().toLowerCase() : null;
+
+        Page<User> usersPage = userRepository.findByEmpresaIdAndFilter(empresaId, effectiveFilter, pageable);
         return usersPage.map(userMapper::toDto);
+    }
+
+    /**
+     * Obtiene el usuario autenticado actualmente desde el contexto de seguridad de
+     * Spring.
+     * Este es el método central para obtener información del usuario que realiza
+     * una petición.
+     *
+     * @return La entidad User completa del usuario logueado.
+     * @throws ResourceNotFoundException si no se encuentra el usuario en la BD.
+     * @throws IllegalStateException     si no hay un usuario autenticado en el
+     *                                   contexto.
+     */
+    @Transactional(readOnly = true)
+    public User getCurrentUser() {
+        // 1. Obtiene el objeto de autenticación del contexto de seguridad.
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new IllegalStateException("No hay un usuario autenticado en la sesión actual.");
+        }
+
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Usuario '" + username + "' autenticado pero no encontrado."));
     }
 
     @Transactional(readOnly = true)
     public UserResponse findById(Long id) {
-        return userRepository.findById(id)
+        User currentUser = getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        return userRepository.findByIdAndEmpresaId(id, empresaId)
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
 
@@ -61,85 +97,98 @@ public class UserService {
 
     @Transactional
     public UserResponse createUser(UserRequest userRequest) {
+        User adminUser = getCurrentUser(); // El admin que crea al nuevo usuario
+
         // 1. Validar si el usuario ya existe
         if (userRepository.existsByUsername(userRequest.getUsername())) {
             throw new DuplicateResourceException("El nombre de usuario '" + userRequest.getUsername() + "' ya existe.");
         }
-        User user = userMapper.toEntity(userRequest);
-        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        user.setEnabled(userRequest.isEnabled()); // Set enabled status
+
+        User newUser = userMapper.toEntity(userRequest);
+        // ASIGNACIÓN CLAVE: El nuevo usuario pertenece a la misma empresa que el admin
+        // que lo creó.
+        newUser.setEmpresa(adminUser.getEmpresa());
+
+        newUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        newUser.setEnabled(userRequest.isEnabled());
 
         Set<Role> roles = userRequest.getRoles().stream()
                 .map(roleId -> roleRepository.findById(roleId)
                         .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + roleId)))
                 .collect(Collectors.toSet());
+        newUser.setRoles(roles);
 
-        user.setRoles(roles);
-
-        User savedUser = userRepository.save(user);
+        User savedUser = userRepository.save(newUser);
         return userMapper.toDto(savedUser);
     }
 
     @Transactional
     public UserResponse updateUser(Long id, UserRequest userRequest) {
-        User existingUser = userRepository.findById(id)
+        User currentUser = getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        // 1. Validar si el usuario existe
+        User existingUser = userRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
 
-        // 2. Verificamos si el nombre de usuario ha cambiado Y si el nuevo ya existe
-        if (!existingUser.getUsername().equals(userRequest.getUsername())
-                && userRepository.existsByUsername(userRequest.getUsername())) {
+        // 2. Validar si el nombre de usuario ya existe
+        if (!existingUser.getUsername().equals(userRequest.getUsername()) &&
+                userRepository.existsByUsername(userRequest.getUsername())) {
             throw new DuplicateResourceException(
                     "El nombre de usuario '" + userRequest.getUsername() + "' ya está en uso.");
         }
-        // 3. Si no hay conflicto, actualizamos los datos
+
+        // 3. Actualizar el nombre y el estado
         existingUser.setUsername(userRequest.getUsername());
         existingUser.setEnabled(userRequest.isEnabled());
 
-        // 4. Solo actualizar el password solo si se proporciona
+        // 4. Actualizar la clave solo si se proporciona
         if (userRequest.getPassword() != null && !userRequest.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         }
 
-        // 5. Actualizar los roles basado en los roleIds proporcionados
         Set<Role> updatedRoles = new HashSet<>();
+        // 5. Solo actualizar los roles si se proporcionan
         if (userRequest.getRoles() != null && !userRequest.getRoles().isEmpty()) {
             updatedRoles = userRequest.getRoles().stream()
                     .map(roleId -> roleRepository.findById(roleId)
                             .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + roleId)))
                     .collect(Collectors.toSet());
         }
-
         // 6. Asignar los nuevos roles al usuario
         existingUser.setRoles(updatedRoles);
-        // 7. Guardar el usuario actualizado
+        // 7. Guardar los cambios
         User updatedUser = userRepository.save(existingUser);
-        // 8. Devolver el DTO del usuario actualizado
         return userMapper.toDto(updatedUser);
     }
 
     @Transactional
     public void deleteById(Long id) {
-        // 1. Verificar si el usuario existe para lanzar una excepción si no es así.
-        User user = userRepository.findById(id)
+        User currentUser = getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        User userToDelete = userRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
 
-        // 2. Eliminar todos los tokens de actualización asociados a este usuario.
-        // Esto previene el error de clave foránea.
-        refreshTokenRepository.deleteByUser(user); // Asumo que tienes este método en tu RefreshTokenRepository
+        if (currentUser.getId().equals(id)) {
+            throw new BusinessRuleException("No puedes eliminar tu propia cuenta.");
+        }
 
-        // 3. Ahora que las dependencias han sido eliminadas, puedes eliminar al
-        // usuario.
-        userRepository.delete(user);
+        refreshTokenRepository.deleteByUser(userToDelete);
+        userRepository.delete(userToDelete);
     }
 
     @Transactional
-    public UserResponse updateUserRoles(Long id, Set<String> roleNames) {
-        User existingUser = userRepository.findById(id)
+    public UserResponse updateUserRoles(Long id, Set<Long> roleIds) {
+        User currentUser = getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        User existingUser = userRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
 
-        Set<Role> newRoles = roleNames.stream()
-                .map(roleName -> roleRepository.findByName(roleName) // Assuming findByName exists in RoleRepository
-                        .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con nombre: " + roleName)))
+        Set<Role> newRoles = roleIds.stream()
+                .map(roleId -> roleRepository.findById(roleId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + roleId)))
                 .collect(Collectors.toSet());
 
         existingUser.setRoles(newRoles);

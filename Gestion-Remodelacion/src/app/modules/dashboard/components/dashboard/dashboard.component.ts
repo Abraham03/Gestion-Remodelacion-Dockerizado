@@ -103,12 +103,22 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     private snackBar: MatSnackBar,
     private breakpointObserver: BreakpointObserver,
     private notificationService: NotificationService
-  ) {}
+  ) 
+  {
+        console.log(`DashboardComponent está usando NotificationService con ID: ${(this.notificationService as any).instanceId}`);
+
+  }
 
   ngOnInit(): void {
     this.setupResponsiveCols();
     this.loadInitialData();
-    this.notificationService.dataUpdated$.subscribe(() => this.loadInitialData());
+
+    this.notificationService.dataChanges$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(() =>{
+        console.log('DashboardComponent recibió una notificación. Recargando datos...');
+       this.loadInitialData()
+  });
   }
 
   ngAfterViewInit(): void {

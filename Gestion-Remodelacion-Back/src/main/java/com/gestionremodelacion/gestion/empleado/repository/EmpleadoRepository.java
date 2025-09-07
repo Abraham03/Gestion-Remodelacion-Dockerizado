@@ -16,31 +16,54 @@ import com.gestionremodelacion.gestion.empleado.model.Empleado;
 @Repository
 public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
 
-    /* ======================================================================= */
- /* MÉTODOS PARA EmpleadoService (CRUD, Paginación, etc.)                   */
- /* ======================================================================= */
-    Optional<Empleado> findByNombreCompleto(String nombre);
+        /* ======================================================================= */
+        /* MÉTODOS PARA EmpleadoService (CRUD, Paginación, etc.) */
+        /* ======================================================================= */
+        Optional<Empleado> findByIdAndEmpresaId(Long id, Long empresaId);
 
-    List<Empleado> findByActivo(Boolean activo);
+        Page<Empleado> findAllByEmpresaId(Long empresaId, Pageable pageable);
 
-    long countByActivo(boolean activo);
+        List<Empleado> findAllByEmpresaId(Long empresaId, Sort sort);
 
-    Page<Empleado> findByNombreCompletoContainingIgnoreCaseOrRolCargoContainingIgnoreCaseOrTelefonoContactoContainingIgnoreCase(
-            String nombre, String rol, String telefono, Pageable pageable);
+        boolean existsByIdAndEmpresaId(Long id, Long empresaId);
 
-    List<Empleado> findByNombreCompletoContainingIgnoreCaseOrRolCargoContainingIgnoreCaseOrTelefonoContactoContainingIgnoreCase(
-            String nombre, String rol, String telefono, Sort sort);
+        // Busca empleados de una empresa con paginacion y filtro opcional. el filtro
+        // busca en nombreCompleto, rolCargo y telefonoContacto
+        @Query("SELECT e FROM Empleado e WHERE e.empresa.id = :empresaId AND " +
+                        "(:filter IS NULL OR LOWER(e.nombreCompleto) LIKE LOWER(CONCAT('%', :filter, '%')) OR " +
+                        "LOWER(e.rolCargo) LIKE LOWER(CONCAT('%', :filter, '%')) OR " +
+                        "e.telefonoContacto LIKE %:filter%)")
+        Page<Empleado> findByEmpresaIdAndFilter(
+                        @Param("empresaId") Long empresaId,
+                        @Param("filter") String filter,
+                        Pageable pageable);
 
-    /* ======================================================================= */
- /* MÉTODOS EXCLUSIVOS PARA DashboardService (Agregaciones)                 */
- /* ======================================================================= */
-    @Query("SELECT AVG(e.costoPorHora) FROM Empleado e WHERE e.activo = true")
-    Double findAvgCostoPorHora();
+        // Lista para exportar a excel y Pdf, Busca empleados de una empresa sin
+        // paginacion y filtro opcional. el filtro busca en nombreCompleto, rolCargo y
+        // telefonoContacto
+        @Query("SELECT e FROM Empleado e WHERE e.empresa.id = :empresaId AND " +
+                        "(:filter IS NULL OR LOWER(e.nombreCompleto) LIKE LOWER(CONCAT('%', :filter, '%')) OR " +
+                        "LOWER(e.rolCargo) LIKE LOWER(CONCAT('%', :filter, '%')) OR " +
+                        "e.telefonoContacto LIKE %:filter%)")
+        List<Empleado> findByEmpresaIdAndFilter(
+                        @Param("empresaId") Long empresaId,
+                        @Param("filter") String filter,
+                        Sort sort);
 
-    // ✅ NUEVO: Métodos para filtrar por año y mes (basado en fecha de contratación)
-    @Query("SELECT COUNT(e) FROM Empleado e WHERE YEAR(e.fechaContratacion) = :year")
-    Long countByYear(@Param("year") int year);
+        /* ======================================================================= */
+        /* MÉTODOS EXCLUSIVOS PARA DashboardService (Agregaciones) */
+        /* ======================================================================= */
+        @Query("SELECT AVG(e.costoPorHora) FROM Empleado e WHERE e.activo = true")
+        Double findAvgCostoPorHora();
 
-    @Query("SELECT COUNT(e) FROM Empleado e WHERE YEAR(e.fechaContratacion) = :year AND MONTH(e.fechaContratacion) = :month")
-    Long countByYearAndMonth(@Param("year") int year, @Param("month") int month);
+        // Query para contar activos por empresaId y activos
+        @Query("SELECT COUNT(e) FROM Empleado e WHERE e.empresa.id = :empresaId AND e.activo = true")
+        Long countByEmpresaIdAndActivo(@Param("empresaId") Long empresaId);
+
+        // ✅ NUEVO: Métodos para filtrar por año y mes (basado en fecha de contratación)
+        @Query("SELECT COUNT(e) FROM Empleado e WHERE YEAR(e.fechaContratacion) = :year")
+        Long countByYear(@Param("year") int year);
+
+        @Query("SELECT COUNT(e) FROM Empleado e WHERE YEAR(e.fechaContratacion) = :year AND MONTH(e.fechaContratacion) = :month")
+        Long countByYearAndMonth(@Param("year") int year, @Param("month") int month);
 }

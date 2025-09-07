@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Cliente } from '../../models/cliente.model';
 import { ClienteService } from '../../services/cliente.service';
 import { ClienteFormComponent } from '../cliente-form/cliente-form.component';
@@ -19,6 +19,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ExportService } from '../../../../core/services/export.service';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../../../core/services/auth.service';
+import { provideNativeDateAdapter } from '@angular/material/core';
 @Component({
   selector: 'app-cliente-list',
   standalone: true,
@@ -34,10 +36,17 @@ import { HttpErrorResponse } from '@angular/common/http';
     MatDialogModule,
     MatSortModule,
   ],
+  providers: [DatePipe],
   templateUrl: './cliente-list.component.html',
   styleUrls: ['./cliente-list.component.scss'],
 })
 export class ClienteListComponent implements OnInit, AfterViewInit {
+  canExportExcel = false;
+  canExportPdf = false;
+  canCreate = false;
+  canEdit = false;
+  canDelete = false;
+
   dataSource = new MatTableDataSource<Cliente>([]);
   displayedColumns: string[] = [
     'nombreCliente',
@@ -62,12 +71,28 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private exportService: ExportService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.setPermissions();
+  }
   ngAfterViewInit(): void {
     this.loadClientes();
+  }
+
+  private setPermissions(): void {
+    this.canCreate = this.authService.hasPermission('CLIENTE_CREATE');
+    this.canEdit = this.authService.hasPermission('CLIENTE_UPDATE');
+    this.canDelete = this.authService.hasPermission('CLIENTE_DELETE');
+
+    const userPlan = this.authService.currentUserPlan();
+    const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
+
+    this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
+    this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
+
   }
 
   loadClientes(): void {

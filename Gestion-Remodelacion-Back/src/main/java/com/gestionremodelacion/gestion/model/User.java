@@ -3,6 +3,8 @@ package com.gestionremodelacion.gestion.model;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -20,10 +23,9 @@ import jakarta.persistence.UniqueConstraint;
  * autenticación y autorización.
  */
 @Entity
-@Table(name = "users",
-        uniqueConstraints = {
-            @UniqueConstraint(columnNames = "username")
-        })
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "username")
+})
 public class User {
 
     @Id
@@ -37,15 +39,15 @@ public class User {
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
     @Column(nullable = false)
     private boolean enabled = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_empresa", nullable = false)
+    private Empresa empresa;
 
     // Método de conveniencia para añadir roles
     public void addRole(Role role) {
@@ -95,6 +97,14 @@ public class User {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Empresa empresa) {
+        this.empresa = empresa;
     }
 
 }

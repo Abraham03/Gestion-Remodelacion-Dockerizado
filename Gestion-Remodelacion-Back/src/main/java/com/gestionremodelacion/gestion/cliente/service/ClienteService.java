@@ -16,45 +16,64 @@ import com.gestionremodelacion.gestion.cliente.model.Cliente;
 import com.gestionremodelacion.gestion.cliente.repository.ClienteRepository;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.ClienteMapper;
+import com.gestionremodelacion.gestion.model.User;
+import com.gestionremodelacion.gestion.service.user.UserService;
 
 @Service
 public class ClienteService {
 
     private final ClienteRepository clienteRepository;
     private final ClienteMapper clienteMapper;
+    private final UserService userService;
 
-    public ClienteService(ClienteRepository clienteRepository, ClienteMapper clienteMapper) {
+    public ClienteService(ClienteRepository clienteRepository, ClienteMapper clienteMapper, UserService userService) {
         this.clienteRepository = clienteRepository;
         this.clienteMapper = clienteMapper;
+        this.userService = userService;
     }
 
     @Transactional(readOnly = true)
     public Page<ClienteResponse> getAllClientes(Pageable pageable, String filter) {
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
         Page<Cliente> clientesPage = (filter != null && !filter.trim().isEmpty())
-                ? clienteRepository.findByNombreClienteContainingIgnoreCaseOrTelefonoContactoContainingIgnoreCase(
-                        filter, filter, pageable)
-                : clienteRepository.findAll(pageable);
+                ? clienteRepository
+                        .findByEmpresaIdAndNombreClienteContainingIgnoreCaseOrEmpresaIdAndTelefonoContactoContainingIgnoreCase(
+                                empresaId, filter, empresaId, filter, pageable)
+                : clienteRepository.findAllByEmpresaId(empresaId, pageable); // Usa el nuevo método del repositorio
         return clientesPage.map(clienteMapper::toClienteResponse);
     }
 
     @Transactional(readOnly = true)
     public ClienteResponse getClienteById(Long id) {
-        return clienteRepository.findById(id)
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        return clienteRepository.findByIdAndEmpresaId(id, empresaId)
                 .map(clienteMapper::toClienteResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + id));
     }
 
     @Transactional
     public ClienteResponse createCliente(ClienteRequest clienteRequest) {
+        User currentUser = userService.getCurrentUser();
+
         Cliente cliente = clienteMapper.toCliente(clienteRequest);
+        cliente.setEmpresa(currentUser.getEmpresa());
+
         Cliente savedCliente = clienteRepository.save(cliente);
         return clienteMapper.toClienteResponse(savedCliente);
     }
 
     @Transactional
     public ClienteResponse updateCliente(Long id, ClienteRequest clienteRequest) {
-        Cliente cliente = clienteRepository.findById(id)
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        Cliente cliente = clienteRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + id));
+
         clienteMapper.updateClienteFromRequest(clienteRequest, cliente);
         Cliente updatedCliente = clienteRepository.save(cliente);
         return clienteMapper.toClienteResponse(updatedCliente);
@@ -62,15 +81,21 @@ public class ClienteService {
 
     @Transactional
     public void deleteCliente(Long id) {
-        if (!clienteRepository.existsById(id)) {
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        if (!clienteRepository.existsByIdAndEmpresaId(id, empresaId)) {
             throw new ResourceNotFoundException("Cliente no encontrado con ID: " + id);
         }
         clienteRepository.deleteById(id);
     }
 
-    // ⭐️ Nuevo método para exportación
+    // método para exportación
     @Transactional(readOnly = true)
     public List<ClienteExportDTO> findClientesForExport(String filter, String sort) {
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
         Sort sortObj = Sort.by(Sort.Direction.ASC, "nombreCliente"); // Orden por defecto
         if (sort != null && !sort.isEmpty()) {
             String[] sortParts = sort.split(",");
@@ -84,8 +109,9 @@ public class ClienteService {
         if (filter != null && !filter.trim().isEmpty()) {
             // Lógica de filtrado y ordenamiento en el repositorio.
             // Es necesario añadir un método en ClienteRepository para esto.
-            clientes = clienteRepository.findByNombreClienteContainingIgnoreCaseOrTelefonoContactoContainingIgnoreCase(
-                    filter, filter, sortObj);
+            clientes = clienteRepository
+                    .findByEmpresaIdAndNombreClienteContainingIgnoreCaseOrEmpresaIdAndTelefonoContactoContainingIgnoreCase(
+                            empresaId, filter, empresaId, filter, sortObj);
         } else {
             clientes = clienteRepository.findAll(sortObj);
         }
