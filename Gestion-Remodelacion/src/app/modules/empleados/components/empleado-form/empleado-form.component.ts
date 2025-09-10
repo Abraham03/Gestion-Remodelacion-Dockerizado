@@ -13,6 +13,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { MatSelectModule } from '@angular/material/select';
+import { NumberFormatDirective } from '../../../../shared/directives/number-format.directive';
 
 @Component({
   selector: 'app-empleado-form',
@@ -26,7 +28,9 @@ import { NotificationService } from '../../../../core/services/notification.serv
     MatButtonModule,
     MatDatepickerModule,
     MatDialogActions,
-    MatDialogModule
+    MatDialogModule,
+    MatSelectModule,
+    NumberFormatDirective
 ],
   templateUrl: './empleado-form.component.html',
   styleUrls: ['./empleado-form.component.scss'],
@@ -35,6 +39,11 @@ import { NotificationService } from '../../../../core/services/notification.serv
 export class EmpleadoFormComponent implements OnInit {
   empleadoForm: FormGroup;
   isEditMode: boolean = false;
+
+    modelosDePago = [
+    { value: 'POR_HORA', viewValue: 'Por Hora' },
+    { value: 'POR_DIA', viewValue: 'Por Día' }
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -51,6 +60,7 @@ export class EmpleadoFormComponent implements OnInit {
       telefonoContacto: [''],
       fechaContratacion: [null], // Maintain as null initially for datepicker
       costoPorHora: [0, [Validators.required, Validators.min(0.01)]],
+      modeloDePago: ['POR_HORA', Validators.required],
       activo: [true],
       notas: [''],
     });
@@ -60,10 +70,26 @@ export class EmpleadoFormComponent implements OnInit {
     if (this.data) {
       this.isEditMode = true;
       const empleadoParaForm = { ...this.data };
+
+      let montoParaForm = 0;
+      if (empleadoParaForm.modeloDePago === 'POR_DIA') {
+        // Si el pago es por dia, calculamos el monto diario para mostrarlo al usuario.
+        // Asumimos una jornada laboral de 8 horas.
+        montoParaForm = empleadoParaForm.costoPorHora * 8;
+      } else {
+        // Si el pago ya es por hora, simplemente lo asignamos.
+        montoParaForm = empleadoParaForm.costoPorHora;
+      }
+
+      // Creamos un objeto para el patchValue
+      const patchData = {
+        ...empleadoParaForm,
+        costoPorHora: montoParaForm,
+      };
+      
+
       if (empleadoParaForm.fechaContratacion) {
-        // --- START OF NEW CHANGE ---
-        // Manually parse and create a Date object using local setters
-        // This ensures the date is set without timezone shifting its day
+
         const dateString = empleadoParaForm.fechaContratacion as string; // e.g., "2025-05-10"
         const parts = dateString.split('-').map(Number); // [2025, 5, 10]
 
@@ -72,10 +98,15 @@ export class EmpleadoFormComponent implements OnInit {
         localDate.setHours(0, 0, 0, 0); // Set time to midnight local to avoid issues
 
         empleadoParaForm.fechaContratacion = localDate;
-        // --- END OF NEW CHANGE ---
       }
-      this.empleadoForm.patchValue(empleadoParaForm);
+      this.empleadoForm.patchValue(patchData);
     }
+  }
+
+    // HELPER GETTER para usar en el HTML y cambiar la etiqueta del monto
+  get montoLabel(): string {
+    const modelo = this.empleadoForm.get('modeloDePago')?.value;
+    return modelo === 'POR_DIA' ? 'Monto por Día' : 'Monto por Hora';
   }
 
   onSubmit(): void {

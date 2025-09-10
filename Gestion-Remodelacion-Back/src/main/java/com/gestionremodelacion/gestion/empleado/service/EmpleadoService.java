@@ -1,5 +1,7 @@
 package com.gestionremodelacion.gestion.empleado.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,9 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionremodelacion.gestion.empleado.dto.request.EmpleadoRequest;
+import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoDropdownResponse;
 import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoExportDTO;
 import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoResponse;
 import com.gestionremodelacion.gestion.empleado.model.Empleado;
+import com.gestionremodelacion.gestion.empleado.model.ModeloDePago;
 import com.gestionremodelacion.gestion.empleado.repository.EmpleadoRepository;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
@@ -32,6 +36,20 @@ public class EmpleadoService {
         this.empleadoRepository = empleadoRepository;
         this.empleadoMapper = empleadoMapper;
         this.userService = userService;
+    }
+
+    @Transactional(readOnly = true)
+    public List<EmpleadoDropdownResponse> getEmpleadosForDropdown() {
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        // Obtenemos solo empleados activos para el dropdown
+        List<Empleado> empleados = empleadoRepository.findByEmpresaIdAndActivo(empresaId, true);
+
+        return empleados.stream()
+                .map(emp -> new EmpleadoDropdownResponse(emp.getId(), emp.getNombreCompleto(),
+                        emp.getModeloDePago().name()))
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -61,6 +79,10 @@ public class EmpleadoService {
         Empleado empleado = empleadoMapper.toEmpleado(empleadoRequest);
         empleado.setEmpresa(currentUser.getEmpresa());
 
+        // Calcular y asignar el costo por hora
+        this.calcularYAsignarCostoPorHora(empleado, empleadoRequest.getModeloDePago(),
+                empleadoRequest.getCostoPorHora());
+
         if (empleado.getActivo() == null) {
             empleado.setActivo(true);
         }
@@ -77,6 +99,11 @@ public class EmpleadoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con ID: " + id));
 
         empleadoMapper.updateEmpleadoFromRequest(empleadoRequest, empleado);
+
+        // Calcular y asignar el costo por hora
+        this.calcularYAsignarCostoPorHora(empleado, empleadoRequest.getModeloDePago(),
+                empleadoRequest.getCostoPorHora());
+
         Empleado updatedEmpleado = empleadoRepository.save(empleado);
         return empleadoMapper.toEmpleadoResponse(updatedEmpleado);
     }
@@ -104,6 +131,35 @@ public class EmpleadoService {
             throw new ResourceNotFoundException("Empleado no encontrado con ID: " + id);
         }
         empleadoRepository.deleteById(id);
+    }
+
+    /**
+     * Centraliza la lógica de conversión.
+     * Este método se encarga de interpretar el modelo de pago y asignar el valor
+     * correcto al campo 'costoPorHora' de la entidad Empleado.
+     * * @param empleado La entidad Empleado a modificar.
+     * 
+     * @param modeloDePagoStr El string "POR_HORA" o "POR_DIA" que viene del
+     *                        request.
+     * @param monto           El valor numérico asociado (costo por hora o costo por
+     *                        día).
+     */
+    private void calcularYAsignarCostoPorHora(Empleado empleado, String modeloDePagoStr, BigDecimal monto) {
+        ModeloDePago modeloDePago = ModeloDePago.valueOf(modeloDePagoStr.toUpperCase());
+        empleado.setModeloDePago(modeloDePago);
+
+        if (modeloDePago == ModeloDePago.POR_DIA) {
+            // Si el pago es por día, calculamos el costo por hora.
+            // Asumimos una jornada laboral de 8 horas.
+            BigDecimal horasPorJornada = new BigDecimal("8");
+            // Dividimos y redondeamos a 2 decimales para evitar problemas con números
+            // periódicos.
+            BigDecimal costoPorHoraCalculado = monto.divide(horasPorJornada, 2, RoundingMode.HALF_UP);
+            empleado.setCostoPorHora(costoPorHoraCalculado);
+        } else {
+            // Si el pago ya es por hora, simplemente lo asignamos.
+            empleado.setCostoPorHora(monto);
+        }
     }
 
     // Método para la exportación

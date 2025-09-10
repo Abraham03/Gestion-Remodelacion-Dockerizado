@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionremodelacion.gestion.dto.response.ApiResponse;
 import com.gestionremodelacion.gestion.empleado.dto.request.EmpleadoRequest;
+import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoDropdownResponse;
 import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoExportDTO;
 import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoResponse;
 import com.gestionremodelacion.gestion.empleado.service.EmpleadoService;
@@ -51,6 +52,14 @@ public class EmpleadoController {
             @RequestParam(name = "filter", required = false) String filter) {
         Page<EmpleadoResponse> page = empleadoService.getAllEmpleados(pageable, filter);
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Empleados obtenidos con éxito", page));
+    }
+
+    @GetMapping("/dropdown")
+    @PreAuthorize("hasAuthority('EMPLEADO_READ')")
+    public ResponseEntity<ApiResponse<List<EmpleadoDropdownResponse>>> getEmpleadosForDropdown() {
+        List<EmpleadoDropdownResponse> empleados = empleadoService.getEmpleadosForDropdown();
+        return ResponseEntity
+                .ok(new ApiResponse<>(HttpStatus.OK.value(), "Empleados para dropdown obtenidos con éxito", empleados));
     }
 
     @GetMapping("/{id}")

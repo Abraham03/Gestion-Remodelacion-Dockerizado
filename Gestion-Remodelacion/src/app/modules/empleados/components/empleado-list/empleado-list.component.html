@@ -50,11 +50,16 @@
         
         <ng-container matColumnDef="telefonoContacto">
           <th mat-header-cell *matHeaderCellDef>Teléfono</th>
-          <td mat-cell *matCellDef="let element">{{ element.telefonoContacto }}</td>
+          <td mat-cell *matCellDef="let element">{{ element.telefonoContacto | phone }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="modeloDePago">
+            <th mat-header-cell *matHeaderCellDef>Modelo de Pago</th>
+            <td mat-cell *matCellDef="let element">{{ element.modeloDePago }}</td>
         </ng-container>
         
         <ng-container matColumnDef="costoPorHora">
-            <th mat-header-cell *matHeaderCellDef>Costo/Hora</th>
+            <th mat-header-cell *matHeaderCellDef>Costo</th>
             <td mat-cell *matCellDef="let element">{{ element.costoPorHora | currency:'USD':'symbol':'1.2-2' }}</td>
         </ng-container>
 

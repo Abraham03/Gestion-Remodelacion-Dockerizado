@@ -8,6 +8,8 @@ import com.gestionremodelacion.gestion.empresa.model.Empresa;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -40,6 +42,10 @@ public class Empleado {
     @Column(name = "costo_por_hora", nullable = false)
     private BigDecimal costoPorHora;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "modelo_pago", nullable = false)
+    private ModeloDePago modeloDePago;
+
     @Column(name = "activo", nullable = false)
     private Boolean activo;
 
@@ -57,7 +63,6 @@ public class Empleado {
         this.activo = true;
     }
 
-    // Use @PrePersist to set fechaRegistro automatically before saving
     @PrePersist
     protected void onCreate() {
         this.fechaRegistro = LocalDateTime.now();
@@ -109,6 +114,14 @@ public class Empleado {
 
     public void setCostoPorHora(BigDecimal costoPorHora) {
         this.costoPorHora = costoPorHora;
+    }
+
+    public ModeloDePago getModeloDePago() {
+        return modeloDePago;
+    }
+
+    public void setModeloDePago(ModeloDePago modeloDePago) {
+        this.modeloDePago = modeloDePago;
     }
 
     public Boolean getActivo() {

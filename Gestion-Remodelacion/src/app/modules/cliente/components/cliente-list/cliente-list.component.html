@@ -46,7 +46,7 @@
 
         <ng-container matColumnDef="telefonoContacto">
           <th mat-header-cell *matHeaderCellDef>Teléfono</th>
-          <td mat-cell *matCellDef="let element">{{ element.telefonoContacto }}</td>
+          <td mat-cell *matCellDef="let element">{{ element.telefonoContacto | phone }}</td>
         </ng-container>
 
         <ng-container matColumnDef="direccion">

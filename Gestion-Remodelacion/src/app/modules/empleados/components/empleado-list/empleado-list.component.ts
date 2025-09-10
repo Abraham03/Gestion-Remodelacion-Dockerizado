@@ -21,6 +21,7 @@ import { ExportService } from '../../../../core/services/export.service';
 import { Sort } from '@angular/material/sort';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../../core/services/auth.service';
+import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
 
 @Component({
   selector: 'app-empleado-list',
@@ -34,6 +35,7 @@ import { AuthService } from '../../../../core/services/auth.service';
     MatPaginatorModule,
     MatFormFieldModule,
     MatInputModule,
+    PhonePipe
   ],
   providers: [DatePipe],
   templateUrl: './empleado-list.component.html',
@@ -52,6 +54,7 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
     'nombreCompleto',
     'rolCargo',
     'telefonoContacto',
+    'modeloDePago',
     'costoPorHora',
     'activo',
     'fechaContratacion',

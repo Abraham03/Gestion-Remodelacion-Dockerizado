@@ -12,12 +12,13 @@ public class EmpleadoResponse {
     private String telefonoContacto;
     private LocalDate fechaContratacion;
     private BigDecimal costoPorHora;
+    private String modeloDePago;
     private Boolean activo;
     private String notas;
     private LocalDateTime fechaRegistro;
 
     public EmpleadoResponse(Long id, String nombreCompleto, String rolCargo, String telefonoContacto,
-            LocalDate fechaContratacion, BigDecimal costoPorHora,
+            LocalDate fechaContratacion, BigDecimal costoPorHora, String modeloDePago,
             Boolean activo, String notas, LocalDateTime fechaRegistro) {
         this.id = id;
         this.nombreCompleto = nombreCompleto;
@@ -25,6 +26,7 @@ public class EmpleadoResponse {
         this.telefonoContacto = telefonoContacto;
         this.fechaContratacion = fechaContratacion;
         this.costoPorHora = costoPorHora;
+        this.modeloDePago = modeloDePago;
         this.activo = activo;
         this.notas = notas;
         this.fechaRegistro = fechaRegistro;
@@ -84,6 +86,14 @@ public class EmpleadoResponse {
 
     public void setCostoPorHora(BigDecimal costoPorHora) {
         this.costoPorHora = costoPorHora;
+    }
+
+    public String getModeloDePago() {
+        return modeloDePago;
+    }
+
+    public void setModeloDePago(String modeloDePago) {
+        this.modeloDePago = modeloDePago;
     }
 
     public Boolean getActivo() {

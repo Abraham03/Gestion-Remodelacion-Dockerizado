@@ -5,7 +5,7 @@ export interface HorasTrabajadas {
   nombreEmpleado: string | null; // Para mostrar en el frontend, si el backend lo proporciona
   idProyecto: number;
   nombreProyecto: string | null; // Para mostrar en el frontend, si el backend lo proporciona
-  fecha: string | Date; // Formato YYYY-MM-DD para backend, Date para frontend
+  fecha: string | Date | null; // Formato YYYY-MM-DD para backend, Date para frontend
   horas: number;
   montoTotal?: number;
   actividadRealizada: string | null;

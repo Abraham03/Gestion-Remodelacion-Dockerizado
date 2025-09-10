@@ -27,6 +27,8 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
 
         boolean existsByIdAndEmpresaId(Long id, Long empresaId);
 
+        List<Empleado> findByEmpresaIdAndActivo(Long empresaId, Boolean activo);
+
         // Busca empleados de una empresa con paginacion y filtro opcional. el filtro
         // busca en nombreCompleto, rolCargo y telefonoContacto
         @Query("SELECT e FROM Empleado e WHERE e.empresa.id = :empresaId AND " +

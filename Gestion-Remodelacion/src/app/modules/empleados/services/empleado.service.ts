@@ -8,6 +8,7 @@ import { environment } from '../../../../environments/environment';
 import { Page } from '../../../core/models/page.model'; // Assuming Page model exists
 import { ApiResponse } from '../../../core/models/ApiResponse';
 import { BaseService } from '../../../core/services/base.service';
+import { dropdownItemModeloHorastrabajadas } from '../../../core/models/dropdown-item-modelo-horastrabajadas';
 
 @Injectable({
   providedIn: 'root',
@@ -40,15 +41,16 @@ export class EmpleadoService extends BaseService<Empleado> {
     );
   }
 
-  getEmpleadosForDropdown(): Observable<{ id: number; nombre: string }[]> {
-    const params = new HttpParams().set('size', '1000'); 
+  getEmpleadosForDropdown(): Observable<dropdownItemModeloHorastrabajadas[]> {
+
     return this.http
-      .get<Page<Empleado>>(`${this.apiUrl}`, { params })
+      .get<Page<Empleado>>(`${this.apiUrl}`)
       .pipe(
         map((response: Page<Empleado>) =>
           response.content.map((emp: Empleado) => ({
             id: emp.id!,
             nombre: emp.nombreCompleto,
+            modeloDePago: emp.modeloDePago
           }))
         )
       );

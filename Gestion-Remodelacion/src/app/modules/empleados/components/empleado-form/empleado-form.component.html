@@ -16,7 +16,7 @@
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Teléfono Contacto</mat-label>
-      <input matInput formControlName="telefonoContacto" placeholder="Ej. 5512345678">
+      <input matInput type="tel" formControlName="telefonoContacto" placeholder="Ej. 5512345678">
     </mat-form-field>
     
     <mat-form-field appearance="outline" class="full-width">
@@ -28,8 +28,18 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Modelo de Pago</mat-label>
+        <mat-select formControlName="modeloDePago" required>
+            <mat-option *ngFor="let modelo of modelosDePago" [value]="modelo.value">
+                {{ modelo.viewValue }}
+            </mat-option>
+        </mat-select>
+        <mat-error *ngIf="empleadoForm.get('modeloDePago')?.hasError('required')">El modelo de pago es requerido</mat-error>
+    </mat-form-field>  
+
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Costo por Hora</mat-label>
-      <input matInput type="number" formControlName="costoPorHora" required min="0.01">
+      <input matInput type="text" formControlName="costoPorHora" appNumberFormat required min="0.01">
       <mat-error *ngIf="empleadoForm.get('costoPorHora')?.hasError('required')">El costo por hora es requerido</mat-error>
       <mat-error *ngIf="empleadoForm.get('costoPorHora')?.hasError('min')">El costo debe ser mayor a 0</mat-error>
     </mat-form-field>

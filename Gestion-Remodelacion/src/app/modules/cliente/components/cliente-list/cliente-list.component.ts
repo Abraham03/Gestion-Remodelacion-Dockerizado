@@ -21,6 +21,7 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../../core/services/auth.service';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
 @Component({
   selector: 'app-cliente-list',
   standalone: true,
@@ -35,6 +36,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
     MatTooltipModule,
     MatDialogModule,
     MatSortModule,
+    PhonePipe
   ],
   providers: [DatePipe],
   templateUrl: './cliente-list.component.html',

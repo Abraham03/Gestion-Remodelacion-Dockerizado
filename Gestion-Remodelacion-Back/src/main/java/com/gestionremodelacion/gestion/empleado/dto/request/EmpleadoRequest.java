@@ -8,6 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 public class EmpleadoRequest {
 
@@ -25,6 +26,10 @@ public class EmpleadoRequest {
     @NotNull(message = "El costo por hora es obligatorio")
     @DecimalMin(value = "0.01", message = "El costo por hora debe ser mayor a 0")
     private BigDecimal costoPorHora;
+
+    @NotBlank(message = "El modelo de pago es obligatorio")
+    @Pattern(regexp = "^(POR_HORA|POR_DIA)$", message = "El modelo de pago debe ser 'POR_HORA' o 'POR_DIA'")
+    private String modeloDePago;
 
     private Boolean activo;
     private String notas;
@@ -72,6 +77,14 @@ public class EmpleadoRequest {
 
     public void setCostoPorHora(BigDecimal costoPorHora) {
         this.costoPorHora = costoPorHora;
+    }
+
+    public String getModeloDePago() {
+        return modeloDePago;
+    }
+
+    public void setModeloDePago(String modeloDePago) {
+        this.modeloDePago = modeloDePago;
     }
 
     public Boolean getActivo() {
