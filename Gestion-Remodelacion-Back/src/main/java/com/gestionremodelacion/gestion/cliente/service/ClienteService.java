@@ -14,6 +14,7 @@ import com.gestionremodelacion.gestion.cliente.dto.response.ClienteExportDTO;
 import com.gestionremodelacion.gestion.cliente.dto.response.ClienteResponse;
 import com.gestionremodelacion.gestion.cliente.model.Cliente;
 import com.gestionremodelacion.gestion.cliente.repository.ClienteRepository;
+import com.gestionremodelacion.gestion.exception.ErrorCatalog;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.ClienteMapper;
 import com.gestionremodelacion.gestion.model.User;
@@ -52,7 +53,7 @@ public class ClienteService {
 
         return clienteRepository.findByIdAndEmpresaId(id, empresaId)
                 .map(clienteMapper::toClienteResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey()));
     }
 
     @Transactional
@@ -72,7 +73,7 @@ public class ClienteService {
         Long empresaId = currentUser.getEmpresa().getId();
 
         Cliente cliente = clienteRepository.findByIdAndEmpresaId(id, empresaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey()));
 
         clienteMapper.updateClienteFromRequest(clienteRequest, cliente);
         Cliente updatedCliente = clienteRepository.save(cliente);
@@ -85,7 +86,7 @@ public class ClienteService {
         Long empresaId = currentUser.getEmpresa().getId();
 
         if (!clienteRepository.existsByIdAndEmpresaId(id, empresaId)) {
-            throw new ResourceNotFoundException("Cliente no encontrado con ID: " + id);
+            throw new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey());
         }
         clienteRepository.deleteById(id);
     }

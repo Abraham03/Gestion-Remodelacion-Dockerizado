@@ -1,140 +1,128 @@
 @if (!isLoading) {
 <div class="dashboard-container">
   <header class="dashboard-header">
-    <h1>Dashboard de Resumen</h1>
-    <p class="subtitle">Análisis general del negocio en tiempo real.</p>
+    <h1>{{ 'DASHBOARD.TITLE' | translate }}</h1>
+    <p class="subtitle">{{ 'DASHBOARD.SUBTITLE' | translate }}</p>
   </header>
 
-<mat-card class="global-filters-card">
-  <div class="filter-group">
-    <mat-form-field appearance="outline">
-      <mat-label>Año (General)</mat-label>
-      <mat-select [(ngModel)]="proyectosSelectedYear" (selectionChange)="onProyectosYearChange()">
-        @for (year of proyectosYears; track year) { <mat-option [value]="year">{{ year }}</mat-option> }
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Mes (General)</mat-label>
-      <mat-select [(ngModel)]="proyectosSelectedMonth" (selectionChange)="onProyectosMonthChange()">
-        @for (month of availableMonths; track month.value) { <mat-option [value]="month.value">{{ month.viewValue }}</mat-option> }
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Proyecto</mat-label>
-      <mat-select [(ngModel)]="proyectosSelectedId" (selectionChange)="onProyectosChange()">
-        <mat-option [value]="null">Todos los proyectos</mat-option>
-        @for (proyecto of availableProjects; track proyecto.id) {
-          <mat-option [value]="proyecto.id">{{ proyecto.nombre }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-  </div>
-</mat-card>
+  <mat-card class="global-filters-card">
+    <div class="filter-group">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'DASHBOARD.YEAR_GENERAL' | translate }}</mat-label>
+        <mat-select [(ngModel)]="proyectosSelectedYear" (selectionChange)="onProyectosYearChange()">
+          @for (year of proyectosYears; track year) { <mat-option [value]="year">{{ year }}</mat-option> }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'DASHBOARD.MONTH_GENERAL' | translate }}</mat-label>
+        <mat-select [(ngModel)]="proyectosSelectedMonth" (selectionChange)="onProyectosMonthChange()">
+          @for (month of availableMonths; track month.value) { <mat-option [value]="month.value">{{ month.viewValue }}</mat-option> }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'DASHBOARD.PROJECT' | translate }}</mat-label>
+        <mat-select [(ngModel)]="proyectosSelectedId" (selectionChange)="onProyectosChange()">
+          <mat-option [value]="null">{{ 'DASHBOARD.ALL_PROJECTS' | translate }}</mat-option>
+          @for (proyecto of availableProjects; track proyecto.id) {
+            <mat-option [value]="proyecto.id">{{ proyecto.nombre }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </mat-card>
 
-  <h2 class="section-title">Indicadores Clave</h2>
+  <h2 class="section-title">{{ 'DASHBOARD.KEY_INDICATORS' | translate }}</h2>
   <div class="kpi-grid">
     <mat-card class="kpi-card">
       <div class="kpi-icon-container color-success"><mat-icon class="kpi-icon">account_balance_wallet</mat-icon></div>
       <div class="kpi-content">
-        <p class="kpi-title">Balance General</p>
+        <p class="kpi-title">{{ 'DASHBOARD.GENERAL_BALANCE' | translate }}</p>
         <p class="kpi-value">{{ (proyectosData?.balanceFinanciero || 0) | currency:'USD' }}</p>
       </div>
     </mat-card>
     <mat-card class="kpi-card">
       <div class="kpi-icon-container color-info"><mat-icon class="kpi-icon">trending_up</mat-icon></div>
       <div class="kpi-content">
-        <p class="kpi-title">Ingresos Totales</p>
+        <p class="kpi-title">{{ 'DASHBOARD.TOTAL_INCOME' | translate }}</p>
         <p class="kpi-value">{{ (proyectosData?.montoRecibido || 0) | currency:'USD' }}</p>
       </div>
     </mat-card>
     <mat-card class="kpi-card">
       <div class="kpi-icon-container color-warn"><mat-icon class="kpi-icon">trending_down</mat-icon></div>
       <div class="kpi-content">
-        <p class="kpi-title">Costos y Gastos</p>
+        <p class="kpi-title">{{ 'DASHBOARD.COSTS_AND_EXPENSES' | translate }}</p>
         <p class="kpi-value">{{ (proyectosData?.costoMateriales + proyectosData?.otrosGastos + proyectosData?.costoManoDeObra || 0) | currency:'USD' }}</p>
       </div>
     </mat-card>
     <mat-card class="kpi-card">
       <div class="kpi-icon-container color-primary"><mat-icon class="kpi-icon">assignment</mat-icon></div>
       <div class="kpi-content">
-        <p class="kpi-title">Proyectos Totales</p>
+        <p class="kpi-title">{{ 'DASHBOARD.TOTAL_PROJECTS' | translate }}</p>
         <p class="kpi-value">{{ proyectosData?.totalProyectos || 0 }}</p>
       </div>
     </mat-card>
     <mat-card class="kpi-card">
       <div class="kpi-icon-container color-accent"><mat-icon class="kpi-icon">people</mat-icon></div>
       <div class="kpi-content">
-        <p class="kpi-title">Empleados Activos</p>
+        <p class="kpi-title">{{ 'DASHBOARD.ACTIVE_EMPLOYEES' | translate }}</p>
         <p class="kpi-value">{{ proyectosData?.empleadosActivos || 0 }}</p>
       </div>
     </mat-card>
   </div>
 
-  <h2 class="section-title">Visualizaciones</h2>
+  <h2 class="section-title">{{ 'DASHBOARD.VISUALIZATIONS' | translate }}</h2>
   <mat-grid-list [cols]="cols" rowHeight="420px" gutterSize="24px">
     <mat-grid-tile>
       <mat-card class="chart-card">
-        <mat-card-header><mat-card-title>Distribución por Estado de Proyecto</mat-card-title></mat-card-header>
+        <mat-card-header><mat-card-title>{{ 'DASHBOARD.CHART_PROJECTS_BY_STATUS' | translate }}</mat-card-title></mat-card-header>
         <mat-card-content><div class="chart-container"><canvas id="estadoProyectosChart"></canvas></div></mat-card-content>
       </mat-card>
     </mat-grid-tile>
     <mat-grid-tile>
       <mat-card class="chart-card">
-        <mat-card-header><mat-card-title>Distribución de Empleados por Rol</mat-card-title></mat-card-header>
+        <mat-card-header><mat-card-title>{{ 'DASHBOARD.CHART_EMPLOYEES_BY_ROLE' | translate }}</mat-card-title></mat-card-header>
         <mat-card-content><div class="chart-container"><canvas id="empleadosPorRolChart"></canvas></div></mat-card-content>
       </mat-card>
     </mat-grid-tile>
     <mat-grid-tile [colspan]="cols === 1 ? 1 : 2">
       <mat-card class="chart-card">
         <mat-card-header>
-          <mat-card-title>Adquisición de Clientes ({{ clientesSelectedYear }})</mat-card-title>
-          <div class="chart-actions">
-            <mat-form-field appearance="outline" class="month-selector">
-              <mat-label>Mes</mat-label>
-              <mat-select [(ngModel)]="clientesSelectedMonth" (selectionChange)="onClientesMonthChange()">
-                 @for (month of availableMonths; track month.value) { <mat-option [value]="month.value">{{ month.viewValue }}</mat-option> }
-              </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="year-selector">
-              <mat-label>Año</mat-label>
-              <mat-select [(ngModel)]="clientesSelectedYear" (selectionChange)="onClientesYearChange()">
-                @for (year of clientesYears; track year) { <mat-option [value]="year">{{ year }}</mat-option> }
-              </mat-select>
-            </mat-form-field>
-          </div>
+          <mat-card-title>{{ 'DASHBOARD.CHART_CLIENT_ACQUISITION' | translate }} ({{ clientesSelectedYear }})</mat-card-title>
         </mat-card-header>
         <mat-card-content><div class="chart-container"><canvas id="clientesPorMesChart"></canvas></div></mat-card-content>
       </mat-card>
     </mat-grid-tile>
     <mat-grid-tile [colspan]="cols === 1 ? 1 : 2">
       <mat-card class="chart-card">
-        <mat-card-header><mat-card-title>Top 5 Proyectos por Horas Invertidas</mat-card-title></mat-card-header>
+        <mat-card-header><mat-card-title>{{ 'DASHBOARD.CHART_TOP_5_PROJECTS' | translate }}</mat-card-title></mat-card-header>
         <mat-card-content><div class="chart-container"><canvas id="horasPorProyectoChart"></canvas></div></mat-card-content>
       </mat-card>
     </mat-grid-tile>
   </mat-grid-list>
 
   <div class="table-card">
-    <div class="table-header"><h2>Registro Detallado de Horas</h2></div>
+    <div class="table-header">
+      <h2>{{ 'DASHBOARD.DETAILED_HOURS_LOG' | translate }}</h2>
+      <div class="table-actions">
+        </div>
+    </div>
     <div class="table-filter">
       <mat-form-field appearance="outline">
-        <mat-label>Buscar en registros...</mat-label>
-        <input matInput #filterValue        
-        (keyup.enter)="applyFilter(filterValue.value)"
-        (input)="applyFilterIfEmpty(filterValue.value)"  placeholder="Ej: Abraham Chavez" #input>
-        <mat-icon matSuffix (click)="applyFilter(filterValue.value)">search</mat-icon>
+        <mat-label>{{ 'DASHBOARD.SEARCH_IN_RECORDS' | translate }}</mat-label>
+        <input matInput #input (keyup)="applyFilter(input.value)" (input)="applyFilterIfEmpty(input.value)">
+        <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
     </div>
     <div class="table-container">
       <table mat-table [dataSource]="dataSource" matSort>
-        <ng-container matColumnDef="empleado"><th mat-header-cell *matHeaderCellDef mat-sort-header> Empleado </th><td mat-cell *matCellDef="let row"> {{ row.nombreEmpleado }} </td></ng-container>
-        <ng-container matColumnDef="proyecto"><th mat-header-cell *matHeaderCellDef mat-sort-header> Proyecto </th><td mat-cell *matCellDef="let row"> {{ row.nombreProyecto }} </td></ng-container>
-        <ng-container matColumnDef="horas"><th mat-header-cell *matHeaderCellDef mat-sort-header> Horas Registradas </th><td mat-cell *matCellDef="let row"> {{ row.horas | number:'1.2-2' }}h </td></ng-container>
-        <ng-container matColumnDef="montoTotal"><th mat-header-cell *matHeaderCellDef mat-sort-header> Monto Total </th><td mat-cell *matCellDef="let row"> {{ row.montoTotal | currency:'USD' }} </td></ng-container>        
+        <ng-container matColumnDef="empleado"><th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'DASHBOARD.TABLE.EMPLOYEE' | translate }}</th><td mat-cell *matCellDef="let row">{{ row.nombreEmpleado }}</td></ng-container>
+        <ng-container matColumnDef="proyecto"><th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'DASHBOARD.TABLE.PROJECT' | translate }}</th><td mat-cell *matCellDef="let row">{{ row.nombreProyecto }}</td></ng-container>
+        <ng-container matColumnDef="horas"><th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'DASHBOARD.TABLE.HOURS_REGISTERED' | translate }}</th><td mat-cell *matCellDef="let row">{{ row.horas | number:'1.2-2' }}h</td></ng-container>
+        <ng-container matColumnDef="montoTotal"><th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'DASHBOARD.TABLE.TOTAL_AMOUNT' | translate }}</th><td mat-cell *matCellDef="let row">{{ row.montoTotal | currency:'USD' }}</td></ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        <tr class="mat-row" *matNoDataRow><td class="mat-cell" colspan="3">No se encontraron registros para el filtro "{{ input.value }}"</td></tr>
+        <tr class="mat-row" *matNoDataRow><td class="mat-cell" colspan="4">{{ 'DASHBOARD.NO_RECORDS_FOUND_FILTER' | translate: { filter: input.value } }}</td></tr>
       </table>
     </div>
     <mat-paginator class="table-paginator" [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons></mat-paginator>
@@ -143,6 +131,6 @@
 } @else {
 <div class="loading-shade">
   <mat-spinner></mat-spinner>
-  <p>Cargando datos del dashboard...</p>
+  <p>{{ 'DASHBOARD.LOADING_DATA' | translate }}</p>
 </div>
 }

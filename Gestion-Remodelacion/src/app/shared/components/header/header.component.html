@@ -5,6 +5,10 @@
   <span class="title">GBS RENOVATIONS LLC</span>
   <span class="spacer"></span>
 
+  <div class="language-switcher">
+    <button mat-button (click)="changeLanguage('es')">ES</button>
+    <button mat-button (click)="changeLanguage('en')">EN</button>
+  </div>
   <div class="user-info-display" *ngIf="authService.isAuthenticated()">
     <div class="user-details-hover hide-on-mobile">
       <span class="username-display mat-body-1">{{ authService.currentUser()?.username }}</span>
@@ -20,7 +24,7 @@
       <mat-divider></mat-divider>
       <button mat-menu-item (click)="onLogout()">
         <mat-icon>exit_to_app</mat-icon>
-        <span>Cerrar sesión</span>
+        <span>{{ 'HEADER.LOGOUT' | translate }}</span>
       </button>
     </mat-menu>
   </div>

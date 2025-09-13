@@ -1,56 +1,52 @@
-<h2 mat-dialog-title>{{ data ? 'Editar Registro de Horas' : 'Registrar Horas Trabajadas' }}</h2>
+<h2 mat-dialog-title>{{ (data ? 'WORK_HOURS.EDIT_LOG' : 'WORK_HOURS.CREATE_LOG') | translate }}</h2>
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <mat-dialog-content class="mat-typography form-content">
-    <div class="form-section">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Empleado</mat-label>
-        <mat-select formControlName="idEmpleado" required>
-          <mat-option *ngFor="let empleado of empleados" [value]="empleado.id">
-            {{ empleado.nombre }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+    
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'WORK_HOURS.EMPLOYEE' | translate }}</mat-label>
+      <mat-select formControlName="idEmpleado" required>
+        <mat-option *ngFor="let empleado of empleados" [value]="empleado.id">
+          {{ empleado.nombre }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('idEmpleado')?.hasError('required')">{{ 'GLOBAL.REQUIRED_FIELD' | translate }}</mat-error>
+    </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ etiquetaDeEntrada }}</mat-label>
-        <input matInput type="number" formControlName="inputCantidad" required min="0.01">
-        <mat-error *ngIf="form.get('inputCantidad')?.hasError('required')">
-          La cantidad es requerida.
-        </mat-error>
-      </mat-form-field>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'WORK_HOURS.PROJECT' | translate }}</mat-label>
+      <mat-select formControlName="idProyecto" required>
+        <mat-option *ngFor="let proyecto of proyectos$ | async" [value]="proyecto.id">
+          {{ proyecto.nombre }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('idProyecto')?.hasError('required')">{{ 'WORK_HOURS.PROJECT_REQUIRED' | translate }}</mat-error>
+    </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Proyecto</mat-label>
-        <mat-select formControlName="idProyecto" required>
-          <mat-option *ngFor="let proyecto of (proyectos$ | async)" [value]="proyecto.id">
-            {{ proyecto.nombre }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="form.get('idProyecto')?.hasError('required') && form.get('idProyecto')?.touched">
-          El proyecto es requerido.
-        </mat-error>
-      </mat-form-field>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'WORK_HOURS.DATE' | translate }}</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="fecha" required>
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+      <mat-error *ngIf="form.get('fecha')?.hasError('required')">{{ 'WORK_HOURS.DATE_REQUIRED' | translate }}</mat-error>
+    </mat-form-field>
+    
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ etiquetaDeEntrada }}</mat-label>
+      <input matInput type="number" formControlName="inputCantidad" required>
+      <mat-error *ngIf="form.get('inputCantidad')?.hasError('required')">{{ 'WORK_HOURS.QUANTITY_REQUIRED' | translate }}</mat-error>
+      <mat-error *ngIf="form.get('inputCantidad')?.hasError('min')">{{ 'EMPLOYEES.COST_MUST_BE_POSITIVE' | translate }}</mat-error>
+    </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Fecha</mat-label>
-        <input matInput [matDatepicker]="pickerFecha" formControlName="fecha" required>
-        <mat-datepicker-toggle matSuffix [for]="pickerFecha"></mat-datepicker-toggle>
-        <mat-datepicker #pickerFecha></mat-datepicker>
-        <mat-error *ngIf="form.get('fecha')?.hasError('required') && form.get('fecha')?.touched">
-          La fecha es requerida.
-        </mat-error>
-      </mat-form-field>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'WORK_HOURS.ACTIVITY_PERFORMED' | translate }}</mat-label>
+      <textarea matInput formControlName="actividadRealizada" cdkTextareaAutosize cdkAutosizeMinRows="3" cdkAutosizeMaxRows="5"></textarea>
+    </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Actividad Realizada</mat-label>
-        <textarea matInput formControlName="actividadRealizada" cdkTextareaAutosize cdkAutosizeMinRows="3" cdkAutosizeMaxRows="5"></textarea>
-      </mat-form-field>
-    </div>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end" class="form-actions">
-    <button mat-flat-button color="warn" type="button" (click)="onCancel()">Cancelar</button>
-    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Guardar</button>
+    <button mat-flat-button color="warn" type="button" (click)="onCancel()">{{ 'GLOBAL.CANCEL' | translate }}</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">{{ 'GLOBAL.SAVE' | translate }}</button>
   </mat-dialog-actions>
 </form>

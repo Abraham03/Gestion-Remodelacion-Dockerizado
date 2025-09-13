@@ -1,96 +1,76 @@
 <div class="form-card mat-dialog-container">
   <div class="form-header">
-    <h2 mat-dialog-title>{{ data ? "Editar Proyecto" : "Crear Proyecto" }}</h2>
+    <h2 mat-dialog-title>{{ (data ? 'PROJECTS.EDIT_PROJECT' : 'PROJECTS.CREATE_PROJECT') | translate }}</h2>
   </div>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <mat-dialog-content class="mat-typography form-content">
       <div class="form-section">
-        <h3>Detalles del Proyecto</h3>
+        <h3>{{ 'PROJECTS.PROJECT_DETAILS' | translate }}</h3>
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Nombre del Proyecto</mat-label>
+            <mat-label>{{ 'PROJECTS.PROJECT_NAME' | translate }}</mat-label>
             <input matInput formControlName="nombreProyecto" required />
-            <mat-error *ngIf="
-                form.get('nombreProyecto')?.hasError('required') &&
-                form.get('nombreProyecto')?.touched
-              ">
-              El nombre del proyecto es requerido
+            <mat-error *ngIf="form.get('nombreProyecto')?.hasError('required') && form.get('nombreProyecto')?.touched">
+              {{ 'PROJECTS.PROJECT_NAME_REQUIRED' | translate }}
             </mat-error>
           </mat-form-field>
-
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Estado</mat-label>
+            <mat-label>{{ 'PROJECTS.STATUS' | translate }}</mat-label>
             <mat-select formControlName="estado" required>
-              <mat-option *ngFor="let estado of estadosProyecto" [value]="estado">
-                {{ estado }}
+              <mat-option *ngFor="let estado of estadosProyecto" [value]="estado.backendValue">
+                {{ estado.viewValue }}
               </mat-option>
             </mat-select>
-            <mat-error *ngIf="
-                form.get('estado')?.hasError('required') &&
-                form.get('estado')?.touched
-              ">
-              El estado es requerido
+            <mat-error *ngIf="form.get('estado')?.hasError('required') && form.get('estado')?.touched">
+              {{ 'PROJECTS.STATUS_REQUIRED' | translate }}
             </mat-error>
           </mat-form-field>
         </div>
-
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Dirección de la Propiedad</mat-label>
+          <mat-label>{{ 'PROJECTS.PROPERTY_ADDRESS' | translate }}</mat-label>
           <input matInput formControlName="direccionPropiedad" required />
-          <mat-error *ngIf="
-              form.get('direccionPropiedad')?.hasError('required') &&
-              form.get('direccionPropiedad')?.touched
-            ">
-            La dirección de la propiedad es requerida
+          <mat-error *ngIf="form.get('direccionPropiedad')?.hasError('required') && form.get('direccionPropiedad')?.touched">
+            {{ 'PROJECTS.PROPERTY_ADDRESS_REQUIRED' | translate }}
           </mat-error>
         </mat-form-field>
-
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Descripción</mat-label>
+          <mat-label>{{ 'PROJECTS.DESCRIPTION' | translate }}</mat-label>
           <textarea matInput formControlName="descripcion" rows="3"></textarea>
         </mat-form-field>
       </div>
 
       <div class="form-section">
-        <h3>Fechas Clave</h3>
+        <h3>{{ 'PROJECTS.KEY_DATES' | translate }}</h3>
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Fecha de Inicio</mat-label>
+            <mat-label>{{ 'PROJECTS.START_DATE' | translate }}</mat-label>
             <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicio" required />
             <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
             <mat-datepicker #pickerInicio></mat-datepicker>
-            <mat-error *ngIf="
-                form.get('fechaInicio')?.hasError('required') &&
-                form.get('fechaInicio')?.touched
-              ">
-              La fecha de inicio es requerida
+            <mat-error *ngIf="form.get('fechaInicio')?.hasError('required') && form.get('fechaInicio')?.touched">
+              {{ 'PROJECTS.START_DATE_REQUIRED' | translate }}
             </mat-error>
           </mat-form-field>
-
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Fecha Fin Estimada</mat-label>
+            <mat-label>{{ 'PROJECTS.ESTIMATED_END_DATE' | translate }}</mat-label>
             <input matInput [matDatepicker]="pickerFinEstimada" formControlName="fechaFinEstimada" required />
             <mat-datepicker-toggle matSuffix [for]="pickerFinEstimada"></mat-datepicker-toggle>
             <mat-datepicker #pickerFinEstimada></mat-datepicker>
-            <mat-error *ngIf="
-                form.get('fechaFinEstimada')?.hasError('required') &&
-                form.get('fechaFinEstimada')?.touched
-              ">
-              La fecha fin estimada es requerida
+            <mat-error *ngIf="form.get('fechaFinEstimada')?.hasError('required') && form.get('fechaFinEstimada')?.touched">
+              {{ 'PROJECTS.ESTIMATED_END_DATE_REQUIRED' | translate }}
             </mat-error>
           </mat-form-field>
         </div>
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Fecha Finalización Real</mat-label>
+            <mat-label>{{ 'PROJECTS.ACTUAL_END_DATE' | translate }}</mat-label>
             <input matInput [matDatepicker]="pickerFinReal" formControlName="fechaFinalizacionReal" />
             <mat-datepicker-toggle matSuffix [for]="pickerFinReal"></mat-datepicker-toggle>
             <mat-datepicker #pickerFinReal></mat-datepicker>
           </mat-form-field>
-
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Fecha Último Pago Recibido</mat-label>
+            <mat-label>{{ 'PROJECTS.LAST_PAYMENT_DATE' | translate }}</mat-label>
             <input matInput [matDatepicker]="pickerUltimoPago" formControlName="fechaUltimoPagoRecibido" />
             <mat-datepicker-toggle matSuffix [for]="pickerUltimoPago"></mat-datepicker-toggle>
             <mat-datepicker #pickerUltimoPago></mat-datepicker>
@@ -99,125 +79,75 @@
       </div>
 
       <div class="form-section">
-        <h3>Detalles Financieros</h3>
+        <h3>{{ 'PROJECTS.FINANCIAL_DETAILS' | translate }}</h3>
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Monto Contrato</mat-label>
-            <input matInput type="number" formControlName="montoContrato" required min="0" step="0.01" />
-            <mat-error *ngIf="
-                form.get('montoContrato')?.hasError('required') &&
-                form.get('montoContrato')?.touched
-              ">
-              El monto del contrato es requerido
-            </mat-error>
-            <mat-error *ngIf="
-                form.get('montoContrato')?.hasError('min') &&
-                form.get('montoContrato')?.touched
-              ">
-              El monto del contrato no puede ser negativo
-            </mat-error>
+            <mat-label>{{ 'PROJECTS.CONTRACT_AMOUNT' | translate }}</mat-label>
+            <input matInput type="number" formControlName="montoContrato" required min="0" />
+            <mat-error *ngIf="form.get('montoContrato')?.hasError('required')">{{ 'PROJECTS.CONTRACT_AMOUNT_REQUIRED' | translate }}</mat-error>
+            <mat-error *ngIf="form.get('montoContrato')?.hasError('min')">{{ 'PROJECTS.CONTRACT_AMOUNT_POSITIVE' | translate }}</mat-error>
           </mat-form-field>
-
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Monto Recibido</mat-label>
-            <input matInput type="number" formControlName="montoRecibido" required min="0" step="0.01" />
-            <mat-error *ngIf="
-                form.get('montoRecibido')?.hasError('required') &&
-                form.get('montoRecibido')?.touched
-              ">
-              El monto recibido es requerido
-            </mat-error>
-            <mat-error *ngIf="
-                form.get('montoRecibido')?.hasError('min') &&
-                form.get('montoRecibido')?.touched
-              ">
-              El monto recibido no puede ser negativo
-            </mat-error>
+            <mat-label>{{ 'PROJECTS.AMOUNT_RECEIVED' | translate }}</mat-label>
+            <input matInput type="number" formControlName="montoRecibido" min="0" />
+            <mat-error *ngIf="form.get('montoRecibido')?.hasError('min')">{{ 'PROJECTS.AMOUNT_RECEIVED_POSITIVE' | translate }}</mat-error>
           </mat-form-field>
         </div>
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Costo Materiales Consolidado</mat-label>
-            <input matInput type="number" formControlName="costoMaterialesConsolidado"  min="0" step="0.01" />
-            <mat-error *ngIf="
-                form.get('costoMaterialesConsolidado')?.touched
-              ">
-              El costo de materiales es requerido
-            </mat-error>
-            <mat-error *ngIf="
-                form.get('costoMaterialesConsolidado')?.hasError('min') &&
-                form.get('costoMaterialesConsolidado')?.touched
-              ">
-              El costo de materiales no puede ser negativo
-            </mat-error>
+            <mat-label>{{ 'PROJECTS.MATERIALS_COST' | translate }}</mat-label>
+            <input matInput type="number" formControlName="costoMaterialesConsolidado" min="0" />
+            <mat-error *ngIf="form.get('costoMaterialesConsolidado')?.hasError('min')">{{ 'PROJECTS.MATERIALS_COST_POSITIVE' | translate }}</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Otros Gastos Directos Consolidado</mat-label>
-            <input matInput type="number" formControlName="otrosGastosDirectosConsolidado"  min="0" step="0.01" />
-            <mat-error *ngIf="
-                form.get('otrosGastosDirectosConsolidado')?.touched
-              ">
-              El costo de otros gastos es requerido
-            </mat-error>
-            <mat-error *ngIf="
-                form.get('otrosGastosDirectosConsolidado')?.hasError('min') &&
-                form.get('otrosGastosDirectosConsolidado')?.touched
-              ">
-              El costo de materiales no puede ser negativo
-            </mat-error>
+            <mat-label>{{ 'PROJECTS.OTHER_EXPENSES' | translate }}</mat-label>
+            <input matInput type="number" formControlName="otrosGastosDirectosConsolidado" min="0" />
+            <mat-error *ngIf="form.get('otrosGastosDirectosConsolidado')?.hasError('min')">{{ 'PROJECTS.OTHER_EXPENSES_POSITIVE' | translate }}</mat-error>
           </mat-form-field>
         </div>
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Costo Mano de Obra</mat-label>
+            <mat-label>{{ 'PROJECTS.LABOR_COST' | translate }}</mat-label>
             <input matInput type="number" formControlName="costoManoDeObra" readonly />
           </mat-form-field>
         </div>
       </div>
 
       <div class="form-section">
-        <h3>Progreso y Notas</h3>
+        <h3>{{ 'PROJECTS.PROGRESS_AND_NOTES' | translate }}</h3>
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Progreso (%)</mat-label>
-            <input matInput type="number" formControlName="progresoPorcentaje" min="0" max="100" step="1" />
-            <mat-error *ngIf="
-                (form.get('progresoPorcentaje')?.hasError('min') ||
-                  form.get('progresoPorcentaje')?.hasError('max')) &&
-                form.get('progresoPorcentaje')?.touched
-              ">
-              El progreso debe estar entre 0 y 100
+            <mat-label>{{ 'PROJECTS.PROGRESS' | translate }}</mat-label>
+            <input matInput type="number" formControlName="progresoPorcentaje" min="0" max="100" />
+            <mat-error *ngIf="form.get('progresoPorcentaje')?.hasError('min') || form.get('progresoPorcentaje')?.hasError('max')">
+              {{ 'PROJECTS.PROGRESS_PERCENTAGE_RANGE' | translate }}
             </mat-error>
           </mat-form-field>
         </div>
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Notas del Proyecto</mat-label>
+          <mat-label>{{ 'PROJECTS.PROJECT_NOTES' | translate }}</mat-label>
           <textarea matInput formControlName="notasProyecto" rows="3"></textarea>
         </mat-form-field>
       </div>
 
       <div class="form-section">
-        <h3>Relaciones</h3>
+        <h3>{{ 'PROJECTS.RELATIONSHIPS' | translate }}</h3>
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Cliente</mat-label>
+            <mat-label>{{ 'PROJECTS.CLIENT' | translate }}</mat-label>
             <mat-select formControlName="idCliente" required>
               <mat-option *ngFor="let cliente of clientes$ | async" [value]="cliente.id">
                 {{ cliente.nombre }}
               </mat-option>
             </mat-select>
-            <mat-error *ngIf="
-                form.get('idCliente')?.hasError('required') &&
-                form.get('idCliente')?.touched
-              ">
-              El cliente es requerido
+            <mat-error *ngIf="form.get('idCliente')?.hasError('required') && form.get('idCliente')?.touched">
+              {{ 'PROJECTS.CLIENT_REQUIRED' | translate }}
             </mat-error>
           </mat-form-field>
-
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Empleado Responsable</mat-label>
+            <mat-label>{{ 'PROJECTS.RESPONSIBLE_EMPLOYEE' | translate }}</mat-label>
             <mat-select formControlName="idEmpleadoResponsable">
-              <mat-option [value]="null">-- Seleccionar --</mat-option>
+              <mat-option [value]="null">{{ 'PROJECTS.SELECT_OPTION' | translate }}</mat-option>
               <mat-option *ngFor="let empleado of empleados$ | async" [value]="empleado.id">
                 {{ empleado.nombre }}
               </mat-option>
@@ -228,9 +158,9 @@
     </mat-dialog-content>
 
     <mat-dialog-actions align="end" class="form-actions">
-      <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+      <button mat-button type="button" (click)="onCancel()">{{ 'GLOBAL.CANCEL' | translate }}</button>
       <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
-        Guardar
+        {{ (data ? 'GLOBAL.UPDATE' : 'GLOBAL.SAVE') | translate }}
       </button>
     </mat-dialog-actions>
   </form>

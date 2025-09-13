@@ -1,18 +1,12 @@
-<h2 mat-dialog-title>Permisos para el rol: **{{ roleName }}**</h2>
+<h2 mat-dialog-title>{{ 'ROLES.PERMISSIONS_FOR_ROLE' | translate }} <strong>{{ roleName }}</strong></h2>
 
 <mat-dialog-content>
-  <div *ngIf="permissions && permissions.length > 0">
+  <div *ngIf="permissions && permissions.length > 0; else noPermissions">
     <mat-list>
       <mat-list-item *ngFor="let permission of permissions; last as isLast" class="permission-item">
         <mat-icon matListItemIcon color="primary">security</mat-icon>
-        <div
-          matListItemTitle
-          class="permission-name"
-          [matTooltip]="permission.description || 'No hay descripción disponible.'"
-          [matTooltipDisabled]="!permission.description"
-          matTooltipClass="permission-description-tooltip"
-          matTooltipPosition="below"
-        >
+        <div matListItemTitle class="permission-name" 
+             [matTooltip]="permission.description || ('ROLES.NO_DESCRIPTION' | translate)">
           {{ permission.name }}
           <span class="permission-id"> (ID: {{ permission.id }})</span>
         </div>
@@ -20,12 +14,15 @@
       </mat-list-item>
     </mat-list>
   </div>
-  <div *ngIf="!permissions || permissions.length === 0" class="no-permissions-message">
-    <mat-icon color="warn">info</mat-icon>
-    <p>Este rol no tiene permisos asignados.</p>
-  </div>
+  
+  <ng-template #noPermissions>
+    <div class="no-permissions-message">
+      <mat-icon color="warn">info</mat-icon>
+      <p>{{ 'ROLES.NO_PERMISSIONS_ASSIGNED' | translate }}</p>
+    </div>
+  </ng-template>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-raised-button color="primary" (click)="onClose()">Cerrar</button>
+  <button mat-raised-button color="primary" (click)="onClose()">{{ 'GLOBAL.CLOSE' | translate }}</button>
 </mat-dialog-actions>

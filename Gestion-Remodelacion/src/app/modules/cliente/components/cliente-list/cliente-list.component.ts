@@ -1,10 +1,8 @@
-import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit } from '@angular/core';
+// src/app/modules/clientes/components/cliente-list/cliente-list.component.ts
+
+import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit, inject } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import {
-  MatPaginator,
-  MatPaginatorModule,
-  PageEvent,
-} from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,66 +18,52 @@ import { ExportService } from '../../../../core/services/export.service';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../../core/services/auth.service';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
+// 👉 1. Importa TranslateModule y TranslateService
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-cliente-list',
   standalone: true,
   imports: [
-    CommonModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatButtonModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatTooltipModule,
-    MatDialogModule,
-    MatSortModule,
-    PhonePipe
+    CommonModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatIconModule,
+    MatFormFieldModule, MatInputModule, MatTooltipModule, MatDialogModule,
+    MatSortModule, PhonePipe, TranslateModule, // 👈 2. Agrega TranslateModule
   ],
   providers: [DatePipe],
   templateUrl: './cliente-list.component.html',
   styleUrls: ['./cliente-list.component.scss'],
 })
 export class ClienteListComponent implements OnInit, AfterViewInit {
+  // ... (propiedades existentes sin cambios)
+  dataSource = new MatTableDataSource<Cliente>([]);
+  displayedColumns: string[] = ['nombreCliente', 'telefonoContacto', 'direccion', 'fechaRegistro', 'notas', 'acciones'];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  totalElements = 0;
+  pageSize = 5;
+  pageNumber = 0;
+  filterValue = '';
+  currentSort = 'nombreCliente';
+  sortDirection = 'asc';
   canExportExcel = false;
   canExportPdf = false;
   canCreate = false;
   canEdit = false;
   canDelete = false;
 
-  dataSource = new MatTableDataSource<Cliente>([]);
-  displayedColumns: string[] = [
-    'nombreCliente',
-    'telefonoContacto',
-    'direccion',
-    'fechaRegistro',
-    'notas',
-    'acciones',
-  ]; // Ajusta según tu modelo Cliente
-  cliente: Cliente[] = [];
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-
-  // Propiedades para la paginación y filtro del backend
-  totalElements: number = 0;
-  pageSize: number = 5;
-  pageNumber: number = 0;
-  filterValue: string = '';
-  currentSort: string = 'nombreCliente';
-  sortDirection: string = 'asc';
-  constructor(
-    private clienteService: ClienteService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private exportService: ExportService,
-    private cdr: ChangeDetectorRef,
-    private authService: AuthService
-  ) {}
+  // 👉 3. Inyecta TranslateService
+  private clienteService = inject(ClienteService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private exportService = inject(ExportService);
+  private cdr = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
+  private translate = inject(TranslateService);
 
   ngOnInit(): void {
     this.setPermissions();
   }
+
   ngAfterViewInit(): void {
     this.loadClientes();
   }
@@ -88,87 +72,80 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
     this.canCreate = this.authService.hasPermission('CLIENTE_CREATE');
     this.canEdit = this.authService.hasPermission('CLIENTE_UPDATE');
     this.canDelete = this.authService.hasPermission('CLIENTE_DELETE');
-
     const userPlan = this.authService.currentUserPlan();
     const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
-
     this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
     this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
-
   }
 
   loadClientes(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    this.clienteService
-      .getClientes(
-        this.pageNumber,
-        this.pageSize,
-        this.filterValue,
-        sortParam 
-      )
+    this.clienteService.getClientes(this.pageNumber, this.pageSize, this.filterValue, sortParam)
       .subscribe({
-       next: (response) => {
+        next: (response) => {
           this.dataSource.data = response.content;
           this.totalElements = response.totalElements;
-
           this.pageNumber = response.number;
-          
           this.cdr.detectChanges();
-
         },
-        error:(err) => {
-          console.error('Error al cargar empleados:', err);
+        error: (err) => {
+          console.error('Error al cargar clientes:', err);
+          // 👉 4. Usa traducciones en los mensajes de error
           this.snackBar.open(
-            'Error al cargar los empleados. Inténtalo de nuevo más tarde.',
-            'Cerrar',
+            this.translate.instant('CLIENTS.ERROR_LOADING'),
+            this.translate.instant('GLOBAL.CLOSE'),
             { duration: 5000 }
           );
         },
-  });
+      });
   }
 
-  applyFilter(filterValue: String): void {
-    this.filterValue = filterValue
-      .trim()
-      .toLowerCase();
-    this.paginator.pageIndex = 0; // Resetear a la primera página al aplicar un nuevo filtro
+  applyFilter(filterValue: string): void {
+    this.filterValue = filterValue.trim().toLowerCase();
+    this.paginator.pageIndex = 0;
+    this.pageNumber = 0;
     this.loadClientes();
   }
 
-    applyFilterIfEmpty(filterValue: string): void {
-    // Si el usuario ha borrado todo el texto del campo de búsqueda
+  applyFilterIfEmpty(filterValue: string): void {
     if (filterValue === '') {
-      this.applyFilter(''); // Llama al filtro con un string vacío
+      this.applyFilter('');
     }
   }
-  
+
   openForm(cliente?: Cliente): void {
     const dialogRef = this.dialog.open(ClienteFormComponent, {
       width: '500px',
       data: cliente || null,
     });
-
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.loadClientes(); // Recargar la lista después de crear/editar
+        this.loadClientes();
       }
     });
   }
 
   deleteCliente(id: number): void {
-    if (confirm('¿Estás seguro de eliminar este cliente?')) {
+    // 👉 5. Traduce el mensaje de confirmación
+    const confirmMessage = this.translate.instant('GLOBAL.CONFIRM_DELETE');
+    if (confirm(confirmMessage)) {
       this.clienteService.deleteCliente(id).subscribe({
         next: () => {
-          this.loadClientes(); // Recargar la lista
-          // TODO: Mostrar mensaje de éxito
+          this.loadClientes();
+          // 👉 6. Traduce el mensaje de éxito
+          this.snackBar.open(
+            this.translate.instant('GLOBAL.SUCCESSFULLY_DELETED'),
+            this.translate.instant('GLOBAL.CLOSE'),
+            { duration: 3000 }
+          );
         },
         error: (err: HttpErrorResponse) => {
-          let error = 'Ocurrio un error inesperado.';
-          if (err.status === 409) {
-            error = err.error?.message || 'Este cliente no se puede eliminar porque tiene registros asociados (ej. Proyectos).';
-          }
-          this.snackBar.open(error, 'Cerrar', {
-            duration: 7000, // Más tiempo para que el usuario pueda leerlo
+          // Lógica corregida: la respuesta del backend siempre es una clave de error.
+          const errorKey = err.error?.message || 'error.unexpected';
+          const translatedMessage = this.translate.instant(errorKey);
+
+          this.snackBar.open(translatedMessage, this.translate.instant('GLOBAL.CLOSE'), {
+            duration: 7000,
             panelClass: ['error-snackbar']
           });
         },
@@ -176,30 +153,21 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
     }
   }
 
-
-
   onPageChange(event: PageEvent): void {
     this.pageNumber = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadClientes();
   }
 
-  //Nuevo método para capturar el cambio de orden
   onSortChange(sort: Sort): void {
-    if (sort.direction) {
-      this.currentSort = sort.active;
-      this.sortDirection = sort.direction;
-    } else {
-      this.currentSort = 'nombreCliente'; // Default sort
-      this.sortDirection = 'asc';
-    }
+    this.currentSort = sort.direction ? sort.active : 'nombreCliente';
+    this.sortDirection = sort.direction || 'asc';
     this.loadClientes();
   }
 
-  //Métodos de exportación usando el servicio centralizado
   exportToExcel(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    const apiUrl = this.clienteService.getApiUrl() + '/export/excel'; // ⭐️ Corrección: Se usa un nuevo método en el servicio para obtener la URL
+    const apiUrl = this.clienteService.getApiUrl() + '/export/excel';
     this.exportService.exportToExcel(apiUrl, this.filterValue, sortParam)
       .subscribe({
         next: (response) => {
@@ -207,14 +175,19 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
         },
         error: (error) => {
           console.error('Error al exportar a Excel:', error);
-          this.snackBar.open('Error al exportar a Excel.', 'Cerrar', { duration: 5000 });
+          // 👉 7. Traduce los mensajes de error de exportación
+          this.snackBar.open(
+            this.translate.instant('CLIENTS.ERROR_EXPORT_EXCEL'),
+            this.translate.instant('GLOBAL.CLOSE'),
+            { duration: 5000 }
+          );
         }
       });
   }
 
   exportToPdf(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    const apiUrl = this.clienteService.getApiUrl() + '/export/pdf'; // ⭐️ Corrección: Se usa un nuevo método en el servicio para obtener la URL
+    const apiUrl = this.clienteService.getApiUrl() + '/export/pdf';
     this.exportService.exportToPdf(apiUrl, this.filterValue, sortParam)
       .subscribe({
         next: (response) => {
@@ -222,9 +195,12 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
         },
         error: (error) => {
           console.error('Error al exportar a PDF:', error);
-          this.snackBar.open('Error al exportar a PDF.', 'Cerrar', { duration: 5000 });
+          this.snackBar.open(
+            this.translate.instant('CLIENTS.ERROR_EXPORT_PDF'),
+            this.translate.instant('GLOBAL.CLOSE'),
+            { duration: 5000 }
+          );
         }
       });
-  }  
-
+  }
 }

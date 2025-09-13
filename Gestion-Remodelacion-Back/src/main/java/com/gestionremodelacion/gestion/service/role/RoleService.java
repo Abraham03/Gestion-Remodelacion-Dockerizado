@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.gestionremodelacion.gestion.dto.request.RoleRequest;
 import com.gestionremodelacion.gestion.dto.response.RoleResponse;
 import com.gestionremodelacion.gestion.exception.DuplicateResourceException;
+import com.gestionremodelacion.gestion.exception.ErrorCatalog;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.RoleMapper;
 import com.gestionremodelacion.gestion.model.Permission;
@@ -55,13 +56,13 @@ public class RoleService {
     public RoleResponse findById(Long id) {
         return roleRepository.findById(id)
                 .map(roleMapper::toRoleResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey()));
     }
 
     @Transactional
     public RoleResponse createRole(RoleRequest roleRequest) {
         if (roleRepository.existsByName(roleRequest.getName())) {
-            throw new DuplicateResourceException("El nombre del rol '" + roleRequest.getName() + "' ya existe.");
+            throw new DuplicateResourceException(ErrorCatalog.ROLE_NAME_ALREADY_EXISTS.getKey());
         }
         Role role = roleMapper.toRole(roleRequest); // Usar el método del mapper
 
@@ -70,7 +71,7 @@ public class RoleService {
             permissions = roleRequest.getPermissions().stream()
                     .map(permissionId -> permissionRepository.findById(permissionId)
                             .orElseThrow(() -> new ResourceNotFoundException(
-                                    "Permiso no encontrado con ID: " + permissionId)))
+                                    ErrorCatalog.PERMISSION_NOT_FOUND.getKey())))
                     .collect(Collectors.toSet());
         }
         role.setPermissions(permissions); // Asignar los permisos después del mapeo
@@ -83,12 +84,12 @@ public class RoleService {
     public RoleResponse updateRole(Long id, RoleRequest roleRequest) {
         // 1. Buscamos el rol a actualizar
         Role existingRole = roleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey()));
 
         // 2. Verificamos si el nombre del rol ha cambiado Y si el nuevo ya existe
         if (!existingRole.getName().equals(roleRequest.getName())
                 && roleRepository.existsByName(roleRequest.getName())) {
-            throw new DuplicateResourceException("El nombre del rol '" + roleRequest.getName() + "' ya existe.");
+            throw new DuplicateResourceException(ErrorCatalog.ROLE_NAME_ALREADY_EXISTS.getKey());
         }
 
         // 3. Si no hay conflicto, actualizamos
@@ -100,7 +101,7 @@ public class RoleService {
             newPermissions = roleRequest.getPermissions().stream()
                     .map(permissionId -> permissionRepository.findById(permissionId)
                             .orElseThrow(() -> new ResourceNotFoundException(
-                                    "Permiso no encontrado con ID: " + permissionId)))
+                                    ErrorCatalog.PERMISSION_NOT_FOUND.getKey())))
                     .collect(Collectors.toSet());
         }
         // Reemplaza los permisos existentes
@@ -117,7 +118,7 @@ public class RoleService {
 
         // 1. Verificar si el rol existe
         Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey()));
 
         // Desvincular el rol de los usuarios antes de eliminar
         List<User> usersWithRole = userRepository.findByRolesContainingAndEmpresaId(role, empresaId);

@@ -1,57 +1,38 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, signal, ViewChild, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import {
-  MatPaginator,
-  MatPaginatorModule,
-  PageEvent,
-} from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule, DatePipe } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
+
 import { Role } from '../../../../../core/models/role.model';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { RoleService } from '../../../services/role.service';
-import { FormsModule } from '@angular/forms'; // ¡Importante para ngModel!
 import { RoleFormComponent } from '../../role-form/role-form/role-form.component';
-import { Permission } from '../../../../../core/models/permission.model';
 import { PermissionDialogComponent } from '../../dialogs/permission-dialog/permission-dialog.component';
+
 @Component({
   selector: 'app-role-list',
   standalone: true,
   imports: [
-    CommonModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatDialogModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatButtonModule,
-    MatSnackBarModule,
-    FormsModule,
+    CommonModule, MatTableModule, MatPaginatorModule, MatSortModule, MatDialogModule,
+    MatInputModule, MatFormFieldModule, MatIconModule, MatButtonModule,
+    MatSnackBarModule, FormsModule, TranslateModule, MatTooltipModule
   ],
-  providers: [DatePipe],
   templateUrl: './role-list.component.html',
   styleUrls: ['./role-list.component.scss'],
 })
 export class RoleListComponent implements OnInit, AfterViewInit {
-  // Propiedades de permisos basados en el plan
-  canCreate = false;
-  canEdit = false;
-  canDelete = false;
-
-  displayedColumns: string[] = [
-    'name',
-    'description',
-    'permissions',
-    'actions',
-  ];
+  displayedColumns: string[] = ['name', 'description', 'permissions', 'actions'];
   dataSource = new MatTableDataSource<Role>();
   totalElements = signal(0);
   pageSize = signal(5);
@@ -63,61 +44,42 @@ export class RoleListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(
-    private roleService: RoleService,
-    private dialog: MatDialog,
-    private authService: AuthService,
-    private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef  
-  ) {}
+  private roleService = inject(RoleService);
+  private dialog = inject(MatDialog);
+  private authService = inject(AuthService);
+  private snackBar = inject(MatSnackBar);
+  private translate = inject(TranslateService);
+  private cdr = inject(ChangeDetectorRef);
 
-  ngOnInit(): void {
-    this.setPermissions();
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     this.dataSource.sort = this.sort;
     this.loadRoles();
   }
 
-  private setPermissions(): void {
-    this.canCreate = this.authService.hasPermission('ROLE_CREATE');
-    this.canEdit = this.authService.hasPermission('ROLE_UPDATE');
-    this.canDelete = this.authService.hasPermission('ROLE_DELETE');
+  hasPermission(permission: string): boolean {
+    return this.authService.hasPermission(permission);
   }
 
   loadRoles(): void {
-    this.roleService
-      .getRoles(
-        this.pageIndex(),
-        this.pageSize(),
-        this.sortColumn(),
-        this.sortDirection(),
-        this.searchTerm()
-      )
+    this.roleService.getRoles(this.pageIndex(), this.pageSize(), this.sortColumn(), this.sortDirection(), this.searchTerm())
       .subscribe({
         next: (data) => {
-          // 'data' es del tipo Page<Role>
           this.dataSource.data = data.content;
           this.totalElements.set(data.totalElements);
-
-          // Asegura que la paginación se actualice
           this.pageIndex.set(data.number);
           this.pageSize.set(data.size);
-
-          // Verificacion ddel paginator y cdr.detectChanges
-          if (this.paginator){
-          this.paginator.length = data.totalElements;
-          this.paginator.pageIndex = data.number;
-          this.paginator.pageSize = data.size;
+          
+          if (this.paginator) {
+            this.paginator.length = data.totalElements;
+            this.paginator.pageIndex = data.number;
           }
           this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Error loading roles:', err);
-          this.snackBar.open('Error al cargar roles.', 'Cerrar', {
-            duration: 3000,
-          });
+          this.snackBar.open(this.translate.instant('ROLES.ERROR_LOADING'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
         },
       });
   }
@@ -135,44 +97,38 @@ export class RoleListComponent implements OnInit, AfterViewInit {
   }
 
   applyFilter(): void {
-    this.pageIndex.set(0); // Reset page to 0 when applying filter
+    this.pageIndex.set(0);
     this.loadRoles();
   }
-
+  
   applyFilterIfEmpty(filterValue: string): void {
-    // Si el usuario ha borrado todo el texto del campo de búsqueda
     if (filterValue === '') {
-      this.applyFilter(); // Llama al filtro con un string vacío
+      this.searchTerm.set('');
+      this.applyFilter();
     }
   }
 
   openRoleForm(role?: Role): void {
     const dialogRef = this.dialog.open(RoleFormComponent, {
       width: '600px',
-      data: role, // Pass role object for editing, or undefined for creating
+      data: role,
     });
-
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.loadRoles(); // Refresh the list if changes were made
-      }
+      if (result) this.loadRoles();
     });
   }
 
   deleteRole(id: number): void {
-    if (confirm('¿Estás seguro de que quieres eliminar este rol?')) {
+    if (confirm(this.translate.instant('ROLES.CONFIRM_DELETE'))) {
       this.roleService.deleteRole(id).subscribe({
         next: () => {
-          this.snackBar.open('Rol eliminado correctamente.', 'Cerrar', {
-            duration: 3000,
-          });
+          this.snackBar.open(this.translate.instant('ROLES.SUCCESSFULLY_DELETED'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
           this.loadRoles();
         },
-        error: (err) => {
-          console.error('Error deleting role:', err);
-          this.snackBar.open('Error al eliminar el rol.', 'Cerrar', {
-            duration: 3000,
-          });
+        error: (err: HttpErrorResponse) => {
+          const errorKey = err.error?.message || 'error.unexpected';
+          const translatedMessage = this.translate.instant(errorKey);
+          this.snackBar.open(translatedMessage, this.translate.instant('GLOBAL.CLOSE'), { duration: 7000 });
         },
       });
     }
@@ -180,13 +136,8 @@ export class RoleListComponent implements OnInit, AfterViewInit {
 
   viewPermissions(role: Role): void {
     this.dialog.open(PermissionDialogComponent, {
-      width: '400px', // Adjust size as needed
+      width: '400px',
       data: { roleName: role.name, permissions: role.permissions },
     });
-  }
-
-  // Este método asume que authService.hasPermission existe. Lo veremos en AuthService.
-  hasPermission(permission: string): boolean {
-    return this.authService.hasPermission(permission);
   }
 }

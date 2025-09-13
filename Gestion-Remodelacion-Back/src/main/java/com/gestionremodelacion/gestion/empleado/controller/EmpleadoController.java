@@ -28,7 +28,9 @@ import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoDropdownRes
 import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoExportDTO;
 import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoResponse;
 import com.gestionremodelacion.gestion.empleado.service.EmpleadoService;
+import com.gestionremodelacion.gestion.empresa.model.Empresa.PlanSuscripcion;
 import com.gestionremodelacion.gestion.export.ExporterService;
+import com.gestionremodelacion.gestion.security.annotations.RequiresPlan;
 import com.itextpdf.text.DocumentException;
 
 import jakarta.validation.Valid;
@@ -104,7 +106,8 @@ public class EmpleadoController {
 
     // Endpoint para exportar a Excel
     @GetMapping("/export/excel")
-    @PreAuthorize("hasAuthority('EMPLEADO_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
+    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportEmpleadosToExcel(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws IOException {
@@ -123,7 +126,8 @@ public class EmpleadoController {
 
     // Endpoint para exportar a PDF
     @GetMapping("/export/pdf")
-    @PreAuthorize("hasAuthority('EMPLEADO_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_PDF')")
+    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportEmpleadosToPdf(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws DocumentException, IOException {

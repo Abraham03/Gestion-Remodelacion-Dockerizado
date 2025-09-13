@@ -1,93 +1,92 @@
 <div class="page-container">
   <div class="table-header">
-    <h2>Registro de Horas Trabajadas</h2>
+    <h2>{{ 'WORK_HOURS.MANAGEMENT' | translate }}</h2>
     <div class="table-actions">
       <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Buscar</mat-label>
-        <input #filterValue matInput  placeholder="Ej. Juan Pérez" (keyup.enter)="applyFilter(filterValue.value)"
-        (input)="applyFilterIfEmpty(filterValue.value)" >
+        <mat-label>{{ 'WORK_HOURS.SEARCH_LOG' | translate }}</mat-label>
+        <input matInput #filterValue [placeholder]="'WORK_HOURS.PLACEHOLDER_SEARCH' | translate" 
+               (keyup.enter)="applyFilter(filterValue.value)"
+               (input)="applyFilterIfEmpty(filterValue.value)" />
         <mat-icon matSuffix (click)="applyFilter(filterValue.value)">search</mat-icon>
       </mat-form-field>
-      
-      <div class="table-actions">
+      <div class="actions-buttons">
         <button mat-flat-button color="primary" *ngIf="canCreate" (click)="openForm()">
           <mat-icon>add</mat-icon>
-          Agregar Horas
+          {{ 'WORK_HOURS.ADD_HOURS' | translate }}
         </button>
-        <button mat-flat-button color="accent" *ngIf="canExportExcel" (click)="exportToExcel()">
+        <button mat-flat-button color="accent" *ngIf="canExportExcel" (click)="exportTo('excel')">
           <mat-icon>file_download</mat-icon>
-          Excel
+          {{ 'WORK_HOURS.EXPORT_EXCEL' | translate }}
         </button>
-        <button mat-flat-button color="primary" *ngIf="canExportPdf" (click)="exportToPdf()">
+        <button mat-flat-button color="accent" *ngIf="!canExportExcel" disabled [matTooltip]="'EMPLOYEES.UPGRADE_PLAN_EXCEL' | translate">
+          <mat-icon>file_download</mat-icon>
+          {{ 'WORK_HOURS.EXPORT_EXCEL' | translate }}
+        </button>
+        <button mat-flat-button color="primary" *ngIf="canExportPdf" (click)="exportTo('pdf')">
           <mat-icon>picture_as_pdf</mat-icon>
-          PDF
+          {{ 'EMPLOYEES.EXPORT_PDF' | translate }}
         </button>
+        <button mat-flat-button color="primary" *ngIf="!canExportPdf" disabled [matTooltip]="'EMPLOYEES.UPGRADE_PLAN_PDF' | translate">
+          <mat-icon>picture_as_pdf</mat-icon>
+          {{ 'EMPLOYEES.EXPORT_PDF' | translate }}
+        </button>        
       </div>
     </div>
   </div>
 
   <div class="table-card">
     <div class="table-container">
-      <table mat-table [dataSource]="dataSource" matSort class="responsive-table">
-        
+      <table mat-table [dataSource]="dataSource" class="responsive-table" matSort (matSortChange)="onSortChange($event)">
         <ng-container matColumnDef="fecha">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header="fecha">Fecha</th>
-          <td mat-cell *matCellDef="let row">{{ row.fecha | date:'mediumDate' }}</td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'WORK_HOURS.DATE' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.fecha | date:'shortDate' }}</td>
         </ng-container>
-
         <ng-container matColumnDef="nombreEmpleado">
-          <th mat-header-cell *matHeaderCellDef >Empleado</th>
-          <td mat-cell *matCellDef="let row">{{ row.nombreEmpleado }}</td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="nombreEmpleado">{{ 'WORK_HOURS.EMPLOYEE' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.nombreEmpleado }}</td>
         </ng-container>
-
         <ng-container matColumnDef="nombreProyecto">
-          <th mat-header-cell *matHeaderCellDef >Proyecto</th>
-          <td mat-cell *matCellDef="let row">{{ row.nombreProyecto }}</td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="nombreProyecto">{{ 'WORK_HOURS.PROJECT' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.nombreProyecto }}</td>
         </ng-container>
-        
         <ng-container matColumnDef="horas">
-          <th mat-header-cell *matHeaderCellDef>Horas</th>
-          <td mat-cell *matCellDef="let row">{{ row.horas | number:'1.2-2' }}</td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="horas">{{ 'WORK_HOURS.HOURS' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.horas | number:'1.2-2' }}h</td>
         </ng-container>
-        
         <ng-container matColumnDef="montoTotal">
-          <th mat-header-cell *matHeaderCellDef >Costo de Mano de Obra</th>
-          <td mat-cell *matCellDef="let row">{{ (row.horas * row.costoPorHoraActual) | currency:'USD' }}</td>
-        </ng-container>        
-
-        <ng-container matColumnDef="actividadRealizada">
-          <th mat-header-cell *matHeaderCellDef>Actividad Realizada</th>
-          <td mat-cell *matCellDef="let row">{{ row.actividadRealizada }}</td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="montoTotal">{{ 'WORK_HOURS.LABOR_COST' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.montoTotal | currency:'USD' }}</td>
         </ng-container>
-
+        <ng-container matColumnDef="actividadRealizada">
+          <th mat-header-cell *matHeaderCellDef>{{ 'WORK_HOURS.ACTIVITY_PERFORMED' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.actividadRealizada }}</td>
+        </ng-container>
         <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef>Acciones</th>
-          <td mat-cell *matCellDef="let row">
-            <button mat-icon-button color="primary" *ngIf="canEdit" (click)="openForm(row)" matTooltip="Editar">
+          <th mat-header-cell *matHeaderCellDef>{{ 'GLOBAL.ACTIONS' | translate }}</th>
+          <td mat-cell *matCellDef="let element" class="mat-column-acciones">
+            <button mat-icon-button color="primary" *ngIf="canEdit" (click)="openForm(element)" [matTooltip]="'GLOBAL.EDIT' | translate">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" *ngIf="canDelete" (click)="deleteHorasTrabajadas(row.id!)" matTooltip="Eliminar">
+            <button mat-icon-button color="warn" *ngIf="canDelete" (click)="deleteHorasTrabajadas(element.id!)" [matTooltip]="'GLOBAL.DELETE' | translate">
               <mat-icon>delete</mat-icon>
             </button>
           </td>
         </ng-container>
-
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
         <tr class="mat-row" *matNoDataRow>
           <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-            No se encontraron registros de horas trabajadas que coincidan con el filtro.
+            {{ 'WORK_HOURS.NO_RECORDS_FOUND' | translate }}
           </td>
         </tr>
       </table>
     </div>
     <mat-paginator 
-    [length]="totalElements"
-    [pageSize]="pageSize"
-    [pageIndex]="currentPage"
-    [pageSizeOptions]="[5, 10, 20]" 
-    (page)="onPageChange($event)" showFirstLastButtons 
-    class="table-paginator"></mat-paginator>
+      [length]="totalElements" 
+      [pageSize]="pageSize"
+      [pageIndex]="currentPage"
+      [pageSizeOptions]="[5, 10, 20]" 
+      showFirstLastButtons 
+      class="table-paginator"></mat-paginator>
   </div>
 </div>

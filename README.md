@@ -182,33 +182,49 @@ Proyecto Gestion Remodelacion
 │  │     ├─ 3rdpartylicenses.txt
 │  │     ├─ browser
 │  │     │  ├─ assets
-│  │     │  │  ├─ data
-│  │     │  │  │  └─ empleados.json
 │  │     │  │  ├─ images
-│  │     │  │  │  └─ logo.png
+│  │     │  │  │  └─ logo_GBS.png
 │  │     │  │  └─ styles
 │  │     │  │     └─ theme.css
-│  │     │  ├─ chunk-3SH2GD72.js
-│  │     │  ├─ chunk-6YPSFCSK.js
-│  │     │  ├─ chunk-AUF3BAZS.js
-│  │     │  ├─ chunk-BTGGI5EA.js
-│  │     │  ├─ chunk-EGOYVBQN.js
-│  │     │  ├─ chunk-EVFISQO2.js
-│  │     │  ├─ chunk-FTS2ON4E.js
-│  │     │  ├─ chunk-I5EJQYKU.js
+│  │     │  ├─ chunk-2V2QDDSW.js
+│  │     │  ├─ chunk-3AS7NYCT.js
+│  │     │  ├─ chunk-4524Q4V5.js
+│  │     │  ├─ chunk-4YMW4XQH.js
+│  │     │  ├─ chunk-5RQXUWDB.js
+│  │     │  ├─ chunk-5WIQCV5S.js
+│  │     │  ├─ chunk-6HG37RJS.js
+│  │     │  ├─ chunk-7DZEL72A.js
+│  │     │  ├─ chunk-7IRV22WV.js
+│  │     │  ├─ chunk-7W4HGF3B.js
+│  │     │  ├─ chunk-CEQIPI3M.js
+│  │     │  ├─ chunk-CRDR73OD.js
+│  │     │  ├─ chunk-CTOMMGS4.js
+│  │     │  ├─ chunk-EWUNGNXO.js
+│  │     │  ├─ chunk-IJJUYCCB.js
+│  │     │  ├─ chunk-JC7XUJK7.js
+│  │     │  ├─ chunk-JNA7TGXD.js
+│  │     │  ├─ chunk-JUZKI4IM.js
+│  │     │  ├─ chunk-LASV6YAO.js
+│  │     │  ├─ chunk-LTRUOZCT.js
+│  │     │  ├─ chunk-MR5VLAW4.js
 │  │     │  ├─ chunk-MS4AQ6UA.js
-│  │     │  ├─ chunk-PKTSPJ23.js
-│  │     │  ├─ chunk-TEJQ7YNZ.js
-│  │     │  ├─ chunk-TLD5AVEN.js
-│  │     │  ├─ chunk-W3ATBRYI.js
-│  │     │  ├─ chunk-WAGGSTFQ.js
-│  │     │  ├─ chunk-X7XFJ6OB.js
-│  │     │  ├─ chunk-Z66Z5BH3.js
+│  │     │  ├─ chunk-NKPAZTDC.js
+│  │     │  ├─ chunk-NNODVLX4.js
+│  │     │  ├─ chunk-OPNELBLV.js
+│  │     │  ├─ chunk-R7MS3VEX.js
+│  │     │  ├─ chunk-S7P7LDHR.js
+│  │     │  ├─ chunk-STZPLDPR.js
+│  │     │  ├─ chunk-TC65KWXO.js
+│  │     │  ├─ chunk-TU2U5FOS.js
+│  │     │  ├─ chunk-UPI2USQ7.js
+│  │     │  ├─ chunk-XMSL6HX7.js
+│  │     │  ├─ chunk-YV5HYBH2.js
+│  │     │  ├─ chunk-ZIMRCCC6.js
 │  │     │  ├─ favicon.ico
 │  │     │  ├─ index.html
-│  │     │  ├─ main-66RYGWLC.js
+│  │     │  ├─ main-LNY57LCR.js
 │  │     │  ├─ polyfills-FFHMD2TL.js
-│  │     │  └─ styles-LBZLMHYR.css
+│  │     │  └─ styles-SA777J4E.css
 │  │     └─ prerendered-routes.json
 │  ├─ Dockerfile
 │  ├─ estructura_carpetas.txt
@@ -231,7 +247,7 @@ Proyecto Gestion Remodelacion
 │  │  │  │  │  ├─ role.guard.ts
 │  │  │  │  │  └─ valid-token.guard.ts
 │  │  │  │  ├─ interceptors
-│  │  │  │  │  ├─ error.interceptor.ts
+│  │  │  │  │  ├─ caching.interceptor.ts
 │  │  │  │  │  ├─ jwt.interceptor.ts
 │  │  │  │  │  └─ response.interceptor.ts
 │  │  │  │  ├─ material.module.ts
@@ -239,6 +255,7 @@ Proyecto Gestion Remodelacion
 │  │  │  │  │  ├─ ApiResponse.ts
 │  │  │  │  │  ├─ cliente.model.ts
 │  │  │  │  │  ├─ dashboard-summary.model.ts
+│  │  │  │  │  ├─ dropdown-item-modelo-horastrabajadas.ts
 │  │  │  │  │  ├─ dropdown-item.model.ts
 │  │  │  │  │  ├─ page.model.ts
 │  │  │  │  │  ├─ permission.model.ts
@@ -247,7 +264,9 @@ Proyecto Gestion Remodelacion
 │  │  │  │  └─ services
 │  │  │  │     ├─ auth.service.ts
 │  │  │  │     ├─ base.service.ts
+│  │  │  │     ├─ cache.service.ts
 │  │  │  │     ├─ export.service.ts
+│  │  │  │     ├─ notification.service.ts
 │  │  │  │     └─ permission.service.ts
 │  │  │  ├─ modules
 │  │  │  │  ├─ auth
@@ -406,15 +425,18 @@ Proyecto Gestion Remodelacion
 │  │  │     │     ├─ sidebar.component.ts
 │  │  │     │     └─ sidebar.service.ts
 │  │  │     ├─ directives
-│  │  │     │  └─ highlight.directive.ts
+│  │  │     │  └─ number-format.directive.ts
 │  │  │     ├─ models
 │  │  │     │  └─ menu-item.model.ts
 │  │  │     ├─ pipes
-│  │  │     │  └─ capitalize.pipe.ts
+│  │  │     │  └─ phone.pipe.ts
 │  │  │     └─ utils
 │  │  │        └─ constants.ts
 │  │  ├─ assets
 │  │  │  ├─ data
+│  │  │  ├─ i18n
+│  │  │  │  ├─ en.json
+│  │  │  │  └─ es.json
 │  │  │  ├─ images
 │  │  │  │  └─ logo_GBS.png
 │  │  │  └─ styles
@@ -451,7 +473,7 @@ Proyecto Gestion Remodelacion
 │  │  ├─ main
 │  │  │  ├─ java
 │  │  │  │  └─ com
-│  │  │  │     └─ GestionRemodelacion
+│  │  │  │     └─ gestionremodelacion
 │  │  │  │        └─ gestion
 │  │  │  │           ├─ cliente
 │  │  │  │           │  ├─ controller
@@ -508,14 +530,23 @@ Proyecto Gestion Remodelacion
 │  │  │  │           │  │  ├─ request
 │  │  │  │           │  │  │  └─ EmpleadoRequest.java
 │  │  │  │           │  │  └─ response
+│  │  │  │           │  │     ├─ EmpleadoDropdownResponse.java
 │  │  │  │           │  │     ├─ EmpleadoExportDTO.java
 │  │  │  │           │  │     └─ EmpleadoResponse.java
 │  │  │  │           │  ├─ model
-│  │  │  │           │  │  └─ Empleado.java
+│  │  │  │           │  │  ├─ Empleado.java
+│  │  │  │           │  │  └─ ModeloDePago.java
 │  │  │  │           │  ├─ repository
 │  │  │  │           │  │  └─ EmpleadoRepository.java
 │  │  │  │           │  └─ service
 │  │  │  │           │     └─ EmpleadoService.java
+│  │  │  │           ├─ empresa
+│  │  │  │           │  └─ model
+│  │  │  │           │     └─ Empresa.java
+│  │  │  │           ├─ exception
+│  │  │  │           │  ├─ BusinessRuleException.java
+│  │  │  │           │  ├─ DuplicateResourceException.java
+│  │  │  │           │  └─ ResourceNotFoundException.java
 │  │  │  │           ├─ export
 │  │  │  │           │  ├─ Exportable.java
 │  │  │  │           │  └─ ExporterService.java
@@ -570,7 +601,12 @@ Proyecto Gestion Remodelacion
 │  │  │  │           │  ├─ RoleRepository.java
 │  │  │  │           │  └─ UserRepository.java
 │  │  │  │           ├─ security
+│  │  │  │           │  ├─ annotations
+│  │  │  │           │  │  └─ RequiresPlan.java
+│  │  │  │           │  ├─ aspects
+│  │  │  │           │  │  └─ PlanCheckAspect.java
 │  │  │  │           │  ├─ exception
+│  │  │  │           │  │  ├─ GlobalExceptionHandler.java
 │  │  │  │           │  │  ├─ JwtAuthenticationEntryPoint.java
 │  │  │  │           │  │  └─ TokenRefreshException.java
 │  │  │  │           │  └─ jwt
@@ -603,16 +639,12 @@ Proyecto Gestion Remodelacion
 │  │  │        └─ logo_Pdf.png
 │  │  └─ test
 │  │     └─ java
-│  │        └─ com
-│  │           └─ GestionRemodelacion
-│  │              └─ gestion
-│  │                 └─ GestionApplicationTests.java
 │  └─ target
 │     ├─ classes
 │     │  ├─ application-docker.properties
 │     │  ├─ application.properties
 │     │  ├─ com
-│     │  │  └─ GestionRemodelacion
+│     │  │  └─ gestionremodelacion
 │     │  │     └─ gestion
 │     │  │        ├─ cliente
 │     │  │        │  ├─ controller
@@ -669,14 +701,25 @@ Proyecto Gestion Remodelacion
 │     │  │        │  │  ├─ request
 │     │  │        │  │  │  └─ EmpleadoRequest.class
 │     │  │        │  │  └─ response
+│     │  │        │  │     ├─ EmpleadoDropdownResponse.class
 │     │  │        │  │     ├─ EmpleadoExportDTO.class
 │     │  │        │  │     └─ EmpleadoResponse.class
 │     │  │        │  ├─ model
-│     │  │        │  │  └─ Empleado.class
+│     │  │        │  │  ├─ Empleado.class
+│     │  │        │  │  └─ ModeloDePago.class
 │     │  │        │  ├─ repository
 │     │  │        │  │  └─ EmpleadoRepository.class
 │     │  │        │  └─ service
 │     │  │        │     └─ EmpleadoService.class
+│     │  │        ├─ empresa
+│     │  │        │  └─ model
+│     │  │        │     ├─ Empresa$EstadoSuscripcion.class
+│     │  │        │     ├─ Empresa$PlanSuscripcion.class
+│     │  │        │     └─ Empresa.class
+│     │  │        ├─ exception
+│     │  │        │  ├─ BusinessRuleException.class
+│     │  │        │  ├─ DuplicateResourceException.class
+│     │  │        │  └─ ResourceNotFoundException.class
 │     │  │        ├─ export
 │     │  │        │  ├─ Exportable.class
 │     │  │        │  └─ ExporterService.class
@@ -739,7 +782,12 @@ Proyecto Gestion Remodelacion
 │     │  │        │  ├─ RoleRepository.class
 │     │  │        │  └─ UserRepository.class
 │     │  │        ├─ security
+│     │  │        │  ├─ annotations
+│     │  │        │  │  └─ RequiresPlan.class
+│     │  │        │  ├─ aspects
+│     │  │        │  │  └─ PlanCheckAspect.class
 │     │  │        │  ├─ exception
+│     │  │        │  │  ├─ GlobalExceptionHandler.class
 │     │  │        │  │  ├─ JwtAuthenticationEntryPoint.class
 │     │  │        │  │  └─ TokenRefreshException.class
 │     │  │        │  └─ jwt
@@ -770,7 +818,7 @@ Proyecto Gestion Remodelacion
 │     ├─ generated-sources
 │     │  └─ annotations
 │     │     └─ com
-│     │        └─ GestionRemodelacion
+│     │        └─ gestionremodelacion
 │     │           └─ gestion
 │     │              └─ mapper
 │     │                 ├─ ClienteMapperImpl.java
@@ -796,14 +844,7 @@ Proyecto Gestion Remodelacion
 │     │        └─ default-testCompile
 │     │           ├─ createdFiles.lst
 │     │           └─ inputFiles.lst
-│     ├─ surefire-reports
-│     │  ├─ com.GestionRemodelacion.gestion.GestionApplicationTests.txt
-│     │  └─ TEST-com.GestionRemodelacion.gestion.GestionApplicationTests.xml
 │     └─ test-classes
-│        └─ com
-│           └─ GestionRemodelacion
-│              └─ gestion
-│                 └─ GestionApplicationTests.class
 ├─ nginx.conf
 └─ README.md
 

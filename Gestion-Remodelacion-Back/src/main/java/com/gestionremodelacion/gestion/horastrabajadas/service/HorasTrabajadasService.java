@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.gestionremodelacion.gestion.empleado.model.Empleado;
 import com.gestionremodelacion.gestion.empleado.repository.EmpleadoRepository;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
+import com.gestionremodelacion.gestion.exception.ErrorCatalog;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.request.HorasTrabajadasRequest;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasExportDTO;
@@ -62,8 +63,7 @@ public class HorasTrabajadasService {
 
         return horasTrabajadasRepository.findByIdAndEmpresaId(id, empresaId)
                 .map(horasTrabajadasMapper::toHorasTrabajadasResponse)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Registro de horas trabajadas no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey()));
     }
 
     @Transactional
@@ -73,11 +73,11 @@ public class HorasTrabajadasService {
 
         Empleado empleado = empleadoRepository.findByIdAndEmpresaId(horasTrabajadasRequest.getIdEmpleado(), empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        "El empleado seleccionado no existe o no pertenece a tu empresa."));
+                        ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
 
         Proyecto proyecto = proyectoRepository.findByIdAndEmpresaId(horasTrabajadasRequest.getIdProyecto(), empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        "El proyecto seleccionado no existe o no pertenece a tu empresa."));
+                        ErrorCatalog.INVALID_PROJECT_FOR_COMPANY.getKey()));
 
         HorasTrabajadas horasTrabajadas = horasTrabajadasMapper.toHorasTrabajadas(horasTrabajadasRequest);
         horasTrabajadas.setEmpresa(currentUser.getEmpresa());
@@ -99,19 +99,19 @@ public class HorasTrabajadasService {
 
         HorasTrabajadas horasTrabajadas = horasTrabajadasRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Registro de horas trabajadas no encontrado con ID: " + id));
+                        ErrorCatalog.WORK_LOG_NOT_FOUND.getKey()));
 
         Proyecto proyectoOriginal = horasTrabajadas.getProyecto();
 
         Empleado nuevoEmpleado = empleadoRepository
                 .findByIdAndEmpresaId(horasTrabajadasRequest.getIdEmpleado(), empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        "El nuevo empleado seleccionado no existe o no pertenece a tu empresa."));
+                        ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
 
         Proyecto nuevoProyecto = proyectoRepository
                 .findByIdAndEmpresaId(horasTrabajadasRequest.getIdProyecto(), empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        "El nuevo proyecto seleccionado no existe o no pertenece a tu empresa."));
+                        ErrorCatalog.INVALID_PROJECT_FOR_COMPANY.getKey()));
 
         horasTrabajadasMapper.updateHorasTrabajadasFromRequest(horasTrabajadasRequest, horasTrabajadas);
         horasTrabajadas.setEmpleado(nuevoEmpleado);
@@ -135,7 +135,7 @@ public class HorasTrabajadasService {
 
         HorasTrabajadas horasTrabajadas = horasTrabajadasRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Registro de horas trabajadas no encontrado con ID: " + id));
+                        ErrorCatalog.WORK_LOG_NOT_FOUND.getKey()));
 
         Proyecto proyectoAfectado = horasTrabajadas.getProyecto();
         horasTrabajadasRepository.delete(horasTrabajadas);

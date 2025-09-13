@@ -19,6 +19,7 @@ import com.gestionremodelacion.gestion.empleado.model.Empleado;
 import com.gestionremodelacion.gestion.empleado.model.ModeloDePago;
 import com.gestionremodelacion.gestion.empleado.repository.EmpleadoRepository;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
+import com.gestionremodelacion.gestion.exception.ErrorCatalog;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.EmpleadoMapper;
 import com.gestionremodelacion.gestion.model.User;
@@ -69,7 +70,7 @@ public class EmpleadoService {
 
         return empleadoRepository.findByIdAndEmpresaId(id, empresaId)
                 .map(empleadoMapper::toEmpleadoResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey()));
     }
 
     @Transactional
@@ -96,7 +97,7 @@ public class EmpleadoService {
         Long empresaId = currentUser.getEmpresa().getId();
 
         Empleado empleado = empleadoRepository.findByIdAndEmpresaId(id, empresaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey()));
 
         empleadoMapper.updateEmpleadoFromRequest(empleadoRequest, empleado);
 
@@ -114,9 +115,9 @@ public class EmpleadoService {
         Long empresaId = currentUser.getEmpresa().getId();
 
         Empleado empleado = empleadoRepository.findByIdAndEmpresaId(id, empresaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey()));
         if (empleado.getActivo().equals(activo)) {
-            throw new BusinessRuleException("El empleado ya tiene el estado deseado.");
+            throw new BusinessRuleException(ErrorCatalog.EMPLOYEE_ALREADY_IN_DESIRED_STATE.getKey());
         }
         empleado.setActivo(activo);
         empleadoRepository.save(empleado);
@@ -128,7 +129,7 @@ public class EmpleadoService {
         Long empresaId = currentUser.getEmpresa().getId();
 
         if (!empleadoRepository.existsByIdAndEmpresaId(id, empresaId)) {
-            throw new ResourceNotFoundException("Empleado no encontrado con ID: " + id);
+            throw new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey());
         }
         empleadoRepository.deleteById(id);
     }

@@ -22,11 +22,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionremodelacion.gestion.dto.response.ApiResponse;
+import com.gestionremodelacion.gestion.empresa.model.Empresa.PlanSuscripcion;
 import com.gestionremodelacion.gestion.export.ExporterService;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.request.HorasTrabajadasRequest;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasExportDTO;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse;
 import com.gestionremodelacion.gestion.horastrabajadas.service.HorasTrabajadasService;
+import com.gestionremodelacion.gestion.security.annotations.RequiresPlan;
 import com.itextpdf.text.DocumentException;
 
 import jakarta.validation.Valid;
@@ -87,7 +89,8 @@ public class HorasTrabajadasController {
     }
 
     @GetMapping("/export/excel")
-    @PreAuthorize("hasAuthority('HORASTRABAJADAS_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
+    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportToExcel(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws IOException {
@@ -107,7 +110,8 @@ public class HorasTrabajadasController {
      * ✅ NUEVO: Endpoint para exportar a PDF.
      */
     @GetMapping("/export/pdf")
-    @PreAuthorize("hasAuthority('HORASTRABAJADAS_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_PDF')")
+    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportToPdf(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws DocumentException, IOException {

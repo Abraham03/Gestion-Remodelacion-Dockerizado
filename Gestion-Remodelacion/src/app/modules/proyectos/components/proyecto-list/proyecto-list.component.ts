@@ -1,248 +1,162 @@
-import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { MatDialog } from '@angular/material/dialog';
-import { ProyectosService } from '../../services/proyecto.service';
-import { Proyecto } from '../../models/proyecto.model';
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, OnDestroy, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { ProyectosFormComponent } from '../proyecto-form/proyectos-form.component';
-import { MatSortModule, Sort } from '@angular/material/sort'; // Importado MatSortModule
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatChipsModule } from '@angular/material/chips'; // <-- Importar MatChipsModule
-import { ExportService } from '../../../../core/services/export.service';
+import { MatChipsModule } from '@angular/material/chips';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Subject, takeUntil } from 'rxjs';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
+import { ProyectosService } from '../../services/proyecto.service';
+import { Proyecto } from '../../models/proyecto.model';
+import { ProyectosFormComponent } from '../proyecto-form/proyectos-form.component';
+import { ExportService } from '../../../../core/services/export.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-proyectos-list',
   standalone: true,
   imports: [
-    CommonModule,
-    MatTableModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatPaginatorModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatTooltipModule,
-    MatSortModule,
-    MatChipsModule,
-    MatProgressBarModule,
+    CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule,
+    MatPaginatorModule, MatFormFieldModule, MatInputModule, MatDialogModule,
+    MatSortModule, MatChipsModule, MatProgressBarModule, TranslateModule,
   ],
   templateUrl: './proyecto-list.component.html',
   styleUrls: ['./proyecto-list.component.scss'],
   providers: [DatePipe],
 })
-export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy {  
-  // Propiedades de permisos basados en el plan
+export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy { 
   canExportExcel = false;
   canExportPdf = false;
   canCreate = false;
   canEdit = false;
   canDelete = false;
-
   private destroy$ = new Subject<void>();
-
-  proyectos: Proyecto[] = [];
   dataSource = new MatTableDataSource<Proyecto>([]);
-  displayedColumns: string[] = [
-    'nombreProyecto',
-    'nombreCliente',
-    'nombreEmpleadoResponsable',
-    'estado',
-    'progresoPorcentaje',
-    'fechaInicio',
-    'fechaFinEstimada',
-    'acciones',
-  ];
+  displayedColumns: string[] = ['nombreProyecto', 'nombreCliente', 'nombreEmpleadoResponsable', 'estado', 'progresoPorcentaje', 'fechaInicio', 'fechaFinEstimada', 'acciones'];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  
+  totalElements = 0;
+  pageSize = 5;
+  currentPage = 0;
+  currentSort = 'nombreProyecto';
+  sortDirection = 'asc';
+  filterValue = '';
 
-  totalElements: number = 0; // Total de elementos en el backend
-  pageSize: number = 5; // Tamaño de página por defecto
-  currentPage: number = 0; // Página actual (basado en 0)
-  currentSort = 'nombreProyecto'; // Columna por defecto para ordenar
-  sortDirection = 'asc'; // Dirección de ordenamiento ('asc' o 'desc')
-  filterValue = ''; // Valor actual del filtro
-
-  constructor(
-    private proyectosService: ProyectosService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private exportService: ExportService,
-    private cdr: ChangeDetectorRef,
-    private authService: AuthService,
-    private notificationService: NotificationService
-  ) 
-  {
-        console.log(`ProyectosListComponent está usando NotificationService con ID: ${(this.notificationService as any).instanceId}`);
-
-  }
+  private proyectosService = inject(ProyectosService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private exportService = inject(ExportService);
+  private cdr = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
+  private notificationService = inject(NotificationService);
+  private translate = inject(TranslateService);
 
   ngOnInit(): void {
     this.setPermissions();
     this.notificationService.dataChanges$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        console.log('Cambio detectado en ProyectosListComponent, recargando datos...');
-        this.loadProyectos();
-      });
+      .subscribe(() => this.loadProyectos());
+  }
+
+  ngAfterViewInit(): void {
+    this.loadProyectos();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
-  ngAfterViewInit(): void {
 
-    this.loadProyectos();
-  }
-
-    /**
-   * ✅ NUEVO MÉTODO
-   * Centraliza la lógica de permisos para mantener el HTML limpio.
-   * Combina la lógica de permisos (authorities) y planes de suscripción.
-   */
   private setPermissions(): void {
-    // Permisos basados en roles/authorities
     this.canCreate = this.authService.hasPermission('PROYECTO_CREATE');
     this.canEdit = this.authService.hasPermission('PROYECTO_UPDATE');
     this.canDelete = this.authService.hasPermission('PROYECTO_DELETE');
-    
-    // Permisos basados en el plan del usuario
-    const userPlan = this.authService.currentUserPlan(); // Obtiene el valor de la señal
-    
-    // Lógica: Solo los planes NEGOCIOS y PROFESIONAL pueden exportar.
+    const userPlan = this.authService.currentUserPlan();
     const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
-
     this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
     this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
   }
 
-  /**
-   * Carga la lista de proyectos desde el servicio, aplicando paginación,
-   * ordenamiento y filtro.
-   */
   loadProyectos(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    this.proyectosService
-      .getProyectosPaginated(
-        this.currentPage,
-        this.pageSize,
-        this.filterValue,
-        sortParam
-      )
+    this.proyectosService.getProyectosPaginated(this.currentPage, this.pageSize, this.filterValue, sortParam)
       .subscribe({
         next: (response) => {
           this.dataSource.data = response.content;
           this.totalElements = response.totalElements;
-
-          this.paginator.pageIndex = response.number;
-
+          if (this.paginator) {
+            this.paginator.pageIndex = response.number;
+          }
           this.cdr.detectChanges();
         },
         error: (error) => {
-          console.error('Error al cargar empleados:', error);
-          this.snackBar.open(
-            'Error al cargar los empleados. Inténtalo de nuevo más tarde.',
-            'Cerrar',
-            { duration: 5000 }
-          );
+          console.error('Error al cargar proyectos:', error);
+          this.snackBar.open(this.translate.instant('PROJECTS.ERROR_LOADING'), this.translate.instant('GLOBAL.CLOSE'), { duration: 5000 });
         },
       });
   }
 
-  /**
-   * Abre el formulario para añadir o editar un proyecto.
-   * @param proyecto El proyecto a editar, o `undefined` si es un nuevo proyecto.
-   */
   openForm(proyecto?: Proyecto): void {
     const dialogRef = this.dialog.open(ProyectosFormComponent, {
       width: '800px',
       data: proyecto || null,
     });
-
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        // Si el formulario se cerró con éxito (se añadió/editó), recargar la lista
-        this.loadProyectos();
-      }
+      if (result) this.loadProyectos();
     });
   }
 
-  /**
-   * Elimina un proyecto de la base de datos.
-   * @param id El ID del proyecto a eliminar.
-   */
   deleteProyecto(id: number): void {
-    if (confirm('¿Estás seguro de eliminar este proyecto?')) {
+    if (confirm(this.translate.instant('PROJECTS.CONFIRM_DELETE'))) {
       this.proyectosService.deleteProyecto(id).subscribe({
         next: () => {
-          this.snackBar.open('Proyecto eliminado correctamente.', 'Cerrar', { duration: 3000 });
-          this.loadProyectos(); // Recargar la lista después de la eliminación
+          this.snackBar.open(this.translate.instant('PROJECTS.SUCCESSFULLY_DELETED'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
+          this.loadProyectos();
         },
         error: (err: HttpErrorResponse) => {
-          console.error('Error al eliminar proyecto:', err);
-          
-          let errorMessage = 'Ocurrió un error inesperado.';
-          if (err.status === 409) {
-            // Mensaje específico para el error de conflicto
-            errorMessage = err.error?.message || 'Este proyecto no se puede eliminar porque tiene registros asociados (ej. horas trabajadas).';
-          }
-          this.snackBar.open(errorMessage, 'Cerrar', {
-            duration: 7000, // Más tiempo para que el usuario pueda leerlo
+          const errorKey = err.error?.message || 'error.unexpected';
+          const translatedMessage = this.translate.instant(errorKey);
+          this.snackBar.open(translatedMessage, this.translate.instant('GLOBAL.CLOSE'), {
+            duration: 7000,
             panelClass: ['error-snackbar']
-          });                    
+          });        
         },
       });
     }
   }
 
-  /**
-   * Aplica un filtro a la lista de proyectos.
-   * @param event El evento del campo de entrada.
-   */
-  applyFilter(filterValue: String): void {
-    this.filterValue = filterValue
-      .trim()
-      .toLowerCase();
-    this.paginator.pageIndex = 0; // Resetear a la primera página al aplicar un nuevo filtro
+  applyFilter(filterValue: string): void {
+    this.filterValue = filterValue.trim().toLowerCase();
+    this.paginator.pageIndex = 0;
+    this.currentPage = 0;
     this.loadProyectos();
   }
 
-      applyFilterIfEmpty(filterValue: string): void {
-    // Si el usuario ha borrado todo el texto del campo de búsqueda
+  applyFilterIfEmpty(filterValue: string): void {
     if (filterValue === '') {
-      this.applyFilter(''); // Llama al filtro con un string vacío
+      this.applyFilter('');
     }
   }
-  
 
-  // Nuevo método para asignar colores a los chips de estado
   getEstadoColor(estado: string): 'primary' | 'accent' | 'warn' | 'basic' {
     switch (estado) {
-      case 'PENDIENTE':
-        return 'basic';
-      case 'EN_PROGRESO':
-        return 'primary';
-      case 'FINALIZADO':
-        return 'accent';
-      case 'CANCELADO':
-      case 'EN_PAUSA':
-        return 'warn';
-      default:
-        return 'basic';
+      case 'PENDING': return 'basic';
+      case 'IN_PROGRESS': return 'primary';
+      case 'COMPLETED': return 'accent';
+      case 'CANCELLED': case 'PAUSED': return 'warn';
+      default: return 'basic';
     }
   }
 
@@ -253,57 +167,32 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   onSortChange(sort: Sort) {
-    if (sort.direction) {
-      this.currentSort = sort.active;
-      this.sortDirection = sort.direction;
-    } else {
-      this.currentSort = 'nombreCompleto'; // Default sort
-      this.sortDirection = 'asc';
-    }
+    this.currentSort = sort.direction ? sort.active : 'nombreProyecto';
+    this.sortDirection = sort.direction || 'asc';
     this.loadProyectos();
   }
 
-  exportToExcel(): void {
+  exportTo(format: 'excel' | 'pdf'): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    const apiUrl = this.proyectosService.getApiUrl() + '/export/excel'; // Se usa un nuevo método en el servicio para obtener la URL
-    this.exportService
-      .exportToExcel(apiUrl, this.filterValue, sortParam)
-      .subscribe({
-        next: (response) => {
-          this.exportService.downloadFile(
-            response,
-            'Reporte_Proyectos.xlsx',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          );
-        },
-        error: (error) => {
-          console.error('Error al exportar a Excel:', error);
-          this.snackBar.open('Error al exportar a Excel.', 'Cerrar', {
-            duration: 5000,
-          });
-        },
-      });
-  }
+    const apiUrl = `${this.proyectosService.getApiUrl()}/export/${format}`;
 
-  exportToPdf(): void {
-    const sortParam = `${this.currentSort},${this.sortDirection}`;
-    const apiUrl = this.proyectosService.getApiUrl() + '/export/pdf'; // Se usa un nuevo método en el servicio para obtener la URL
-    this.exportService
-      .exportToPdf(apiUrl, this.filterValue, sortParam)
-      .subscribe({
+    const exportCall = format === 'excel'
+        ? this.exportService.exportToExcel(apiUrl, this.filterValue, sortParam)
+        : this.exportService.exportToPdf(apiUrl, this.filterValue, sortParam);
+
+    const fileDetails = format === 'excel'
+        ? { name: 'Reporte_Proyectos.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+        : { name: 'Reporte_Proyectos.pdf', type: 'application/pdf' };
+
+    exportCall.subscribe({
         next: (response) => {
-          this.exportService.downloadFile(
-            response,
-            'Reporte_Proyectos.pdf',
-            'application/pdf'
-          );
+            this.exportService.downloadFile(response, fileDetails.name, fileDetails.type);
         },
         error: (error) => {
-          console.error('Error al exportar a PDF:', error);
-          this.snackBar.open('Error al exportar a PDF.', 'Cerrar', {
-            duration: 5000,
-          });
-        },
-      });
+            console.error(`Error al exportar a ${format}:`, error);
+            const errorKey = format === 'excel' ? 'PROJECTS.ERROR_EXPORT_EXCEL' : 'PROJECTS.ERROR_EXPORT_PDF';
+            this.snackBar.open(this.translate.instant(errorKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 5000 });
+        }
+    });
   }
 }

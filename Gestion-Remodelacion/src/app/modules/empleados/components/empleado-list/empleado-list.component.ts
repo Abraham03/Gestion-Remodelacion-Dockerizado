@@ -1,4 +1,4 @@
-import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -6,20 +6,17 @@ import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import {
-  MatPaginatorModule,
-  MatPaginator,
-  PageEvent,
-} from '@angular/material/paginator';
+import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { Sort, MatSortModule } from '@angular/material/sort';
+import { HttpErrorResponse } from '@angular/common/http';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { EmpleadoService } from '../../services/empleado.service';
 import { Empleado } from '../../models/empleado.model';
 import { EmpleadoFormComponent } from '../empleado-form/empleado-form.component';
 import { ExportService } from '../../../../core/services/export.service';
-import { Sort } from '@angular/material/sort';
-import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../../core/services/auth.service';
 import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
 
@@ -27,131 +24,88 @@ import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
   selector: 'app-empleado-list',
   standalone: true,
   imports: [
-    CommonModule,
-    MatTableModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatPaginatorModule,
-    MatFormFieldModule,
-    MatInputModule,
-    PhonePipe
+    CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule,
+    MatPaginatorModule, MatFormFieldModule, MatInputModule, PhonePipe,
+    MatSortModule, TranslateModule,
   ],
   providers: [DatePipe],
   templateUrl: './empleado-list.component.html',
   styleUrls: ['./empleado-list.component.scss'],
 })
 export class EmpleadoListComponent implements OnInit, AfterViewInit {
-    // Propiedades de permisos basados en el plan
+  // Propiedades
   canExportExcel = false;
   canExportPdf = false;
   canCreate = false;
   canEdit = false;
   canDelete = false;
-
-  empleados: Empleado[] = [];
-  displayedColumns: string[] = [
-    'nombreCompleto',
-    'rolCargo',
-    'telefonoContacto',
-    'modeloDePago',
-    'costoPorHora',
-    'activo',
-    'fechaContratacion',
-    'notas',
-    'acciones',
-  ];
+  displayedColumns: string[] = ['nombreCompleto', 'rolCargo', 'telefonoContacto', 'modeloDePago', 'costoPorHora', 'activo', 'fechaContratacion', 'notas', 'acciones'];
   dataSource = new MatTableDataSource<Empleado>([]);
-
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-
   totalElements: number = 0;
   pageSize: number = 5;
   currentPage: number = 0;
   filterValue: string = '';
   currentSort: string = 'nombreCompleto';
   sortDirection: string = 'asc';
-  constructor(
-    private empleadoService: EmpleadoService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private exportService: ExportService,
-    private cdr: ChangeDetectorRef,
-    private authService: AuthService
-  ) {}
+
+  // Inyección de servicios
+  private empleadoService = inject(EmpleadoService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private exportService = inject(ExportService);
+  private cdr = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
+  private translate = inject(TranslateService);
 
   ngOnInit(): void {
     this.setPermissions();
   }
+
   ngAfterViewInit(): void {
-    // Carga inicial de datos
     this.loadEmpleados();
   }
 
   private setPermissions(): void {
-    // Permisos basados en roles/authorities
-    this.canCreate = this.authService.hasPermission('CLIENTE_CREATE');
-    this.canEdit = this.authService.hasPermission('CLIENTE_UPDATE');
-    this.canDelete = this.authService.hasPermission('CLIENTE_DELETE');
-
-    // Permisos basados en el plan del usuario
-    const userPlan = this.authService.currentUserPlan(); // Obtiene el valor de la señal
-
-    // Lógica: Solo los planes NEGOCIOS y PROFESIONAL pueden exportar.
+    this.canCreate = this.authService.hasPermission('EMPLEADO_CREATE');
+    this.canEdit = this.authService.hasPermission('EMPLEADO_UPDATE');
+    this.canDelete = this.authService.hasPermission('EMPLEADO_DELETE');
+    const userPlan = this.authService.currentUserPlan();
     const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
-
     this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
     this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
-
-
   }
 
   loadEmpleados(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    this.empleadoService
-      .getEmpleados(
-        this.paginator.pageIndex,
-        this.paginator.pageSize,
-        this.filterValue,
-        sortParam
-      )
+    this.empleadoService.getEmpleados(this.currentPage, this.pageSize, this.filterValue, sortParam)
       .subscribe({
         next: (response) => {
-            this.dataSource.data = response.content;
-            this.totalElements = response.totalElements;
-
-            if (this.paginator){
-            this.paginator.length = response.totalElements;
-            this.paginator.pageIndex = response.number;
-            this.paginator.pageSize = response.size;
-            }
-            
-            this.cdr.detectChanges();
-          
+          this.dataSource.data = response.content;
+          this.totalElements = response.totalElements;
+          this.cdr.detectChanges();
         },
         error: (error) => {
           console.error('Error al cargar empleados:', error);
           this.snackBar.open(
-            'Error al cargar los empleados. Inténtalo de nuevo más tarde.',
-            'Cerrar',
+            this.translate.instant('EMPLOYEES.ERROR_LOADING'),
+            this.translate.instant('GLOBAL.CLOSE'),
             { duration: 5000 }
           );
         },
       });
   }
 
-  applyFilter(filterValue: String): void {
-    this.filterValue = filterValue
-      .trim()
-      .toLowerCase();
-    this.paginator.pageIndex = 0; // Actualizar el índice del paginador
-    this.loadEmpleados(); // Llamar al servicio para filtrar
+  applyFilter(filterValue: string): void {
+    this.filterValue = filterValue.trim().toLowerCase();
+    this.paginator.pageIndex = 0;
+    this.currentPage = 0;
+    this.loadEmpleados();
   }
 
-      applyFilterIfEmpty(filterValue: string): void {
-    // Si el usuario ha borrado todo el texto del campo de búsqueda
+  applyFilterIfEmpty(filterValue: string): void {
     if (filterValue === '') {
-      this.applyFilter(''); // Llama al filtro con un string vacío
+      this.applyFilter('');
     }
   }
 
@@ -160,94 +114,65 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
       width: '500px',
       data: empleado || null,
     });
-
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.loadEmpleados();
-      }
+      if (result) this.loadEmpleados();
     });
   }
 
   deleteEmpleado(id: number | undefined): void {
+    const closeAction = this.translate.instant('GLOBAL.CLOSE');
     if (!id) {
-      this.snackBar.open('ID de empleado no válido para eliminar.', 'Cerrar', {
-        duration: 3000,
-      });
+      this.snackBar.open(this.translate.instant('EMPLOYEES.ERROR_INVALID_ID_FOR_DELETE'), closeAction, { duration: 3000 });
       return;
     }
 
-    if (
-      confirm(
-        '¿Estás seguro de desactivar este empleado? (Esto cambiará su estado a inactivo)'
-      )
-    ) {
-      // Clarify action
-      this.empleadoService.deactivateEmpleado(id).subscribe(
-        // Call deactivateEmpleado
-        () => {
-          this.snackBar.open('Empleado desactivado exitosamente', 'Cerrar', {
-            duration: 3000,
-          });
-          this.cdr.detectChanges();
+    if (confirm(this.translate.instant('GLOBAL.CONFIRM_DEACTIVATE'))) {
+      this.empleadoService.deactivateEmpleado(id).subscribe({
+        next: () => {
+          this.snackBar.open(this.translate.instant('EMPLOYEES.SUCCESSFULLY_DEACTIVATED'), closeAction, { duration: 3000 });
           this.loadEmpleados();
         },
-        (error: HttpErrorResponse) => {
-          console.error('Error al desactivar empleado:', error);
-          if (error.status == 409) {
-            this.snackBar.open('El empleado ya está desactivado', 'Cerrar', {
-              duration: 3000,
-            });
-          }
+        error: (err: HttpErrorResponse) => {
+          console.error('Error al desactivar empleado:', err);
+          const errorKey = err.error?.message || 'error.unexpected';
+          const translatedMessage = this.translate.instant(errorKey);
+          
+          this.snackBar.open(translatedMessage, closeAction, { duration: 5000 });
         }
-      );
+      });
     }
   }
 
   onPageChange(event: PageEvent): void {
-    this.currentPage = this.paginator.pageIndex;
-    this.pageSize = this.paginator.pageSize;
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
     this.loadEmpleados();
   }
 
   onSortChange(sort: Sort) {
-    if (sort.direction) {
-      this.currentSort = sort.active;
-      this.sortDirection = sort.direction;
-    } else {
-      this.currentSort = 'nombreCompleto'; // Default sort
-      this.sortDirection = 'asc';
-    }
+    this.currentSort = sort.direction ? sort.active : 'nombreCompleto';
+    this.sortDirection = sort.direction || 'asc';
     this.loadEmpleados();
   }
 
-  exportToExcel(): void {
+  exportTo(format: 'excel' | 'pdf'): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    const apiUrl = this.empleadoService.getApiUrl() + '/export/excel'; // ⭐️ Corrección: Se usa un nuevo método en el servicio para obtener la URL
-    this.exportService.exportToExcel(apiUrl, this.filterValue, sortParam)
-      .subscribe({
-        next: (response) => {
-          this.exportService.downloadFile(response, 'Reporte_Empleados.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        },
-        error: (error) => {
-          console.error('Error al exportar a Excel:', error);
-          this.snackBar.open('Error al exportar a Excel.', 'Cerrar', { duration: 5000 });
-        }
-      });
-  } 
-  
-    exportToPdf(): void {
-    const sortParam = `${this.currentSort},${this.sortDirection}`;
-    const apiUrl = this.empleadoService.getApiUrl() + '/export/pdf'; // ⭐️ Corrección: Se usa un nuevo método en el servicio para obtener la URL
-    this.exportService.exportToPdf(apiUrl, this.filterValue, sortParam)
-      .subscribe({
-        next: (response) => {
-          this.exportService.downloadFile(response, 'Reporte_Empleados.pdf', 'application/pdf');
-        },
-        error: (error) => {
-          console.error('Error al exportar a PDF:', error);
-          this.snackBar.open('Error al exportar a PDF.', 'Cerrar', { duration: 5000 });
-        }
-      });
-  } 
+    const apiUrl = `${this.empleadoService.getApiUrl()}/export/${format}`;
+    const exportCall = format === 'excel'
+      ? this.exportService.exportToExcel(apiUrl, this.filterValue, sortParam)
+      : this.exportService.exportToPdf(apiUrl, this.filterValue, sortParam);
 
+    const fileDetails = format === 'excel'
+      ? { name: 'Reporte_Empleados.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+      : { name: 'Reporte_Empleados.pdf', type: 'application/pdf' };
+
+    exportCall.subscribe({
+      next: (response) => this.exportService.downloadFile(response, fileDetails.name, fileDetails.type),
+      error: (error) => {
+        console.error(`Error al exportar a ${format}:`, error);
+        const errorKey = format === 'excel' ? 'EMPLOYEES.ERROR_EXPORT_EXCEL' : 'EMPLOYEES.ERROR_EXPORT_PDF';
+        this.snackBar.open(this.translate.instant(errorKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 5000 });
+      }
+    });
+  }
 }

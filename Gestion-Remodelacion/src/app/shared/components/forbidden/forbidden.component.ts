@@ -3,66 +3,119 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon'; // 👈 1. Importa MatIconModule
 import { RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core'; // 👈 2. Importa TranslateModule
 
 @Component({
   selector: 'app-forbidden',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, RouterModule],
+  // 👇 3. Agrega los nuevos módulos a los imports
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    RouterModule,
+    MatIconModule,
+    TranslateModule,
+  ],
   template: `
     <div class="forbidden-container">
       <mat-card class="forbidden-card">
-        <mat-card-header>
-          <mat-card-title>Acceso Denegado</mat-card-title>
-        </mat-card-header>
         <mat-card-content>
-          <p>Lo sentimos, no tienes los permisos necesarios para acceder a esta página.</p>
-          <p>Si crees que esto es un error, por favor, contacta al administrador.</p>
+          <mat-icon class="forbidden-icon" aria-hidden="false" aria-label="Lock icon">lock</mat-icon>
+          
+          <h1 class="forbidden-title">{{ 'FORBIDDEN.ACCESS_DENIED' | translate }}</h1>
+          
+          <p class="forbidden-message">{{ 'FORBIDDEN.MESSAGE_1' | translate }}</p>
+          <p class="forbidden-message">{{ 'FORBIDDEN.MESSAGE_2' | translate }}</p>
+
         </mat-card-content>
-        <mat-card-actions align="end">
-          <button mat-raised-button color="primary" routerLink="/dashboard">Ir al Dashboard</button>
-        </mat-card-actions>
       </mat-card>
     </div>
   `,
   styles: `
+    /* 5. Estilos mejorados para un look más profesional */
+    :host {
+      --warn-color: #f44336;
+      --text-primary: #333;
+      --text-secondary: #6c757d;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
     .forbidden-container {
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: calc(100vh - var(--header-height-desktop) - var(--footer-height-desktop)); /* Ajusta a la altura del contenido principal */
+      min-height: calc(100vh - var(--header-height-desktop, 128px) - var(--footer-height-desktop, 64px));
       padding: 24px;
       box-sizing: border-box;
+      background-color: #f8f9fa;
     }
+
     .forbidden-card {
-      max-width: 400px;
+      max-width: 480px;
+      width: 100%;
       text-align: center;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 40px 32px;
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid #e9ecef;
     }
-    .forbidden-card mat-card-title {
-      color: #f44336; /* Color rojo para indicar error/negación */
-      font-size: 1.8em;
-      margin-bottom: 15px;
+
+    .forbidden-card mat-card-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    .forbidden-card mat-card-content p {
-      margin-bottom: 10px;
-      line-height: 1.5;
+
+    .forbidden-icon {
+      font-size: 80px;
+      width: 80px;
+      height: 80px;
+      color: var(--warn-color);
+      margin-bottom: 24px;
     }
-    .forbidden-card mat-card-actions {
-      margin-top: 20px;
+
+    .forbidden-title {
+      font-size: 2em;
+      font-weight: 600;
+      margin: 0 0 16px;
+      color: var(--text-primary);
+    }
+
+    .forbidden-message {
+      margin: 0 0 8px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      max-width: 380px; /* Evita que el texto sea demasiado ancho */
+    }
+
+    .forbidden-message:last-of-type {
+      margin-bottom: 32px;
+    }
+
+    .forbidden-card button {
+      min-width: 200px;
+      padding: 8px 0;
+      font-size: 1em;
     }
 
     /* Adaptación para dispositivos móviles */
     @media (max-width: 600px) {
       .forbidden-container {
-        min-height: calc(100vh - var(--header-height-mobile) - var(--footer-height-mobile));
+        min-height: calc(100vh - var(--header-height-mobile, 112px) - var(--footer-height-mobile, 56px));
       }
       .forbidden-card {
-        padding: 15px;
+        padding: 32px 24px;
       }
-      .forbidden-card mat-card-title {
-        font-size: 1.5em;
+      .forbidden-icon {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+      }
+      .forbidden-title {
+        font-size: 1.6em;
       }
     }
   `

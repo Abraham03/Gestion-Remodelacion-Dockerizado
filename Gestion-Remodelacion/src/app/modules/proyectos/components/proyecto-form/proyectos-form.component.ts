@@ -1,6 +1,4 @@
-// src/app/modules/proyectos/components/proyectos-form/proyectos-form.component.ts
-
-import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
@@ -11,34 +9,25 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { Observable, Subject, takeUntil } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
 import { ProyectosService } from '../../services/proyecto.service';
 import { ClienteService } from '../../../cliente/services/cliente.service';
 import { EmpleadoService } from '../../../empleados/services/empleado.service';
 import { Proyecto } from '../../models/proyecto.model';
-import { Observable, Subject, takeUntil } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from '../../../../core/services/notification.service';
-
-// Define the DropdownItem interface here or in a common types file
-interface DropdownItem {
-  id: number;
-  nombre: string;
-}
+import { DropdownItem } from '../../../../core/models/dropdown-item.model';
 
 @Component({
   selector: 'app-proyectos-form',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDialogModule,
+    CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
+    MatSelectModule, MatDatepickerModule, MatButtonModule, MatIconModule,
+    MatDialogModule, TranslateModule,
   ],
   templateUrl: './proyectos-form.component.html',
   styleUrls: ['./proyectos-form.component.scss'],
@@ -47,10 +36,14 @@ interface DropdownItem {
 export class ProyectosFormComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   form!: FormGroup;
-  estadosProyecto: string[] = ['Pendiente', 'En Progreso', 'En Pausa', 'Finalizado', 'Cancelado'];
+  estadosProyecto: { backendValue: string, viewValue: string }[] = [];
   clientes$!: Observable<DropdownItem[]>;
   empleados$!: Observable<DropdownItem[]>;
 
+  private translate = inject(TranslateService);
+
+  // ✅ CORRECCIÓN: Se unifica toda la inyección de dependencias en el constructor
+  //    para evitar conflictos y asegurar que 'data' siempre esté inicializado.
   constructor(
     private fb: FormBuilder,
     private proyectosService: ProyectosService,
@@ -60,46 +53,19 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private notificationService: NotificationService,
     @Inject(MAT_DIALOG_DATA) public data: Proyecto | null
-  ) 
-  {
-        console.log(`ProyectosFormComponent está usando NotificationService con ID: ${(this.notificationService as any).instanceId}`);
-
-  }
+  ) {}
 
   ngOnInit(): void {
     this.initForm();
+    this.setupDynamicTranslations();
     this.loadDropdownData();
-    this.notificationService.dataChanges$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        console.log('Cambio detectado en ProyectosFormComponent, recargando dropdowns...');
-        this.loadDropdownData();
-  });
+
     if (this.data) {
       const patchedData: any = { ...this.data };
-
-      // === MANEJO DE FECHAS ===
-      // Las fechas vienen como strings ISO 8601 del backend (ej. "2025-04-30T00:00:00.000+00:00")
-      // Necesitamos parsearlas y normalizarlas para el datepicker.
-      if (patchedData.fechaInicio) {
-        patchedData.fechaInicio = this.createNormalizedLocalDate(patchedData.fechaInicio);
-      }
-      if (patchedData.fechaFinEstimada) {
-        patchedData.fechaFinEstimada = this.createNormalizedLocalDate(patchedData.fechaFinEstimada);
-      }
-      if (patchedData.fechaFinalizacionReal) {
-        patchedData.fechaFinalizacionReal = this.createNormalizedLocalDate(patchedData.fechaFinalizacionReal);
-      }
-      if (patchedData.fechaUltimoPagoRecibido) {
-        patchedData.fechaUltimoPagoRecibido = this.createNormalizedLocalDate(patchedData.fechaUltimoPagoRecibido);
-      }
-      // =======================
-
-      // Formateamos el estado
-      if (patchedData.estado) {
-        patchedData.estado = this.formatEstadoForFrontend(patchedData.estado);
-      }
-
+      if (patchedData.fechaInicio) patchedData.fechaInicio = this.createNormalizedLocalDate(patchedData.fechaInicio);
+      if (patchedData.fechaFinEstimada) patchedData.fechaFinEstimada = this.createNormalizedLocalDate(patchedData.fechaFinEstimada);
+      if (patchedData.fechaFinalizacionReal) patchedData.fechaFinalizacionReal = this.createNormalizedLocalDate(patchedData.fechaFinalizacionReal);
+      if (patchedData.fechaUltimoPagoRecibido) patchedData.fechaUltimoPagoRecibido = this.createNormalizedLocalDate(patchedData.fechaUltimoPagoRecibido);
       this.form.patchValue(patchedData);
     }
   }
@@ -109,105 +75,54 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /**
-   * Normaliza una cadena de fecha ISO 8601 (del backend, con zona horaria)
-   * a un objeto Date que represente la misma fecha calendario a medianoche local.
-   * Esto es CRUCIAL para que el MatDatepicker muestre el día correcto.
-   * @param dateInput La cadena de fecha en formato ISO 8601 (ej. '2025-04-30T00:00:00.000Z') o un objeto Date.
-   * @returns Un objeto Date normalizado para el MatDatepicker o null si la entrada es nula.
-   */
+  private setupDynamicTranslations(): void {
+    this.generateProjectStates();
+    this.translate.onLangChange.pipe(takeUntil(this.destroy$)).subscribe(() => {
+        this.generateProjectStates();
+    });
+  }
+
+  private generateProjectStates(): void {
+    // ✅ CORRECCIÓN: Los valores del backend DEBEN COINCIDIR con tu Enum de Java.
+    const backendStates = ['PENDIENTE', 'EN_PROGRESO', 'EN_PAUSA', 'FINALIZADO', 'CANCELADO'];
+    this.estadosProyecto = backendStates.map(state => ({
+        backendValue: state,
+        viewValue: this.translate.instant(`PROJECTS.STATE.${state}`)
+    }));
+  }
+
   private createNormalizedLocalDate(dateInput: string | Date): Date | null {
     if (!dateInput) return null;
-
-    let dateObj: Date;
-    if (typeof dateInput === 'string') {
-      // Si es un string ISO 8601, JavaScript lo parseará.
-      // Ej: new Date("2025-04-30T00:00:00.000Z") en GMT-5 resultará en un Date para "Apr 29 2025 19:00:00 GMT-5".
-      dateObj = new Date(dateInput);
-    } else {
-      // Si ya es un objeto Date (por ejemplo, si el parser JSON de Angular ya lo hizo)
-      dateObj = dateInput;
-    }
-
-
-    // IMPORTANT: Usar los métodos getUTC* para extraer los componentes de la fecha
-    // del objeto Date que se creó a partir del string UTC.
-    // Esto asegura que tomamos el día '30' de abril, y no el '29'.
-    const year = dateObj.getUTCFullYear();
-    const month = dateObj.getUTCMonth(); // getUTCMonth() ya es 0-indexado
-    const day = dateObj.getUTCDate();
-
-    // Crear una nueva fecha en la zona horaria local usando los componentes UTC extraídos.
-    // Al no especificar la hora, se inicializa a medianoche local (00:00:00).
-    const localDate = new Date(year, month, day);
-
-    // Asegurarse de que no haya ninguna hora que pueda afectar la visualización del datepicker.
-    localDate.setHours(0, 0, 0, 0);
-
-    return localDate;
-  }
-
-  /**
-   * Convierte el estado de backend a un formato legible en el frontend.
-   */
-  private formatEstadoForFrontend(backendEstado: string): string {
-    switch (backendEstado) {
-      case 'PENDIENTE':
-        return 'Pendiente';
-      case 'EN_PROGRESO':
-        return 'En Progreso';
-      case 'EN_PAUSA':
-        return 'En Pausa';
-      case 'FINALIZADO':
-        return 'Finalizado';
-      case 'CANCELADO':
-        return 'Cancelado';
-      default:
-        return backendEstado;
-    }
-  }
-
-  /**
-   * Convierte el estado de frontend a un formato compatible con el backend.
-   */
-  private formatEstadoForBackend(frontendEstado: string): string {
-    switch (frontendEstado) {
-      case 'Pendiente':
-        return 'PENDIENTE';
-      case 'En Progreso':
-        return 'EN_PROGRESO';
-      case 'En Pausa':
-        return 'EN_PAUSA';
-      case 'Finalizado':
-        return 'FINALIZADO';
-      case 'Cancelado':
-        return 'CANCELADO';
-      default:
-        return frontendEstado;
-    }
+    const dateStr = typeof dateInput === 'string' ? dateInput : dateInput.toISOString().split('T')[0];
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
   }
 
   initForm(): void {
     this.form = this.fb.group({
-      id: [this.data?.id || null],
-      nombreProyecto: [this.data?.nombreProyecto || '', Validators.required],
-      descripcion: [this.data?.descripcion || ''],
-      direccionPropiedad: [this.data?.direccionPropiedad || '', Validators.required],
-      estado: [this.data?.estado ? this.formatEstadoForFrontend(this.data.estado) : 'Pendiente', Validators.required],
-      fechaInicio: [null, Validators.required],
-      fechaFinEstimada: [null, Validators.required],
-      fechaFinalizacionReal: [null],
-      fechaUltimoPagoRecibido: [null],
-      montoContrato: [this.data?.montoContrato || 0, [Validators.required, Validators.min(0)]],
-      montoRecibido: [this.data?.montoRecibido || 0, Validators.min(0)],
-      costoMaterialesConsolidado: [this.data?.costoMaterialesConsolidado || 0, Validators.min(0)],
-      otrosGastosDirectosConsolidado: [this.data?.otrosGastosDirectosConsolidado || 0, Validators.min(0)],
-      costoManoDeObra: [this.data?.costoManoDeObra || 0, Validators.min(0)],
-      progresoPorcentaje: [this.data?.progresoPorcentaje || 0, [Validators.min(0), Validators.max(100)]],
-      notasProyecto: [this.data?.notasProyecto || ''],
-      idCliente: [this.data?.idCliente || null, Validators.required],
-      idEmpleadoResponsable: [this.data?.idEmpleadoResponsable || null],
+        id: [null],
+        nombreProyecto: ['', Validators.required],
+        descripcion: [''],
+        direccionPropiedad: ['', Validators.required],
+        estado: ['PENDIENTE', Validators.required],
+        fechaInicio: [null, Validators.required],
+        fechaFinEstimada: [null, Validators.required],
+        fechaFinalizacionReal: [null],
+        fechaUltimoPagoRecibido: [null],
+        montoContrato: [0, [Validators.required, Validators.min(0)]],
+        montoRecibido: [0, Validators.min(0)],
+        costoMaterialesConsolidado: [0, Validators.min(0)],
+        otrosGastosDirectosConsolidado: [0, Validators.min(0)],
+        costoManoDeObra: [{ value: 0, disabled: true }],
+        progresoPorcentaje: [0, [Validators.min(0), Validators.max(100)]],
+        notasProyecto: [''],
+        idCliente: [null, Validators.required],
+        idEmpleadoResponsable: [null],
     });
+
+    if (this.data) {
+      this.form.patchValue(this.data);
+    }
   }
 
   loadDropdownData(): void {
@@ -215,18 +130,11 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
     this.empleados$ = this.empleadoService.getEmpleadosForDropdown();
   }
 
-  /**
-   * Formatea un objeto Date (que ya está a medianoche local) a una cadena YYYY-MM-DD
-   * para enviar al backend.
-   * @param date El objeto Date a formatear.
-   * @returns La fecha como cadena YYYY-MM-DD o null.
-   */
   private formatDateForBackend(date: Date | null): string | null {
     if (!date) return null;
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    const offset = date.getTimezoneOffset();
+    const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
+    return adjustedDate.toISOString().split('T')[0];
   }
 
   onSubmit(): void {
@@ -235,43 +143,34 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const formValue = this.form.value;
-
-    const projectData: Proyecto = {
+    const formValue = this.form.getRawValue();
+    const projectData: any = {
       ...formValue,
-      estado: this.formatEstadoForBackend(formValue.estado) as any,
       fechaInicio: this.formatDateForBackend(formValue.fechaInicio),
       fechaFinEstimada: this.formatDateForBackend(formValue.fechaFinEstimada),
       fechaFinalizacionReal: this.formatDateForBackend(formValue.fechaFinalizacionReal),
       fechaUltimoPagoRecibido: this.formatDateForBackend(formValue.fechaUltimoPagoRecibido),
     };
 
+    // ✅ CORRECCIÓN: El servicio de update espera 1 solo argumento (el objeto completo).
+    const serviceCall = this.data
+      ? this.proyectosService.updateProyecto(projectData)
+      : this.proyectosService.addProyecto(projectData);
 
-    if (this.data) {
-      this.proyectosService.updateProyecto(projectData).subscribe({
-        next: (response) => {
-          this.snackBar.open('Proyecto actualizado correctamente.', 'Cerrar', { duration: 3000 });
-          this.notificationService.notifyDataChange();
-          this.dialogRef.close(true);
-        },
-        error: (error: HttpErrorResponse) => {
-          if (error.status === 404) {
-            this.snackBar.open('Error al actualizar: El proyecto no existe.', 'Cerrar', { duration: 4000 });
-          }
-        },
-      });
-    } else {
-      this.proyectosService.addProyecto(projectData).subscribe({
-        next: (response) => {
-          this.snackBar.open('Proyecto creado correctamente.', 'Cerrar', { duration: 3000 });
-          this.notificationService.notifyDataChange();
-          this.dialogRef.close(true);
-        },
-        error: (error: HttpErrorResponse) => {
-          this.snackBar.open('Error al crear el proyecto. Inténtalo de nuevo.', 'Cerrar', { duration: 3000 });
-        },
-      });
-    }
+    const successKey = this.data ? 'PROJECTS.SUCCESSFULLY_UPDATED' : 'PROJECTS.SUCCESSFULLY_CREATED';
+
+    serviceCall.subscribe({
+      next: () => {
+        this.snackBar.open(this.translate.instant(successKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
+        this.notificationService.notifyDataChange();
+        this.dialogRef.close(true);
+      },
+      error: (err: HttpErrorResponse) => {
+        const errorKey = err.error?.message || 'error.unexpected';
+        const translatedMessage = this.translate.instant(errorKey);
+        this.snackBar.open(translatedMessage, this.translate.instant('GLOBAL.CLOSE'), { duration: 7000 });
+      },
+    });
   }
 
   onCancel(): void {

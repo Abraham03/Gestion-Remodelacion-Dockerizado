@@ -1,94 +1,94 @@
 <div class="page-container">
   <div class="table-header">
-    <h2>Gestión de Empleados</h2>
+    <h2>{{ 'EMPLOYEES.MANAGEMENT' | translate }}</h2>
     <div class="table-actions">
       <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Buscar empleado</mat-label>
+        <mat-label>{{ 'EMPLOYEES.SEARCH_EMPLOYEE' | translate }}</mat-label>
         <input #filterValue matInput (keyup.enter)="applyFilter(filterValue.value)"
-          (input)="applyFilterIfEmpty(filterValue.value)" placeholder="Ej. Juan Pérez">
+               (input)="applyFilterIfEmpty(filterValue.value)" [placeholder]="'EMPLOYEES.PLACEHOLDER_SEARCH' | translate">
         <mat-icon matSuffix (click)="applyFilter(filterValue.value)">search</mat-icon>
       </mat-form-field>
 
-      <div class="table-actions">
+      <div class="actions-buttons">
         <button mat-flat-button color="primary" *ngIf="canCreate" (click)="openForm()">
           <mat-icon>add</mat-icon>
-          Agregar Empleado
+          {{ 'EMPLOYEES.ADD_EMPLOYEE' | translate }}
         </button>
-        <button mat-flat-button color="accent" *ngIf="canExportExcel" (click)="exportToExcel()">
+        <button mat-flat-button color="accent" *ngIf="canExportExcel" (click)="exportTo('excel')">
           <mat-icon>file_download</mat-icon>
-          Excel
+          {{ 'EMPLOYEES.EXPORT_EXCEL' | translate }}
         </button>
-                <button mat-flat-button color="accent" *ngIf="!canExportExcel" disabled matTooltip="Mejora tu plan para exportar a Excel">
-            <mat-icon>file_download</mat-icon>
-            Excel
-        </button> 
-        <button mat-flat-button color="primary" *ngIf="canExportPdf" (click)="exportToPdf()">
+        <button mat-flat-button color="accent" *ngIf="!canExportExcel" disabled [matTooltip]="'EMPLOYEES.UPGRADE_PLAN_EXCEL' | translate">
+          <mat-icon>file_download</mat-icon>
+          {{ 'EMPLOYEES.EXPORT_EXCEL' | translate }}
+        </button>
+        <button mat-flat-button color="primary" *ngIf="canExportPdf" (click)="exportTo('pdf')">
           <mat-icon>picture_as_pdf</mat-icon>
-          PDF
+          {{ 'EMPLOYEES.EXPORT_PDF' | translate }}
         </button>
-                <button mat-flat-button color="primary" *ngIf="!canExportPdf" disabled matTooltip="Mejora tu plan para exportar a PDF">
-            <mat-icon>picture_as_pdf</mat-icon>
-            PDF
-        </button> 
+        <button mat-flat-button color="primary" *ngIf="!canExportPdf" disabled [matTooltip]="'EMPLOYEES.UPGRADE_PLAN_PDF' | translate">
+          <mat-icon>picture_as_pdf</mat-icon>
+          {{ 'EMPLOYEES.EXPORT_PDF' | translate }}
+        </button>
       </div>
     </div>
   </div>
 
   <div class="table-card">
     <div class="table-container">
-      <table mat-table [dataSource]="dataSource" class="responsive-table">
+      <table mat-table [dataSource]="dataSource" class="responsive-table" matSort (matSortChange)="onSortChange($event)">
         
         <ng-container matColumnDef="nombreCompleto">
-          <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPLOYEES.FULL_NAME' | translate }}</th>
           <td mat-cell *matCellDef="let element">{{ element.nombreCompleto }}</td>
         </ng-container>
 
         <ng-container matColumnDef="rolCargo">
-          <th mat-header-cell *matHeaderCellDef>Rol/Cargo</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPLOYEES.ROLE_POSITION' | translate }}</th>
           <td mat-cell *matCellDef="let element">{{ element.rolCargo }}</td>
         </ng-container>
         
         <ng-container matColumnDef="telefonoContacto">
-          <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPLOYEES.CONTACT_PHONE' | translate }}</th>
           <td mat-cell *matCellDef="let element">{{ element.telefonoContacto | phone }}</td>
         </ng-container>
 
         <ng-container matColumnDef="modeloDePago">
-            <th mat-header-cell *matHeaderCellDef>Modelo de Pago</th>
-            <td mat-cell *matCellDef="let element">{{ element.modeloDePago }}</td>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPLOYEES.PAYMENT_MODEL' | translate }}</th>
+            <td mat-cell *matCellDef="let element">{{ (element.modeloDePago === 'POR_HORA' ? 'EMPLOYEES.PAY_PER_HOUR' : 'EMPLOYEES.PAY_PER_DAY') | translate }}</td>
         </ng-container>
         
         <ng-container matColumnDef="costoPorHora">
-            <th mat-header-cell *matHeaderCellDef>Costo</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPLOYEES.COST' | translate }}</th>
             <td mat-cell *matCellDef="let element">{{ element.costoPorHora | currency:'USD':'symbol':'1.2-2' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="fechaContratacion">
-            <th mat-header-cell *matHeaderCellDef>Fecha Contratación</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPLOYEES.HIRE_DATE' | translate }}</th>
             <td mat-cell *matCellDef="let element">{{ element.fechaContratacion | date }}</td>
         </ng-container>
 
         <ng-container matColumnDef="notas">
-            <th mat-header-cell *matHeaderCellDef>Notas</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'GLOBAL.NOTES' | translate }}</th>
             <td mat-cell *matCellDef="let element">{{ element.notas }}</td>
         </ng-container>
 
         <ng-container matColumnDef="activo">
-          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPLOYEES.STATUS' | translate }}</th>
           <td mat-cell *matCellDef="let element">
-            <mat-icon [ngClass]="{'active-icon': element.activo, 'inactive-icon': !element.activo}" matTooltip="{{ element.activo ? 'Activo' : 'Inactivo' }}">
+            <mat-icon [ngClass]="{'active-icon': element.activo, 'inactive-icon': !element.activo}" [matTooltip]="(element.activo ? 'GLOBAL.ACTIVE' : 'GLOBAL.INACTIVE') | translate">
               {{ element.activo ? 'check_circle' : 'cancel' }}
             </mat-icon>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'GLOBAL.ACTIONS' | translate }}</th>
           <td mat-cell *matCellDef="let element" class="mat-column-acciones">
-            <button mat-icon-button color="primary" *ngIf="canEdit" (click)="openForm(element)" matTooltip="Editar">
+            <button mat-icon-button color="primary" *ngIf="canEdit" (click)="openForm(element)" [matTooltip]="'GLOBAL.EDIT' | translate">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" *ngIf="canDelete" (click)="deleteEmpleado(element.id!)" matTooltip="Desactivar">
+            <button mat-icon-button color="warn" *ngIf="canDelete" (click)="deleteEmpleado(element.id!)" [matTooltip]="'GLOBAL.DEACTIVATE' | translate">
               <mat-icon>delete</mat-icon>
             </button>
           </td>
@@ -99,17 +99,17 @@
         
         <tr class="mat-row" *matNoDataRow>
             <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-                No se encontraron empleados que coincidan con el filtro.
+                {{ 'EMPLOYEES.NO_EMPLOYEES_FOUND' | translate }}
             </td>
         </tr>
       </table>
     </div>
     <mat-paginator 
-    [length]="totalElements" 
-    [pageSize]="pageSize"
-    [pageIndex]="currentPage"
-    [pageSizeOptions]="[5, 10, 20]" 
-    (page)="onPageChange($event)" showFirstLastButtons 
-    class="table-paginator"></mat-paginator>
+      [length]="totalElements" 
+      [pageSize]="pageSize"
+      [pageIndex]="currentPage"
+      [pageSizeOptions]="[5, 10, 20]" 
+      (page)="onPageChange($event)" showFirstLastButtons 
+      class="table-paginator"></mat-paginator>
   </div>
 </div>

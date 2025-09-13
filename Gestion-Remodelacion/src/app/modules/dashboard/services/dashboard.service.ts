@@ -2,8 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { DashboardSummary } from '../../../core/models/dashboard-summary.model';
-import { DashboardProyecto } from '../models/dashboard-proyecto.model'; // <-- Asegúrate que esta ruta sea correcta y esté importado
 import { ApiResponse } from '../../../core/models/ApiResponse';
 import { BaseService } from '../../../core/services/base.service';
 import { DropdownItem } from '../../../core/models/dropdown-item.model';

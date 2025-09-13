@@ -1,61 +1,61 @@
-<h2 mat-dialog-title>{{ isEditMode ? 'Editar Empleado' : 'Crear Empleado' }}</h2>
+<h2 mat-dialog-title>{{ (isEditMode ? 'EMPLOYEES.EDIT_EMPLOYEE' : 'EMPLOYEES.CREATE_EMPLOYEE') | translate }}</h2>
 
 <form [formGroup]="empleadoForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content class="mat-typography form-content">
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Nombre Completo</mat-label>
+      <mat-label>{{ 'EMPLOYEES.FULL_NAME' | translate }}</mat-label>
       <input matInput formControlName="nombreCompleto" required>
-      <mat-error *ngIf="empleadoForm.get('nombreCompleto')?.hasError('required')">El nombre completo es requerido</mat-error>
+      <mat-error *ngIf="empleadoForm.get('nombreCompleto')?.hasError('required')">{{ 'EMPLOYEES.FULL_NAME_REQUIRED' | translate }}</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Rol / Cargo</mat-label>
+      <mat-label>{{ 'EMPLOYEES.ROLE_POSITION' | translate }}</mat-label>
       <input matInput formControlName="rolCargo" required>
-      <mat-error *ngIf="empleadoForm.get('rolCargo')?.hasError('required')">El rol o cargo es requerido</mat-error>
+      <mat-error *ngIf="empleadoForm.get('rolCargo')?.hasError('required')">{{ 'EMPLOYEES.ROLE_POSITION_REQUIRED' | translate }}</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Teléfono Contacto</mat-label>
-      <input matInput type="tel" formControlName="telefonoContacto" placeholder="Ej. 5512345678">
+      <mat-label>{{ 'EMPLOYEES.CONTACT_PHONE' | translate }}</mat-label>
+      <input matInput type="tel" formControlName="telefonoContacto" [placeholder]="'EMPLOYEES.PLACEHOLDER_PHONE' | translate">
     </mat-form-field>
     
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Fecha de Contratación</mat-label>
+      <mat-label>{{ 'EMPLOYEES.HIRE_DATE' | translate }}</mat-label>
       <input matInput [matDatepicker]="picker" formControlName="fechaContratacion">
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
-      <mat-error *ngIf="empleadoForm.get('fechaContratacion')?.invalid">La fecha es inválida</mat-error>
+      <mat-error *ngIf="empleadoForm.get('fechaContratacion')?.invalid">{{ 'EMPLOYEES.INVALID_DATE' | translate }}</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Modelo de Pago</mat-label>
+        <mat-label>{{ 'EMPLOYEES.PAYMENT_MODEL' | translate }}</mat-label>
         <mat-select formControlName="modeloDePago" required>
             <mat-option *ngFor="let modelo of modelosDePago" [value]="modelo.value">
                 {{ modelo.viewValue }}
             </mat-option>
         </mat-select>
-        <mat-error *ngIf="empleadoForm.get('modeloDePago')?.hasError('required')">El modelo de pago es requerido</mat-error>
-    </mat-form-field>  
+        <mat-error *ngIf="empleadoForm.get('modeloDePago')?.hasError('required')">{{ 'EMPLOYEES.PAYMENT_MODEL_REQUIRED' | translate }}</mat-error>
+    </mat-form-field> 
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Costo por Hora</mat-label>
+      <mat-label>{{ montoLabel }}</mat-label>
       <input matInput type="text" formControlName="costoPorHora" appNumberFormat required min="0.01">
-      <mat-error *ngIf="empleadoForm.get('costoPorHora')?.hasError('required')">El costo por hora es requerido</mat-error>
-      <mat-error *ngIf="empleadoForm.get('costoPorHora')?.hasError('min')">El costo debe ser mayor a 0</mat-error>
+      <mat-error *ngIf="empleadoForm.get('costoPorHora')?.hasError('required')">{{ 'EMPLOYEES.COST_PER_HOUR_REQUIRED' | translate }}</mat-error>
+      <mat-error *ngIf="empleadoForm.get('costoPorHora')?.hasError('min')">{{ 'EMPLOYEES.COST_MUST_BE_POSITIVE' | translate }}</mat-error>
     </mat-form-field>
 
-    <mat-checkbox formControlName="activo">Activo</mat-checkbox>
+    <mat-checkbox formControlName="activo">{{ 'GLOBAL.ACTIVE' | translate }}</mat-checkbox>
     
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Notas</mat-label>
+      <mat-label>{{ 'GLOBAL.NOTES' | translate }}</mat-label>
       <textarea matInput formControlName="notas" cdkTextareaAutosize cdkAutosizeMinRows="3" cdkAutosizeMaxRows="5"></textarea>
     </mat-form-field>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end" class="form-actions">
-    <button mat-flat-button color="warn" type="button" (click)="dialogRef.close()">Cancelar</button>
+    <button mat-flat-button color="warn" type="button" (click)="dialogRef.close()">{{ 'GLOBAL.CANCEL' | translate }}</button>
     <button mat-flat-button color="primary" type="submit" [disabled]="empleadoForm.invalid">
-      {{ isEditMode ? 'Actualizar' : 'Guardar' }}
+      {{ (isEditMode ? 'GLOBAL.UPDATE' : 'GLOBAL.SAVE') | translate }}
     </button>
   </mat-dialog-actions>
 </form>

@@ -15,6 +15,7 @@ import com.gestionremodelacion.gestion.cliente.repository.ClienteRepository;
 import com.gestionremodelacion.gestion.empleado.model.Empleado;
 import com.gestionremodelacion.gestion.empleado.repository.EmpleadoRepository;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
+import com.gestionremodelacion.gestion.exception.ErrorCatalog;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.ProyectoMapper;
 import com.gestionremodelacion.gestion.model.User;
@@ -61,7 +62,7 @@ public class ProyectoService {
 
         return proyectoRepository.findByIdAndEmpresaId(id, empresaId)
                 .map(proyectoMapper::toProyectoResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.PROJECT_NOT_FOUND.getKey()));
     }
 
     @Transactional
@@ -71,14 +72,14 @@ public class ProyectoService {
 
         Cliente cliente = clienteRepository.findByIdAndEmpresaId(proyectoRequest.getIdCliente(), empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        "El cliente seleccionado no existe o no pertenece a tu empresa."));
+                        ErrorCatalog.INVALID_CLIENT_FOR_COMPANY.getKey()));
 
         Empleado empleadoResponsable = null;
         if (proyectoRequest.getIdEmpleadoResponsable() != null) {
             empleadoResponsable = empleadoRepository
                     .findByIdAndEmpresaId(proyectoRequest.getIdEmpleadoResponsable(), empresaId)
                     .orElseThrow(() -> new BusinessRuleException(
-                            "El empleado responsable seleccionado no existe o no pertenece a tu empresa."));
+                            ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
         }
         Proyecto proyecto = proyectoMapper.toProyecto(proyectoRequest);
         proyecto.setEmpresa(currentUser.getEmpresa());
@@ -105,18 +106,18 @@ public class ProyectoService {
         Long empresaId = currentUser.getEmpresa().getId();
 
         Proyecto proyecto = proyectoRepository.findByIdAndEmpresaId(id, empresaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.PROJECT_NOT_FOUND.getKey()));
 
         Cliente cliente = clienteRepository.findByIdAndEmpresaId(proyectoRequest.getIdCliente(), empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        "El cliente seleccionado no existe o no pertenece a tu empresa."));
+                        ErrorCatalog.INVALID_CLIENT_FOR_COMPANY.getKey()));
 
         Empleado empleadoResponsable = null;
         if (proyectoRequest.getIdEmpleadoResponsable() != null) {
             empleadoResponsable = empleadoRepository
                     .findByIdAndEmpresaId(proyectoRequest.getIdEmpleadoResponsable(), empresaId)
                     .orElseThrow(() -> new BusinessRuleException(
-                            "El empleado responsable seleccionado no existe o no pertenece a tu empresa."));
+                            ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
         }
 
         proyectoMapper.updateProyectoFromRequest(proyectoRequest, proyecto);
@@ -134,13 +135,14 @@ public class ProyectoService {
 
         // 1. Verificar si el proyecto pertenece a la empresa actual
         if (!proyectoRepository.existsByIdAndEmpresaId(id, empresaId)) {
-            throw new ResourceNotFoundException("Proyecto no encontrado con ID: " + id);
+            throw new ResourceNotFoundException(ErrorCatalog.PROJECT_NOT_FOUND.getKey());
         }
 
         // 7. Si no hay dependencias, proceder a eliminar
         proyectoRepository.deleteById(id);
     }
 
+    @Transactional
     private List<Proyecto> findAllProyectosForExport(String filter, String sort) {
         User currentUser = userService.getCurrentUser();
         Long empresaId = currentUser.getEmpresa().getId();

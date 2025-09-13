@@ -7,15 +7,15 @@ import { MenuItem } from '../../models/menu-item.model';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { SidebarService } from './sidebar.service';
-import { Subscription, Observable, Subject, map, shareReplay, takeUntil } from 'rxjs';
-import { toObservable } from '@angular/core/rxjs-interop';
+import { Subscription, Observable, Subject, map, shareReplay } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [MatListModule, MatIconModule, RouterModule, CommonModule],
+  imports: [MatListModule, MatIconModule, RouterModule, CommonModule, TranslateModule],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
 })
@@ -41,14 +41,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
 
   menuItems: MenuItem[] = [
-    { label: 'Inicio', icon: 'home', route: '/dashboard', permission: 'DASHBOARD_VIEW' },
-    { label: 'Empleados', icon: 'people', route: '/empleados', permission: 'EMPLEADO_READ' },
-    { label: 'Clientes', icon: 'assignment_ind', route: '/clientes', permission: 'CLIENTE_READ' },    
-    { label: 'Proyectos', icon: 'work', route: '/proyectos', permission: 'PROYECTO_READ' },
-    { label: 'Horas Trabajadas', icon: 'schedule', route: '/horas-trabajadas', permission: 'HORASTRABAJADAS_READ' },
-    { label: 'Reportes', icon: 'assessment', route: '/reportes', permission: 'REPORTE_READ' },
-    { label: 'Roles', icon: 'security', route: '/roles', permission: 'ROLE_READ' },
-    { label: 'Usuarios', icon: 'manage_accounts', route: '/usuarios', permission: 'USER_READ' },
+    { label: 'SIDEBAR.DASHBOARD', icon: 'home', route: '/dashboard', permission: 'DASHBOARD_VIEW' },
+    { label: 'SIDEBAR.EMPLOYEES', icon: 'people', route: '/empleados', permission: 'EMPLEADO_READ' },
+    { label: 'SIDEBAR.CLIENTS', icon: 'assignment_ind', route: '/clientes', permission: 'CLIENTE_READ' },    
+    { label: 'SIDEBAR.PROJECTS', icon: 'work', route: '/proyectos', permission: 'PROYECTO_READ' },
+    { label: 'SIDEBAR.WORK_HOURS', icon: 'schedule', route: '/horas-trabajadas', permission: 'HORASTRABAJADAS_READ' },
+    { label: 'SIDEBAR.REPORTS', icon: 'assessment', route: '/reportes', permission: 'REPORTE_READ' },
+    { label: 'SIDEBAR.ROLES', icon: 'security', route: '/roles', permission: 'ROLE_READ' },
+    { label: 'SIDEBAR.USERS', icon: 'manage_accounts', route: '/usuarios', permission: 'USER_READ' },
   ];
 
   constructor() {
@@ -58,12 +58,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
         shareReplay()
       );
 
-    // If you need to react to changes and execute side effects (like console logs),
-    // you can still use toObservable and subscribe, but for simply displaying the values,
-    // the computed signals are sufficient and preferred.
-    // The previous subscription to `toObservable(this.authService.currentUser)` is no longer strictly necessary
-    // for updating `userName` and `userRole` because they are now `computed` signals.
-    // This makes the code cleaner and more Angular Signals-centric.
   }
 
   ngOnInit() {

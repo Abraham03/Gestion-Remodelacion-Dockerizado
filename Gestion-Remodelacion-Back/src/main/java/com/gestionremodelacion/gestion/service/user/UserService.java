@@ -17,6 +17,7 @@ import com.gestionremodelacion.gestion.dto.request.UserRequest;
 import com.gestionremodelacion.gestion.dto.response.UserResponse;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
 import com.gestionremodelacion.gestion.exception.DuplicateResourceException;
+import com.gestionremodelacion.gestion.exception.ErrorCatalog;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.UserMapper;
 import com.gestionremodelacion.gestion.model.Role;
@@ -75,13 +76,13 @@ public class UserService {
 
         if (authentication == null || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new IllegalStateException("No hay un usuario autenticado en la sesión actual.");
+            throw new IllegalStateException(ErrorCatalog.NO_AUTHENTICATED_USER.getKey());
         }
 
         String username = authentication.getName();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Usuario '" + username + "' autenticado pero no encontrado."));
+                        ErrorCatalog.AUTHENTICATED_USER_NOT_FOUND.getKey()));
     }
 
     @Transactional(readOnly = true)
@@ -91,7 +92,7 @@ public class UserService {
 
         return userRepository.findByIdAndEmpresaId(id, empresaId)
                 .map(userMapper::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
 
     }
 
@@ -101,7 +102,7 @@ public class UserService {
 
         // 1. Validar si el usuario ya existe
         if (userRepository.existsByUsername(userRequest.getUsername())) {
-            throw new DuplicateResourceException("El nombre de usuario '" + userRequest.getUsername() + "' ya existe.");
+            throw new DuplicateResourceException(ErrorCatalog.USERNAME_ALREADY_EXISTS.getKey());
         }
 
         User newUser = userMapper.toEntity(userRequest);
@@ -114,7 +115,7 @@ public class UserService {
 
         Set<Role> roles = userRequest.getRoles().stream()
                 .map(roleId -> roleRepository.findById(roleId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + roleId)))
+                        .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey())))
                 .collect(Collectors.toSet());
         newUser.setRoles(roles);
 
@@ -129,13 +130,13 @@ public class UserService {
 
         // 1. Validar si el usuario existe
         User existingUser = userRepository.findByIdAndEmpresaId(id, empresaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
 
         // 2. Validar si el nombre de usuario ya existe
         if (!existingUser.getUsername().equals(userRequest.getUsername()) &&
                 userRepository.existsByUsername(userRequest.getUsername())) {
             throw new DuplicateResourceException(
-                    "El nombre de usuario '" + userRequest.getUsername() + "' ya está en uso.");
+                    ErrorCatalog.USERNAME_ALREADY_EXISTS.getKey());
         }
 
         // 3. Actualizar el nombre y el estado
@@ -152,7 +153,7 @@ public class UserService {
         if (userRequest.getRoles() != null && !userRequest.getRoles().isEmpty()) {
             updatedRoles = userRequest.getRoles().stream()
                     .map(roleId -> roleRepository.findById(roleId)
-                            .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + roleId)))
+                            .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey())))
                     .collect(Collectors.toSet());
         }
         // 6. Asignar los nuevos roles al usuario
@@ -168,10 +169,10 @@ public class UserService {
         Long empresaId = currentUser.getEmpresa().getId();
 
         User userToDelete = userRepository.findByIdAndEmpresaId(id, empresaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
 
         if (currentUser.getId().equals(id)) {
-            throw new BusinessRuleException("No puedes eliminar tu propia cuenta.");
+            throw new BusinessRuleException(ErrorCatalog.CANNOT_DELETE_OWN_ACCOUNT.getKey());
         }
 
         refreshTokenRepository.deleteByUser(userToDelete);
@@ -184,11 +185,11 @@ public class UserService {
         Long empresaId = currentUser.getEmpresa().getId();
 
         User existingUser = userRepository.findByIdAndEmpresaId(id, empresaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
 
         Set<Role> newRoles = roleIds.stream()
                 .map(roleId -> roleRepository.findById(roleId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con ID: " + roleId)))
+                        .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey())))
                 .collect(Collectors.toSet());
 
         existingUser.setRoles(newRoles);

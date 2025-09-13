@@ -45,7 +45,7 @@ public class User {
     @Column(nullable = false)
     private boolean enabled = true;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_empresa", nullable = false)
     private Empresa empresa;
 
