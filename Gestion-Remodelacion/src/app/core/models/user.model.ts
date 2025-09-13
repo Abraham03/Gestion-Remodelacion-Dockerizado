@@ -15,6 +15,7 @@ export interface User {
   authorities: string[]; // Si tu backend aún envía una lista plana de strings de autoridades, inclúyela aquí.
   empresaId: number;
   plan: string;
+  logoUrl?: string;
 }
 
 // Para la petición de creación/actualización, podemos enviar solo nombres de roles

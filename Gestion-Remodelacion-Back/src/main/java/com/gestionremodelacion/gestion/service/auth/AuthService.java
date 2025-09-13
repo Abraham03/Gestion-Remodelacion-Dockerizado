@@ -74,7 +74,8 @@ public class AuthService {
                     jwtUtils.getExpirationDateFromToken(jwtToken),
                     refreshToken.getToken(),
                     userDetails.getEmpresa().getId(),
-                    userDetails.getEmpresa().getPlan().toString());
+                    userDetails.getEmpresa().getPlan().toString(),
+                    userDetails.getEmpresa().getLogoUrl());
 
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("Credenciales inválidas");
@@ -116,7 +117,8 @@ public class AuthService {
                 jwtUtils.getExpirationDateFromToken(newJwtToken),
                 refreshToken.getToken(),
                 user.getEmpresa().getId(),
-                user.getEmpresa().getPlan().toString());
+                user.getEmpresa().getPlan().toString(),
+                user.getEmpresa().getLogoUrl());
     }
 
     @Transactional

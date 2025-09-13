@@ -22,7 +22,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 export class SidebarComponent implements OnInit, OnDestroy {
   @Input() isSidebarOpen = true;
 
-  private authService = inject(AuthService);
+  protected authService = inject(AuthService);
   private sidebarService = inject(SidebarService);
   private breakpointObserver = inject(BreakpointObserver);
 

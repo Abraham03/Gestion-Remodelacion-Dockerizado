@@ -16,9 +16,10 @@ public class AuthResponse {
     private final String refreshToken;
     private final Long empresaId;
     private final String plan;
+    private final String logoUrl;
 
     public AuthResponse(String token, Long id, String username, List<String> authorities, List<String> roles,
-            Date expirationDate, String refreshToken, Long empresaId, String plan) {
+            Date expirationDate, String refreshToken, Long empresaId, String plan, String logoUrl) {
         this.token = token;
         this.id = id;
         this.username = username;
@@ -28,6 +29,7 @@ public class AuthResponse {
         this.refreshToken = refreshToken;
         this.empresaId = empresaId;
         this.plan = plan;
+        this.logoUrl = logoUrl;
     }
 
     // Getters
@@ -69,5 +71,9 @@ public class AuthResponse {
 
     public String getPlan() {
         return plan;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
     }
 }

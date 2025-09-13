@@ -1,5 +1,7 @@
 <div class="logo-container">
-    <img src="assets/images/logo_GBS.png" alt="'SIDEBAR.LOGO_ALT' | translate" class="app-logo" *ngIf="isSidebarOpen" />
+    <img [src]="authService.currentUserEmpresaLogo()" 
+         [alt]="'SIDEBAR.LOGO_ALT' | translate" 
+         class="app-logo" *ngIf="isSidebarOpen" />
 </div>
 
 <mat-nav-list>

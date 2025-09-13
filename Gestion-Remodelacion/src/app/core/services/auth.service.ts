@@ -13,10 +13,14 @@ export class AuthService implements OnDestroy {
   private _currentUser = signal<User | null>(null);
   currentUser = this._currentUser.asReadonly();
 
+  // Si el usuario está autenticado
   isAuthenticated = computed(() => !!this._currentUser());
+  // Si el usuario tiene permisos
   userPermissions = computed(() => this._currentUser()?.authorities || []);
-  userRoles = computed(() => this._currentUser()?.roles || []); // ⭐️ Ahora devuelve Role[]
-
+  // Si el usuario tiene roles
+  userRoles = computed(() => this._currentUser()?.roles || []); 
+  // Informacion de la empresa, Logo, Plan y Id
+  currentUserEmpresaLogo = computed(() => this._currentUser()?.logoUrl || null);
   currentUserPlan = computed(() => this._currentUser()?.plan || null);
   currentUserEmpresaId = computed(() => this._currentUser()?.empresaId || null);
 
@@ -155,7 +159,8 @@ export class AuthService implements OnDestroy {
       accountNonLocked: true,
       credentialsNonExpired: true,
       empresaId: response.empresaId,
-      plan: response.plan
+      plan: response.plan,
+      logoUrl: response.logoUrl
     };
   }
 

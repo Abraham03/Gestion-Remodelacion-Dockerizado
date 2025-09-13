@@ -11,5 +11,6 @@ export interface AuthResponse {
     roles: string[]; // CRÍTICO: Cambiado de authorities: string[] a roles: Role[]
    enabled: boolean; // Para habilitar/deshabilitar el usuario
     empresaId: number;
-    plan: string
+    plan: string,
+    logoUrl?: string
   }

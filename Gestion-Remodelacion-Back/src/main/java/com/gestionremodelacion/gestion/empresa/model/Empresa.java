@@ -13,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -85,6 +86,10 @@ public class Empresa {
     @UpdateTimestamp
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
+
+    @Lob // Define el campo como un objeto grande, ideal para URLs largas.
+    @Column(name = "logo_url")
+    private String logoUrl;
 
     @PrePersist
     protected void onCreate() {
@@ -191,6 +196,14 @@ public class Empresa {
 
     public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
         this.fechaActualizacion = fechaActualizacion;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 
 }
