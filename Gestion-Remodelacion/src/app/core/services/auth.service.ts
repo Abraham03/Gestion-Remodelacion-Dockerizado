@@ -7,12 +7,20 @@ import { User, UserRequest } from '../models/user.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthResponse } from '../../modules/auth/models/auth-response.model';
 import { Role } from '../models/role.model';
+import { CacheService } from './cache.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService implements OnDestroy {
   private _currentUser = signal<User | null>(null);
-  currentUser = this._currentUser.asReadonly();
+  private destroy$ = new Subject<void>();
+  private readonly SESSION_WARNING_TIME = 5 * 60 * 1000;
+  private readonly CHECK_INTERVAL = 60 * 1000;
+  private sessionWarningShown = false;
 
+
+  
+  
+  currentUser = this._currentUser.asReadonly();
   // Si el usuario está autenticado
   isAuthenticated = computed(() => !!this._currentUser());
   // Si el usuario tiene permisos
@@ -26,15 +34,13 @@ export class AuthService implements OnDestroy {
   currentUserEmpresaNombre = computed(() => this._currentUser()?.nombreEmpresa || '');
 
 
-  private destroy$ = new Subject<void>();
-  private readonly SESSION_WARNING_TIME = 5 * 60 * 1000;
-  private readonly CHECK_INTERVAL = 60 * 1000;
-  private sessionWarningShown = false;
+
 
   constructor(
     private authApi: AuthApiService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cacheService: CacheService
   ) {
     this.loadUserFromStorage();
     this.startTokenValidation();
@@ -78,11 +84,23 @@ export class AuthService implements OnDestroy {
   }
 
   logout(): void {
-    const refreshToken = this._currentUser()?.refreshToken;
+   const refreshToken = this._currentUser()?.refreshToken;
     if (refreshToken) {
-      this.authApi.revokeToken(refreshToken).subscribe();
+      // Se intenta revocar el token en el backend.
+      // Se usa catchError para que la limpieza del frontend ocurra incluso si esta llamada falla.
+      this.authApi.revokeToken(refreshToken).pipe(
+        catchError(() => []) // Ignora errores en el logout para no bloquear la limpieza.
+      ).subscribe();
     }
+
+    // 1. Limpia el estado de autenticación (localStorage y signal).
     this.clearAuthState();
+    
+    // 2. ✅ ¡MEJORA CRÍTICA! Invalida todo el caché.
+    // Esto fuerza a que el próximo usuario que inicie sesión tenga que pedir datos frescos al backend.
+    this.cacheService.invalidateAll();
+    
+    // 3. Redirige al login.
     this.router.navigate(['/login']);
   }
 

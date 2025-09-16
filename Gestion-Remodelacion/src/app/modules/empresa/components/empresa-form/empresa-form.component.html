@@ -1,64 +1,91 @@
 <h2 mat-dialog-title>{{ (isEditMode ? 'EMPRESAS.EDIT_EMPRESA' : 'EMPRESAS.CREATE_EMPRESA') | translate }}</h2>
 
 <form [formGroup]="empresaForm" (ngSubmit)="onSubmit()">
-  <mat-dialog-content class="mat-typography form-content">
+  <mat-dialog-content class="form-container">
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'EMPRESAS.NAME' | translate }}</mat-label>
-      <input matInput formControlName="nombreEmpresa" required>
-      <mat-error *ngIf="empresaForm.get('nombreEmpresa')?.hasError('required')">{{ 'EMPRESAS.NAME_REQUIRED' | translate }}</mat-error>
-    </mat-form-field>
-
-    <div class="form-row">
+    <div class="form-section">
+      <h3 class="section-title">{{ 'EMPRESAS.GENERAL_INFO' | translate }}</h3>
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'EMPRESAS.PLAN' | translate }}</mat-label>
-        <mat-select formControlName="plan" required>
-          <mat-option *ngFor="let plan of planes" [value]="plan">
-            {{ 'EMPRESAS.PLANS.' + plan | translate }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="empresaForm.get('plan')?.hasError('required')">{{ 'EMPRESAS.PLAN_REQUIRED' | translate }}</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'EMPRESAS.SUBSCRIPTION_STATUS' | translate }}</mat-label>
-        <mat-select formControlName="estadoSuscripcion" required>
-          <mat-option *ngFor="let estado of estadosSuscripcion" [value]="estado">
-            {{ 'EMPRESAS.STATUS.' + estado | translate }}
-          </mat-option>
-        </mat-select>
+        <mat-label>{{ 'EMPRESAS.NAME' | translate }}</mat-label>
+        <input matInput formControlName="nombreEmpresa" required>
+        <mat-error *ngIf="empresaForm.get('nombreEmpresa')?.hasError('required')">
+          {{ 'EMPRESAS.NAME_REQUIRED' | translate }}
+        </mat-error>
       </mat-form-field>
     </div>
 
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'EMPRESAS.START_DATE' | translate }}</mat-label>
-        <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicioSuscripcion">
-        <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
-        <mat-datepicker #pickerInicio></mat-datepicker>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'EMPRESAS.EXPIRATION_DATE' | translate }}</mat-label>
-        <input matInput [matDatepicker]="pickerFin" formControlName="fechaFinSuscripcion">
-        <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
-        <mat-datepicker #pickerFin></mat-datepicker>
-      </mat-form-field>
+    <div class="form-section">
+      <h3 class="section-title">{{ 'EMPRESAS.SUBSCRIPTION' | translate }}</h3>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="flex-item">
+          <mat-label>{{ 'EMPRESAS.PLAN' | translate }}</mat-label>
+          <mat-select formControlName="plan" required>
+            <mat-option *ngFor="let plan of planes" [value]="plan">
+              {{ 'EMPRESAS.PLANS.' + plan | translate }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="empresaForm.get('plan')?.hasError('required')">
+            {{ 'EMPRESAS.PLAN_REQUIRED' | translate }}
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="flex-item">
+          <mat-label>{{ 'EMPRESAS.SUBSCRIPTION_STATUS' | translate }}</mat-label>
+          <mat-select formControlName="estadoSuscripcion" required>
+            <mat-option *ngFor="let estado of estadosSuscripcion" [value]="estado">
+              {{ 'EMPRESAS.STATUS.' + estado | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="flex-item">
+          <mat-label>{{ 'EMPRESAS.START_DATE' | translate }}</mat-label>
+          <input matInput [matDatepicker]="pickerInicio" formControlName="fechaInicioSuscripcion">
+          <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+          <mat-datepicker #pickerInicio></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="flex-item">
+          <mat-label>{{ 'EMPRESAS.EXPIRATION_DATE' | translate }}</mat-label>
+          <input matInput [matDatepicker]="pickerFin" formControlName="fechaFinSuscripcion">
+          <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFin></mat-datepicker>
+        </mat-form-field>
+      </div>
     </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ 'EMPRESAS.LOGO_URL' | translate }}</mat-label>
-      <input matInput formControlName="logoUrl">
-    </mat-form-field>
-
-    <mat-checkbox formControlName="activo">{{ 'GLOBAL.ACTIVE' | translate }}</mat-checkbox>
+    <div class="form-section">
+        <h3 class="section-title">{{ 'EMPRESAS.LOGO' | translate }}</h3>
+        <div *ngIf="empresaForm.get('logoUrl')?.value && !selectedFile" class="logo-preview">
+            <img [src]="empresaForm.get('logoUrl')?.value" alt="Logo Preview">
+        </div>
+        <mat-form-field appearance="outline" class="full-width" *ngIf="!selectedFile">
+            <mat-label>{{ 'EMPRESAS.LOGO_URL' | translate }}</mat-label>
+            <input matInput formControlName="logoUrl">
+        </mat-form-field>
+        <div class="file-upload-container" *ngIf="!empresaForm.get('logoUrl')?.value">
+            <button mat-stroked-button type="button" (click)="fileInput.click()">
+                <mat-icon>upload_file</mat-icon>
+                <span>{{ 'EMPRESAS.UPLOAD_LOGO' | translate }}</span>
+            </button>
+            <input hidden #fileInput type="file" (change)="onFileSelected($event)" accept="image/*">
+        </div>
+        <div *ngIf="selectedFile" class="selected-file-chip">
+            <mat-icon>image</mat-icon>
+            <span class="file-name">{{ selectedFile.name }}</span>
+            <button mat-icon-button type="button" (click)="clearSelectedFile()" [matTooltip]="'GLOBAL.DELETE' | translate">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+    </div>
+    
+    <mat-checkbox formControlName="activo" class="status-checkbox">{{ 'GLOBAL.ACTIVE' | translate }}</mat-checkbox>
 
   </mat-dialog-content>
 
-  <mat-dialog-actions align="end" class="form-actions">
-    <button mat-flat-button color="warn" type="button" (click)="onCancel()">{{ 'GLOBAL.CANCEL' | translate }}</button>
-    <button mat-flat-button color="primary" type="submit" [disabled]="empresaForm.invalid">
-      {{ (isEditMode ? 'GLOBAL.UPDATE' : 'GLOBAL.SAVE') | translate }}
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">{{ 'GLOBAL.CANCEL' | translate }}</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="empresaForm.invalid">
+      {{ (isEditMode ? 'GLOBAL.UPDATE' : 'GLOBAL.CREATE') | translate }}
     </button>
   </mat-dialog-actions>
 </form>

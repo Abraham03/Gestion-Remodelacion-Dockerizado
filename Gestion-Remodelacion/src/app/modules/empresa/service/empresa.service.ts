@@ -63,6 +63,19 @@ export class EmpresaService extends BaseService<Empresa> {
     return this.http.patch<void>(`${this.apiUrl}/${id}/status`, null, { params });
   }
 
+  /**
+   * MÉTODO PARA SUBIR EL LOGO
+   * @param id El ID de la empresa
+   * @param file El archivo de imagen a subir
+   */
+  public uploadLogo(id: number, file: File): Observable<string> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    // Hacemos un POST al nuevo endpoint: /api/empresas/{id}/logo
+    return this.http.post(`${this.apiUrl}/${id}/logo`, formData, { responseType: 'text' });
+  }  
+
   getAllEmpresasForForm(): Observable<EmpresaDropdown[]> {
     const params = new HttpParams()
       .set('page', '0')

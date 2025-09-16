@@ -35,9 +35,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
         Optional<User> findByIdAndEmpresaId(Long id, Long empresaId);
 
-        @Query("SELECT u FROM User u WHERE u.empresa.id = :empresaId AND " +
-                        "(:filter IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :filter, '%')))")
-        Page<User> findByEmpresaIdAndFilter(
+        @Query("SELECT u FROM User u JOIN u.roles r WHERE u.empresa.id = :empresaId " +
+                        "AND NOT EXISTS (SELECT r2 FROM u.roles r2 WHERE r2.name = 'ROLE_SUPER_ADMIN') " +
+                        "AND (:filter IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :filter, '%')))")
+        Page<User> findByEmpresaIdAndFilterExcludingSuperAdmin(
                         @Param("empresaId") Long empresaId,
                         @Param("filter") String filter,
                         Pageable pageable);

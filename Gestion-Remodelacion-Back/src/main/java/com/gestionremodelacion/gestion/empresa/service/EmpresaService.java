@@ -1,11 +1,15 @@
 package com.gestionremodelacion.gestion.empresa.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.gestionremodelacion.gestion.empresa.dto.EmpresaRequest;
 import com.gestionremodelacion.gestion.empresa.dto.EmpresaResponse;
@@ -17,6 +21,7 @@ import com.gestionremodelacion.gestion.exception.ErrorCatalog;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.EmpresaMapper;
 import com.gestionremodelacion.gestion.repository.UserRepository;
+import com.gestionremodelacion.gestion.service.FileUploadService;
 
 import jakarta.transaction.Transactional;
 
@@ -26,12 +31,14 @@ public class EmpresaService {
     private final EmpresaRepository empresaRepository;
     private final UserRepository userRepository;
     private final EmpresaMapper empresaMapper;
+    private final FileUploadService fileUploadService;
 
     public EmpresaService(EmpresaRepository empresaRepository, UserRepository userRepository,
-            EmpresaMapper empresaMapper) {
+            EmpresaMapper empresaMapper, @Autowired(required = false) @Nullable FileUploadService fileUploadService) {
         this.empresaRepository = empresaRepository;
         this.userRepository = userRepository;
         this.empresaMapper = empresaMapper;
+        this.fileUploadService = fileUploadService;
     }
 
     @Transactional
@@ -53,6 +60,9 @@ public class EmpresaService {
             throw new DuplicateResourceException(ErrorCatalog.COMPANY_NAME_ALREADY_EXISTS.getKey());
         }
         Empresa nuevaEmpresa = empresaMapper.toEntity(empresaRequest);
+        // El logoUrl se asigna directamente desde el request (si el super admin lo
+        // proporciona)
+        nuevaEmpresa.setLogoUrl(empresaRequest.getLogoUrl());
         return empresaMapper.toDto(empresaRepository.save(nuevaEmpresa));
     }
 
@@ -69,7 +79,7 @@ public class EmpresaService {
                     }
                 });
 
-        empresaExistente.setNombreEmpresa(empresaRequest.getNombreEmpresa());
+        empresaMapper.updateEntityFromDto(empresaRequest, empresaExistente);
         return empresaMapper.toDto(empresaRepository.save(empresaExistente));
     }
 
@@ -97,6 +107,34 @@ public class EmpresaService {
         return empresaRepository.findAll().stream()
                 .map(empresaMapper::toDto) // Necesitarás crear este DTO y el mapeo
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * MÉTODO PARA EL SUPER ADMIN
+     * Sube un archivo de logo para una empresa específica y guarda la URL.
+     *
+     * @param empresaId El ID de la empresa a la que pertenece el logo.
+     * @param file      El archivo del logo enviado.
+     * @return La URL pública del logo subido.
+     * @throws IOException Si ocurre un error al subir el archivo.
+     */
+    @Transactional
+    public String uploadAndSetLogo(Long empresaId, MultipartFile file) throws IOException {
+        if (fileUploadService == null) {
+            throw new IllegalStateException(
+                    "La funcionalidad de subida de archivos no está habilitada en este entorno.");
+        }
+        Empresa empresa = empresaRepository.findById(empresaId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.COMPANY_NOT_FOUND.getKey()));
+
+        // La lógica de subida de archivo ahora está contenida y maneja sus propios
+        // errores.
+        String logoUrl = fileUploadService.uploadFile(file);
+
+        empresa.setLogoUrl(logoUrl);
+        empresaRepository.save(empresa);
+
+        return logoUrl;
     }
 
 }

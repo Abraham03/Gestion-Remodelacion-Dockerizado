@@ -6,6 +6,7 @@
     "DELETE": "Delete",
     "DEACTIVATE": "Deactivate",
     "CREATE": "Create",
+    "COMPANY": "Company",
     "UPDATE": "Update",
     "ACTIONS": "Actions",
     "CLOSE": "Close",
@@ -51,7 +52,7 @@
     "EMPRESAS": "Companies"
   },
   "FOOTER": {
-    "COPYRIGHT": "© {{year}} GBS RENOVATIONS LLC. All rights reserved."
+    "COPYRIGHT": "© {{year}} TECH SOLUTIONS LLC. All rights reserved."
   },
     "MONTHS": {
       "FULL_YEAR": "Full Year",
@@ -292,7 +293,8 @@
     "VALIDATION_ERROR": "Please complete all required fields.",
     "USERNAME_REQUIRED": "Username is required.",
     "PASSWORD_REQUIRED": "Password is required.",
-    "ROLES_REQUIRED": "At least one role must be assigned."
+    "ROLES_REQUIRED": "At least one role must be assigned.",
+    "COMPANY_REQUIRED": "Company is required."
   },
   "ROLES": {
     "MANAGEMENT": "Role Management",
@@ -324,26 +326,25 @@
   "EMPRESAS": {
     "MANAGEMENT": "Company Management",
     "SEARCH_EMPRESA": "Search company",
-    "PLACEHOLDER_SEARCH": "E.g. GBS Renovations LLC",
+    "PLACEHOLDER_SEARCH": "E.g. Tech Solutions LLC",
     "ADD_EMPRESA": "Add Company",
     "EDIT_EMPRESA": "Edit Company",
     "CREATE_EMPRESA": "New Company",
+    "GENERAL_INFO": "General Information",
+    "SUBSCRIPTION": "Subscription",
+    "LOGO": "Logo",
     "NAME": "Company Name",
     "PLAN": "Plan",
     "SUBSCRIPTION_STATUS": "Subscription Status",
+    "START_DATE": "Start Date",
     "EXPIRATION_DATE": "Expiration Date",
+    "LOGO_URL": "Logo URL",
+    "UPLOAD_LOGO": "Upload Logo",
     "NO_EMPRESAS_FOUND": "No companies found.",
     "NAME_REQUIRED": "Company name is required.",
     "PLAN_REQUIRED": "Plan is required.",
-    "START_DATE": "Start Date",
-    "LOGO_URL": "Logo URL",
-    "CONFIRM_ACTIVATE": "Are you sure you want to activate this company?",
-    "CONFIRM_DEACTIVATE": "Are you sure you want to deactivate this company?",
-    "SUCCESSFULLY_ACTIVATED": "Company activated successfully.",
-    "SUCCESSFULLY_DEACTIVATED": "Company deactivated successfully.",
     "SUCCESSFULLY_CREATED": "Company created successfully.",
     "SUCCESSFULLY_UPDATED": "Company updated successfully.",
-    "ERROR_LOADING": "Error loading companies.",
     "PLANS": {
       "BASICO": "Basic",
       "NEGOCIOS": "Business",
@@ -401,6 +402,18 @@
     },
     "workLog": {
       "notFound": "The work log entry was not found."
+    },
+    "company": {
+      "notFound": "The requested company was not found.",
+      "nameExists": "A company with this name already exists.",
+      "hasAssociatedUsers": "Cannot delete: This company has associated users."
+    },
+    "file": {
+      "upload": "An error occurred while uploading the file. Please try again.",
+      "empty": "The selected file cannot be empty.",
+      "sizeExceeded": "The file size cannot exceed 5MB.",
+      "invalidType": "Invalid file type. Only images (png, jpg, gif, webp) are allowed."
     }
+  }    
   }
-}
+

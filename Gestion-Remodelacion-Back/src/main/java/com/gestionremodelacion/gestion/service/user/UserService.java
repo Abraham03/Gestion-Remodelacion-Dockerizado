@@ -69,7 +69,8 @@ public class UserService {
                 return Page.empty(pageable);
             }
             Long empresaId = currentUser.getEmpresa().getId();
-            usersPage = userRepository.findByEmpresaIdAndFilter(empresaId, effectiveFilter, pageable);
+            usersPage = userRepository.findByEmpresaIdAndFilterExcludingSuperAdmin(empresaId, effectiveFilter,
+                    pageable);
         }
 
         return usersPage.map(userMapper::toDto);

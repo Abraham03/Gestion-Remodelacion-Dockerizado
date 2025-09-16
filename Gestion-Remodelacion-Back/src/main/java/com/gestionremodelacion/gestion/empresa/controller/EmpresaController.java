@@ -1,5 +1,6 @@
 package com.gestionremodelacion.gestion.empresa.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.gestionremodelacion.gestion.empresa.dto.EmpresaRequest;
 import com.gestionremodelacion.gestion.empresa.dto.EmpresaResponse;
@@ -79,5 +81,14 @@ public class EmpresaController {
     public ResponseEntity<List<EmpresaResponse>> getAllEmpresasForDropdown() {
         List<EmpresaResponse> empresas = empresaService.findAllForDropdown();
         return ResponseEntity.ok(empresas);
+    }
+
+    @PostMapping("/{id}/logo")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<String> uploadLogo(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) throws IOException {
+        String logoUrl = empresaService.uploadAndSetLogo(id, file);
+        return ResponseEntity.ok(logoUrl);
     }
 }

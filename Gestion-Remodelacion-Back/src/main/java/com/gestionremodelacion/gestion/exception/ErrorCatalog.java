@@ -47,7 +47,13 @@ public enum ErrorCatalog {
     COMPANY_NOT_FOUND("error.company.notFound"),
     COMPANY_HAS_ASSOCIATED_USERS("error.company.hasAssociatedUsers"),
     COMPANY_NAME_ALREADY_EXISTS("error.company.nameExists"),
-    COMPANY_ID_REQUIRED("error.company.idRequired");
+    COMPANY_ID_REQUIRED("error.company.idRequired"),
+
+    // --- Errores de Subida de Archivos ---
+    FILE_UPLOAD_ERROR("error.file.upload"),
+    FILE_EMPTY("error.file.empty"),
+    FILE_SIZE_EXCEEDED("error.file.sizeExceeded"),
+    FILE_INVALID_TYPE("error.file.invalidType");
 
     private final String key;
 
