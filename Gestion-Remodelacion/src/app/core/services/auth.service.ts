@@ -19,10 +19,12 @@ export class AuthService implements OnDestroy {
   userPermissions = computed(() => this._currentUser()?.authorities || []);
   // Si el usuario tiene roles
   userRoles = computed(() => this._currentUser()?.roles || []); 
-  // Informacion de la empresa, Logo, Plan y Id
+  // Informacion de la empresa, Logo, Plan , Id y nombre de la empresa
   currentUserEmpresaLogo = computed(() => this._currentUser()?.logoUrl || null);
   currentUserPlan = computed(() => this._currentUser()?.plan || null);
   currentUserEmpresaId = computed(() => this._currentUser()?.empresaId || null);
+  currentUserEmpresaNombre = computed(() => this._currentUser()?.nombreEmpresa || '');
+
 
   private destroy$ = new Subject<void>();
   private readonly SESSION_WARNING_TIME = 5 * 60 * 1000;
@@ -97,6 +99,10 @@ export class AuthService implements OnDestroy {
     }
   }
 
+  public get isSuperAdmin(): boolean {
+    return this.hasRole('ROLE_SUPER_ADMIN');
+  }
+
   hasRole(roleName: string): boolean {
     // Buscar si algún objeto Role en el array tiene ese nombre
     return this.userRoles().some(role => role.name === roleName);
@@ -160,7 +166,8 @@ export class AuthService implements OnDestroy {
       credentialsNonExpired: true,
       empresaId: response.empresaId,
       plan: response.plan,
-      logoUrl: response.logoUrl
+      logoUrl: response.logoUrl,
+      nombreEmpresa: response.nombreEmpresa
     };
   }
 

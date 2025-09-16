@@ -1,6 +1,5 @@
 package com.gestionremodelacion.gestion.service.user;
 
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionremodelacion.gestion.dto.request.UserRequest;
 import com.gestionremodelacion.gestion.dto.response.UserResponse;
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
+import com.gestionremodelacion.gestion.empresa.repository.EmpresaRepository;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
 import com.gestionremodelacion.gestion.exception.DuplicateResourceException;
 import com.gestionremodelacion.gestion.exception.ErrorCatalog;
@@ -37,24 +38,40 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+    private final EmpresaRepository empresaRepository;
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder,
-            UserMapper userMapper, RefreshTokenRepository refreshTokenRepository) {
+            UserMapper userMapper, RefreshTokenRepository refreshTokenRepository, EmpresaRepository empresaRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.empresaRepository = empresaRepository;
     }
 
     @Transactional(readOnly = true)
     public Page<UserResponse> findAll(Pageable pageable, String filter) {
         User currentUser = getCurrentUser();
-        Long empresaId = currentUser.getEmpresa().getId();
+        boolean isSuperAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
 
         String effectiveFilter = (filter != null && !filter.trim().isEmpty()) ? filter.trim().toLowerCase() : null;
+        Page<User> usersPage;
 
-        Page<User> usersPage = userRepository.findByEmpresaIdAndFilter(empresaId, effectiveFilter, pageable);
+        if (isSuperAdmin) {
+            // El SUPER ADMIN ve a todos los usuarios de todas las empresas.
+            usersPage = userRepository.findAllWithFilter(effectiveFilter, pageable);
+        } else {
+            // Un ADMIN normal solo ve los usuarios de su propia empresa.
+            if (currentUser.getEmpresa() == null) {
+                // Si un usuario no-super-admin no tiene empresa, no debería ver a nadie.
+                return Page.empty(pageable);
+            }
+            Long empresaId = currentUser.getEmpresa().getId();
+            usersPage = userRepository.findByEmpresaIdAndFilter(empresaId, effectiveFilter, pageable);
+        }
+
         return usersPage.map(userMapper::toDto);
     }
 
@@ -88,27 +105,55 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse findById(Long id) {
         User currentUser = getCurrentUser();
-        Long empresaId = currentUser.getEmpresa().getId();
+        boolean isSuperAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
 
-        return userRepository.findByIdAndEmpresaId(id, empresaId)
-                .map(userMapper::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
-
+        if (isSuperAdmin) {
+            // El SUPER ADMIN puede buscar cualquier usuario por ID.
+            return userRepository.findById(id)
+                    .map(userMapper::toDto)
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
+        } else {
+            // El ADMIN normal solo puede buscar usuarios dentro de su empresa.
+            Long empresaId = currentUser.getEmpresa().getId();
+            return userRepository.findByIdAndEmpresaId(id, empresaId)
+                    .map(userMapper::toDto)
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
+        }
     }
 
     @Transactional
     public UserResponse createUser(UserRequest userRequest) {
-        User adminUser = getCurrentUser(); // El admin que crea al nuevo usuario
+        User currentUser = getCurrentUser(); // El admin que crea al nuevo usuario
 
-        // 1. Validar si el usuario ya existe
+        validateRoleAssignment(currentUser, userRequest.getRoles());
+
         if (userRepository.existsByUsername(userRequest.getUsername())) {
             throw new DuplicateResourceException(ErrorCatalog.USERNAME_ALREADY_EXISTS.getKey());
         }
 
         User newUser = userMapper.toEntity(userRequest);
-        // ASIGNACIÓN CLAVE: El nuevo usuario pertenece a la misma empresa que el admin
-        // que lo creó.
-        newUser.setEmpresa(adminUser.getEmpresa());
+
+        boolean isSuperAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
+
+        // --- LÓGICA CORREGIDA ---
+        if (isSuperAdmin) {
+            // Si es Super Admin, debe recibir el 'empresaId' en el request.
+            if (userRequest.getEmpresaId() == null) {
+                throw new BusinessRuleException(ErrorCatalog.COMPANY_ID_REQUIRED.getKey()); // Deberías crear este error
+                                                                                            // en tu catálogo
+            }
+            Empresa empresaAsignada = empresaRepository.findById(userRequest.getEmpresaId())
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.COMPANY_NOT_FOUND.getKey())); // Y
+                                                                                                                // este
+                                                                                                                // también
+            newUser.setEmpresa(empresaAsignada);
+        } else {
+            // Si es un Admin normal, se le asigna su propia empresa.
+            newUser.setEmpresa(currentUser.getEmpresa());
+        }
+        // --- FIN DE LA CORRECCIÓN ---
 
         newUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         newUser.setEnabled(userRequest.isEnabled());
@@ -126,39 +171,63 @@ public class UserService {
     @Transactional
     public UserResponse updateUser(Long id, UserRequest userRequest) {
         User currentUser = getCurrentUser();
-        Long empresaId = currentUser.getEmpresa().getId();
+        boolean isSuperAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
 
-        // 1. Validar si el usuario existe
-        User existingUser = userRepository.findByIdAndEmpresaId(id, empresaId)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
+        // 1. Validar que un ADMIN no pueda asignar el rol de SUPER_ADMIN
+        // Esta validación es crucial para la seguridad.
+        validateRoleAssignment(currentUser, userRequest.getRoles());
 
-        // 2. Validar si el nombre de usuario ya existe
-        if (!existingUser.getUsername().equals(userRequest.getUsername()) &&
-                userRepository.existsByUsername(userRequest.getUsername())) {
-            throw new DuplicateResourceException(
-                    ErrorCatalog.USERNAME_ALREADY_EXISTS.getKey());
+        // 2. Encontrar al usuario existente según el rol del editor
+        User existingUser;
+        if (isSuperAdmin) {
+            // El SUPER ADMIN puede editar cualquier usuario, lo busca solo por su ID.
+            existingUser = userRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
+        } else {
+            // Un ADMIN normal solo puede editar usuarios de su propia empresa.
+            if (currentUser.getEmpresa() == null) {
+                // Si por alguna razón un ADMIN no tiene empresa, no puede editar a nadie.
+                throw new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey());
+            }
+            Long empresaId = currentUser.getEmpresa().getId();
+            existingUser = userRepository.findByIdAndEmpresaId(id, empresaId)
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
         }
 
-        // 3. Actualizar el nombre y el estado
+        // 3. Validar si el nuevo nombre de usuario ya está en uso por OTRO usuario
+        if (!existingUser.getUsername().equals(userRequest.getUsername()) &&
+                userRepository.existsByUsername(userRequest.getUsername())) {
+            throw new DuplicateResourceException(ErrorCatalog.USERNAME_ALREADY_EXISTS.getKey());
+        }
+
+        // 4. Actualizar los campos básicos del usuario
         existingUser.setUsername(userRequest.getUsername());
         existingUser.setEnabled(userRequest.isEnabled());
 
-        // 4. Actualizar la clave solo si se proporciona
-        if (userRequest.getPassword() != null && !userRequest.getPassword().isEmpty()) {
+        // 5. Actualizar la contraseña solo si se proporciona una nueva
+        if (userRequest.getPassword() != null && !userRequest.getPassword().trim().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         }
 
-        Set<Role> updatedRoles = new HashSet<>();
-        // 5. Solo actualizar los roles si se proporcionan
-        if (userRequest.getRoles() != null && !userRequest.getRoles().isEmpty()) {
-            updatedRoles = userRequest.getRoles().stream()
+        // 6. Actualizar los roles
+        if (userRequest.getRoles() != null) {
+            Set<Role> updatedRoles = userRequest.getRoles().stream()
                     .map(roleId -> roleRepository.findById(roleId)
                             .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey())))
                     .collect(Collectors.toSet());
+            existingUser.setRoles(updatedRoles);
         }
-        // 6. Asignar los nuevos roles al usuario
-        existingUser.setRoles(updatedRoles);
-        // 7. Guardar los cambios
+
+        // 7. (FUNCIONALIDAD EXTRA PARA SUPER ADMIN) Permitir cambiar al usuario de
+        // empresa
+        if (isSuperAdmin && userRequest.getEmpresaId() != null) {
+            Empresa empresaAsignada = empresaRepository.findById(userRequest.getEmpresaId())
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.COMPANY_NOT_FOUND.getKey()));
+            existingUser.setEmpresa(empresaAsignada);
+        }
+
+        // 8. Guardar y devolver la respuesta
         User updatedUser = userRepository.save(existingUser);
         return userMapper.toDto(updatedUser);
     }
@@ -177,6 +246,23 @@ public class UserService {
 
         refreshTokenRepository.deleteByUser(userToDelete);
         userRepository.delete(userToDelete);
+    }
+
+    // MÉTODO PRIVADO PARA CENTRALIZAR LA VALIDACIÓN
+    private void validateRoleAssignment(User currentUser, Set<Long> requestedRoleIds) {
+        boolean isSuperAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
+
+        // Si el usuario que hace la petición NO es Super Admin...
+        if (!isSuperAdmin) {
+            // Buscamos si entre los roles solicitados está el de Super Admin
+            Optional<Role> superAdminRole = roleRepository.findByName("ROLE_SUPER_ADMIN");
+
+            if (superAdminRole.isPresent() && requestedRoleIds.contains(superAdminRole.get().getId())) {
+                // Si está, lanzamos una excepción porque no tiene permiso para asignarlo.
+                throw new BusinessRuleException(ErrorCatalog.SUPER_ADMIN_ROLE_ASSIGNMENT_NOT_ALLOWED.getKey());
+            }
+        }
     }
 
     @Transactional

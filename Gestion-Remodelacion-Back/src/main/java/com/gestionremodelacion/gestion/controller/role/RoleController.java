@@ -1,5 +1,7 @@
 package com.gestionremodelacion.gestion.controller.role;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -41,6 +43,14 @@ public class RoleController {
 
         Page<RoleResponse> rolesResponse = roleService.findAll(pageable, searchTerm);
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Roles obtenidos con éxito", rolesResponse));
+    }
+
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('USER_CREATE') or hasAuthority('USER_UPDATE')") // Permiso para crear/editar usuarios
+    public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRolesForForm() {
+        List<RoleResponse> roles = roleService.findAllForForm();
+        return ResponseEntity
+                .ok(new ApiResponse<>(HttpStatus.OK.value(), "Roles para formulario obtenidos con éxito", roles));
     }
 
     @GetMapping("/{id}") // NEW: Get Role by ID

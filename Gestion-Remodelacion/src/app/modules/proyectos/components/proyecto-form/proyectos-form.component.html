@@ -83,25 +83,25 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'PROJECTS.CONTRACT_AMOUNT' | translate }}</mat-label>
-            <input matInput type="number" formControlName="montoContrato" required min="0" />
+            <input matInput type="text" formControlName="montoContrato" appNumberFormat required min="0" />
             <mat-error *ngIf="form.get('montoContrato')?.hasError('required')">{{ 'PROJECTS.CONTRACT_AMOUNT_REQUIRED' | translate }}</mat-error>
             <mat-error *ngIf="form.get('montoContrato')?.hasError('min')">{{ 'PROJECTS.CONTRACT_AMOUNT_POSITIVE' | translate }}</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'PROJECTS.AMOUNT_RECEIVED' | translate }}</mat-label>
-            <input matInput type="number" formControlName="montoRecibido" min="0" />
+            <input matInput type="text" formControlName="montoRecibido" appNumberFormat min="0" />
             <mat-error *ngIf="form.get('montoRecibido')?.hasError('min')">{{ 'PROJECTS.AMOUNT_RECEIVED_POSITIVE' | translate }}</mat-error>
           </mat-form-field>
         </div>
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'PROJECTS.MATERIALS_COST' | translate }}</mat-label>
-            <input matInput type="number" formControlName="costoMaterialesConsolidado" min="0" />
+            <input matInput type="text" formControlName="costoMaterialesConsolidado" appNumberFormat min="0" />
             <mat-error *ngIf="form.get('costoMaterialesConsolidado')?.hasError('min')">{{ 'PROJECTS.MATERIALS_COST_POSITIVE' | translate }}</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'PROJECTS.OTHER_EXPENSES' | translate }}</mat-label>
-            <input matInput type="number" formControlName="otrosGastosDirectosConsolidado" min="0" />
+            <input matInput type="text" formControlName="otrosGastosDirectosConsolidado" appNumberFormat min="0" />
             <mat-error *ngIf="form.get('otrosGastosDirectosConsolidado')?.hasError('min')">{{ 'PROJECTS.OTHER_EXPENSES_POSITIVE' | translate }}</mat-error>
           </mat-form-field>
         </div>

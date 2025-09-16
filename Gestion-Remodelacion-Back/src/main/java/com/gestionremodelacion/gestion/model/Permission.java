@@ -2,6 +2,8 @@ package com.gestionremodelacion.gestion.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,6 +17,11 @@ import jakarta.persistence.Table;
 @Table(name = "permissions")
 public class Permission {
 
+    public enum PermissionScope {
+        PLATFORM, // Para Super Admin
+        TENANT // Para Admins de empresa
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,6 +31,10 @@ public class Permission {
 
     @Column(length = 500)
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PermissionScope scope = PermissionScope.TENANT; // Valor por defecto
 
     public Long getId() {
         return id;
@@ -47,6 +58,14 @@ public class Permission {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public PermissionScope getScope() {
+        return scope;
+    }
+
+    public void setScope(PermissionScope scope) {
+        this.scope = scope;
     }
 
 }

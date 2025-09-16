@@ -20,6 +20,8 @@ public class UserRequest {
 
     private boolean enabled;
 
+    private Long empresaId;
+
     public Long getId() {
         return id;
     }
@@ -59,6 +61,14 @@ public class UserRequest {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public Long getEmpresaId() {
+        return empresaId;
+    }
+
+    public void setEmpresaId(Long empresaId) {
+        this.empresaId = empresaId;
     }
 
 }

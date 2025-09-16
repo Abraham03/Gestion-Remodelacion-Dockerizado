@@ -16,6 +16,7 @@ export interface User {
   empresaId: number;
   plan: string;
   logoUrl?: string;
+  nombreEmpresa?: string;
 }
 
 // Para la petición de creación/actualización, podemos enviar solo nombres de roles

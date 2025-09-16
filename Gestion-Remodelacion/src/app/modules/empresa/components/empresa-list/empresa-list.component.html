@@ -1,0 +1,86 @@
+<div class="page-container">
+  <div class="table-header">
+    <h2>{{ 'EMPRESAS.MANAGEMENT' | translate }}</h2>
+    <div class="table-actions">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>{{ 'EMPRESAS.SEARCH_EMPRESA' | translate }}</mat-label>
+        <input matInput #input (keyup)="applyFilter(input.value)" [placeholder]="'EMPRESAS.PLACEHOLDER_SEARCH' | translate">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" *ngIf="canCreate" (click)="openForm()">
+        <mat-icon>add</mat-icon>
+        {{ 'EMPRESAS.ADD_EMPRESA' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" class="responsive-table" matSort (matSortChange)="onSortChange($event)">
+
+        <ng-container matColumnDef="nombreEmpresa">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPRESAS.NAME' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.nombreEmpresa }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="plan">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPRESAS.PLAN' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            <mat-chip-row [color]="getPlanChipColor(element.plan)" selected>
+              {{ 'EMPRESAS.PLANS.' + element.plan | translate }}
+            </mat-chip-row>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="estadoSuscripcion">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPRESAS.SUBSCRIPTION_STATUS' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+             <mat-chip-row [color]="getStatusChipColor(element.estadoSuscripcion)" selected>
+                {{ 'EMPRESAS.STATUS.' + element.estadoSuscripcion | translate }}
+             </mat-chip-row>
+          </td>
+        </ng-container>
+        
+        <ng-container matColumnDef="fechaFinSuscripcion">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPRESAS.EXPIRATION_DATE' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.fechaFinSuscripcion | date:'shortDate' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="activo">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'GLOBAL.STATUS' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            <mat-icon [ngClass]="{'active-icon': element.activo, 'inactive-icon': !element.activo}" [matTooltip]="(element.activo ? 'GLOBAL.ACTIVE' : 'GLOBAL.INACTIVE') | translate">
+              {{ element.activo ? 'check_circle' : 'cancel' }}
+            </mat-icon>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>{{ 'GLOBAL.ACTIONS' | translate }}</th>
+          <td mat-cell *matCellDef="let element" class="mat-column-acciones">
+            <button mat-icon-button color="primary" *ngIf="canEdit" (click)="openForm(element)" [matTooltip]="'GLOBAL.EDIT' | translate">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" *ngIf="canChangeStatus" (click)="changeStatus(element)" [matTooltip]="element.activo ? ('GLOBAL.DEACTIVATE' | translate) : ('GLOBAL.ACTIVATE' | translate)">
+              <mat-icon>{{ element.activo ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+            {{ 'EMPRESAS.NO_EMPRESAS_FOUND' | translate }}
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageIndex]="currentPage"
+      [pageSizeOptions]="[5, 10, 20, 50]" (page)="onPageChange($event)" showFirstLastButtons
+      class="table-paginator"></mat-paginator>
+  </div>
+</div>

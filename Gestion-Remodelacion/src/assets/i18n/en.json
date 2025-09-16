@@ -47,7 +47,8 @@
     "WORK_HOURS": "Work Hours",
     "REPORTS": "Reports",
     "ROLES": "Roles",
-    "USERS": "Users"
+    "USERS": "Users",
+    "EMPRESAS": "Companies"
   },
   "FOOTER": {
     "COPYRIGHT": "© {{year}} GBS RENOVATIONS LLC. All rights reserved."
@@ -320,6 +321,40 @@
     "ERROR_LOADING_PERMISSIONS": "Error loading the permissions list.",
     "VALIDATION_ERROR": "Please complete all required fields."
   },
+  "EMPRESAS": {
+    "MANAGEMENT": "Company Management",
+    "SEARCH_EMPRESA": "Search company",
+    "PLACEHOLDER_SEARCH": "E.g. GBS Renovations LLC",
+    "ADD_EMPRESA": "Add Company",
+    "EDIT_EMPRESA": "Edit Company",
+    "CREATE_EMPRESA": "New Company",
+    "NAME": "Company Name",
+    "PLAN": "Plan",
+    "SUBSCRIPTION_STATUS": "Subscription Status",
+    "EXPIRATION_DATE": "Expiration Date",
+    "NO_EMPRESAS_FOUND": "No companies found.",
+    "NAME_REQUIRED": "Company name is required.",
+    "PLAN_REQUIRED": "Plan is required.",
+    "START_DATE": "Start Date",
+    "LOGO_URL": "Logo URL",
+    "CONFIRM_ACTIVATE": "Are you sure you want to activate this company?",
+    "CONFIRM_DEACTIVATE": "Are you sure you want to deactivate this company?",
+    "SUCCESSFULLY_ACTIVATED": "Company activated successfully.",
+    "SUCCESSFULLY_DEACTIVATED": "Company deactivated successfully.",
+    "SUCCESSFULLY_CREATED": "Company created successfully.",
+    "SUCCESSFULLY_UPDATED": "Company updated successfully.",
+    "ERROR_LOADING": "Error loading companies.",
+    "PLANS": {
+      "BASICO": "Basic",
+      "NEGOCIOS": "Business",
+      "PROFESIONAL": "Professional"
+    },
+    "STATUS": {
+      "ACTIVA": "Active",
+      "CANCELADA": "Canceled",
+      "VENCIDA": "Expired"
+    }
+  },  
   "FORBIDDEN": {
     "ACCESS_DENIED": "Access Denied",
     "MESSAGE_1": "Sorry, you do not have the necessary permissions to access this page.",

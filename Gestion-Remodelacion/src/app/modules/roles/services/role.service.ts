@@ -48,6 +48,19 @@ export class RoleService extends BaseService<Role>{
       );
   }
 
+  findAllForForm(): Observable<Role[]> {
+    const params = new HttpParams()
+      .set('page', '0')
+      .set('size', '1000'); // Pedimos hasta 1000 roles, suficiente para un dropdown
+
+    return this.http.get<ApiResponse<Page<Role>>>(this.apiUrl, { params }).pipe(
+      map(response => {
+        const page = this.extractPageData(response);
+        return page.content; // Extraemos solo el contenido de la página
+      })
+    );
+  }
+
   getRoleById(id: number): Observable<Role> {
     // Aquí también asumimos que la respuesta es ApiResponse<Role> y extraemos 'data'
     return this.http

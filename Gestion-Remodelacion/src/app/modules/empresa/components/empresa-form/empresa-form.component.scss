@@ -1,0 +1,14 @@
+// src/app/modules/empresas/components/empresa-form/empresa-form.component.scss
+
+@use '../../../../../styles/abstracts/mixins';
+@use '../../../../../styles/components/forms';
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  
+  @include mixins.respond-to(mobile) {
+    flex-direction: column;
+    gap: 0;
+  }
+}

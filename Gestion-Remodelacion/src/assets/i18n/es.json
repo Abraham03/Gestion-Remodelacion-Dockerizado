@@ -47,7 +47,9 @@
     "WORK_HOURS": "Horas Trabajadas",
     "REPORTS": "Reportes",
     "ROLES": "Roles",
-    "USERS": "Usuarios"
+    "USERS": "Usuarios",
+    "EMPRESAS": "Empresas"
+
   },
   "FOOTER": {
     "COPYRIGHT": "© {{year}} GBS RENOVATIONS LLC. Todos los derechos reservados."
@@ -320,6 +322,40 @@
     "ERROR_LOADING_PERMISSIONS": "Error al cargar la lista de permisos.",
     "VALIDATION_ERROR": "Por favor, complete todos los campos requeridos."
   },
+  "EMPRESAS": {
+    "MANAGEMENT": "Gestión de Empresas",
+    "SEARCH_EMPRESA": "Buscar empresa",
+    "PLACEHOLDER_SEARCH": "Ej. GBS Renovations LLC",
+    "ADD_EMPRESA": "Agregar Empresa",
+    "EDIT_EMPRESA": "Editar Empresa",
+    "CREATE_EMPRESA": "Nueva Empresa",
+    "NAME": "Nombre de la Empresa",
+    "PLAN": "Plan",
+    "SUBSCRIPTION_STATUS": "Estado de Suscripción",
+    "EXPIRATION_DATE": "Fecha de Vencimiento",
+    "NO_EMPRESAS_FOUND": "No se encontraron empresas.",
+    "NAME_REQUIRED": "El nombre de la empresa es obligatorio.",
+    "PLAN_REQUIRED": "El plan es obligatorio.",
+    "START_DATE": "Fecha de Inicio",
+    "LOGO_URL": "URL del Logo",
+    "CONFIRM_ACTIVATE": "¿Estás seguro de activar esta empresa?",
+    "CONFIRM_DEACTIVATE": "¿Estás seguro de desactivar esta empresa?",
+    "SUCCESSFULLY_ACTIVATED": "Empresa activada exitosamente.",
+    "SUCCESSFULLY_DEACTIVATED": "Empresa desactivada exitosamente.",
+    "SUCCESSFULLY_CREATED": "Empresa creada exitosamente.",
+    "SUCCESSFULLY_UPDATED": "Empresa actualizada exitosamente.",
+    "ERROR_LOADING": "Error al cargar las empresas.",
+    "PLANS": {
+      "BASICO": "Básico",
+      "NEGOCIOS": "Negocios",
+      "PROFESIONAL": "Profesional"
+    },
+    "STATUS": {
+      "ACTIVA": "Activa",
+      "CANCELADA": "Cancelada",
+      "VENCIDA": "Vencida"
+    }
+  },  
   "FORBIDDEN": {
     "ACCESS_DENIED": "Acceso Denegado",
     "MESSAGE_1": "Lo sentimos, no tienes los permisos necesarios para acceder a esta página.",

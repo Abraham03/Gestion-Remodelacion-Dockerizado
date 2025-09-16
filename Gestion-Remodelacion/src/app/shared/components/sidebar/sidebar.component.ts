@@ -49,6 +49,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { label: 'SIDEBAR.REPORTS', icon: 'assessment', route: '/reportes', permission: 'REPORTE_READ' },
     { label: 'SIDEBAR.ROLES', icon: 'security', route: '/roles', permission: 'ROLE_READ' },
     { label: 'SIDEBAR.USERS', icon: 'manage_accounts', route: '/usuarios', permission: 'USER_READ' },
+    { label: 'SIDEBAR.EMPRESAS', icon: 'business', route: '/empresas', permission: 'EMPRESA_READ' },
+
   ];
 
   constructor() {

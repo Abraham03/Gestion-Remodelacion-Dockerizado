@@ -81,18 +81,27 @@ public class ProyectoService {
                     .orElseThrow(() -> new BusinessRuleException(
                             ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
         }
+        // 1. El mapper ya debería transferir todos los valores del request,
+        // incluyendo montoRecibido, costoMateriales, etc.
         Proyecto proyecto = proyectoMapper.toProyecto(proyectoRequest);
+        // 2. Asigna las entidades relacionadas
         proyecto.setEmpresa(currentUser.getEmpresa());
         proyecto.setCliente(cliente);
         proyecto.setEmpleadoResponsable(empleadoResponsable);
 
-        proyecto.setMontoRecibido(BigDecimal.ZERO);
+        // 3. Asignar valores por defecto si no se proporcionan
+        proyecto.setMontoRecibido(proyectoRequest.getMontoRecibido() != null
+                ? proyectoRequest.getMontoRecibido()
+                : BigDecimal.ZERO);
+
         proyecto.setCostoMaterialesConsolidado(proyectoRequest.getCostoMaterialesConsolidado() != null
                 ? proyectoRequest.getCostoMaterialesConsolidado()
                 : BigDecimal.ZERO);
         proyecto.setOtrosGastosDirectosConsolidado(proyectoRequest.getOtrosGastosDirectosConsolidado() != null
                 ? proyectoRequest.getOtrosGastosDirectosConsolidado()
                 : BigDecimal.ZERO);
+        // El costo de mano de obra se calcula por separado, así que es correcto
+        // inicializarlo en cero.
         proyecto.setCostoManoDeObra(BigDecimal.ZERO);
 
         Proyecto savedProyecto = proyectoRepository.save(proyecto);

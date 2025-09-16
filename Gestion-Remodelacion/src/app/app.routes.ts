@@ -75,6 +75,12 @@ export const routes: Routes = [
         path: 'forbidden', // Ruta para acceso denegado
         loadComponent: () => import('./shared/components/forbidden/forbidden.component').then(m => m.ForbiddenComponent)
       },
+            {
+        path: 'empresas', // <-- NUEVA RUTA
+        loadComponent: () => import('./modules/empresa/components/empresa-list/empresa-list.component').then(m => m.EmpresaListComponent),
+        canActivate: [roleGuard],
+        data: { permission: 'EMPRESA_READ' } // Permiso para Super Usuario
+      },
       // ----------------------------------------
 
       // Las rutas de formularios como 'empleados/nuevo' y 'empleados/editar/:id'

@@ -16,6 +16,10 @@ import { User, UserRequest } from '../../../../../core/models/user.model';
 import { RoleService } from '../../../../roles/services/role.service';
 import { UserService } from '../../../services/user.service';
 import { NotificationService } from '../../../../../core/services/notification.service';
+import { EmpresaService } from '../../../../empresa/service/empresa.service';
+import { EmpresaDropdown } from '../../../../empresa/model/Empresa';
+import { AuthService } from '../../../../../core/services/auth.service';
+import { DropdownItem } from '../../../../../core/models/dropdown-item.model';
 
 @Component({
   selector: 'app-user-form',
@@ -32,6 +36,9 @@ export class UserFormComponent implements OnInit {
   isEditMode: boolean;
   roles: Role[] = [];
 
+  empresas: EmpresaDropdown[] = [];
+  isSuperAdmin = false;
+
   private translate = inject(TranslateService);
 
   constructor(
@@ -41,26 +48,49 @@ export class UserFormComponent implements OnInit {
     private userService: UserService,
     private roleService: RoleService,
     private snackBar: MatSnackBar,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private authService: AuthService,
+    private empresaService: EmpresaService
   ) {
     this.isEditMode = !!data;
+    this.isSuperAdmin = this.authService.isSuperAdmin; 
+
     this.userForm = this.fb.group({
       id: [data?.id || null],
       username: [data?.username || '', Validators.required],
       password: ['', this.isEditMode ? [] : Validators.required],
       enabled: [data?.enabled ?? true],
       roles: [data?.roles.map(role => role.id) || [], Validators.required],
+      empresaId: [data?.empresaId || null],
     });
   }
 
   ngOnInit(): void {
     this.loadRoles();
+    if (this.isSuperAdmin){
+      this.loadEmpresas();
+      this.userForm.get('empresaId')?.setValidators(Validators.required);
+    }
   }
 
+   loadEmpresas(): void {
+    this.empresaService.getAllEmpresasForForm().subscribe({
+      next: (data) => {
+        this.empresas = data;
+        console.log(this.empresas);
+      },
+      error: (err) => {
+        console.error('Error loading companies:', err);
+        this.snackBar.open(this.translate.instant('USERS.ERROR_LOADING_COMPANIES'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
+      },
+    });
+  } 
+
   loadRoles(): void {
-    this.roleService.getAllRolesForForm().subscribe({
+    this.roleService.findAllForForm().subscribe({
       next: (roles) => {
         this.roles = roles;
+        console.log(this.roles);
       },
       error: (err) => {
         console.error('Error loading roles:', err);

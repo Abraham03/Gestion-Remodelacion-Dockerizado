@@ -46,7 +46,7 @@ public class User {
     private boolean enabled = true;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_empresa", nullable = false)
+    @JoinColumn(name = "id_empresa", nullable = true)
     private Empresa empresa;
 
     // Método de conveniencia para añadir roles

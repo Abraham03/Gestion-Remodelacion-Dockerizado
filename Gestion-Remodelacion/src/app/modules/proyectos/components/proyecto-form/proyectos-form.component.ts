@@ -20,6 +20,7 @@ import { EmpleadoService } from '../../../empleados/services/empleado.service';
 import { Proyecto } from '../../models/proyecto.model';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { DropdownItem } from '../../../../core/models/dropdown-item.model';
+import { NumberFormatDirective } from '../../../../shared/directives/number-format.directive';
 
 @Component({
   selector: 'app-proyectos-form',
@@ -27,7 +28,7 @@ import { DropdownItem } from '../../../../core/models/dropdown-item.model';
   imports: [
     CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatDatepickerModule, MatButtonModule, MatIconModule,
-    MatDialogModule, TranslateModule,
+    MatDialogModule, TranslateModule, NumberFormatDirective
   ],
   templateUrl: './proyectos-form.component.html',
   styleUrls: ['./proyectos-form.component.scss'],
@@ -42,7 +43,7 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
 
   private translate = inject(TranslateService);
 
-  // ✅ CORRECCIÓN: Se unifica toda la inyección de dependencias en el constructor
+  //    Se unifica toda la inyección de dependencias en el constructor
   //    para evitar conflictos y asegurar que 'data' siempre esté inicializado.
   constructor(
     private fb: FormBuilder,
@@ -83,7 +84,7 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
   }
 
   private generateProjectStates(): void {
-    // ✅ CORRECCIÓN: Los valores del backend DEBEN COINCIDIR con tu Enum de Java.
+    // Los valores del backend DEBEN COINCIDIR con tu Enum de Java.
     const backendStates = ['PENDIENTE', 'EN_PROGRESO', 'EN_PAUSA', 'FINALIZADO', 'CANCELADO'];
     this.estadosProyecto = backendStates.map(state => ({
         backendValue: state,
@@ -144,7 +145,7 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
     }
 
     const formValue = this.form.getRawValue();
-    const projectData: any = {
+    const projectData: Proyecto = {
       ...formValue,
       fechaInicio: this.formatDateForBackend(formValue.fechaInicio),
       fechaFinEstimada: this.formatDateForBackend(formValue.fechaFinEstimada),
@@ -152,7 +153,7 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
       fechaUltimoPagoRecibido: this.formatDateForBackend(formValue.fechaUltimoPagoRecibido),
     };
 
-    // ✅ CORRECCIÓN: El servicio de update espera 1 solo argumento (el objeto completo).
+    // El servicio de update espera 1 solo argumento (el objeto completo).
     const serviceCall = this.data
       ? this.proyectosService.updateProyecto(projectData)
       : this.proyectosService.addProyecto(projectData);

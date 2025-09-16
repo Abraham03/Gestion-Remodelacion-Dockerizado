@@ -14,14 +14,17 @@ public class PermissionRequest {
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
 
+    private String scope;
+
     // Constructors
     public PermissionRequest() {
     }
 
-    public PermissionRequest(Long id, String name, String description) {
+    public PermissionRequest(Long id, String name, String description, String scope) {
         this.id = id;
         this.name = name;
         this.description = description;
+        this.scope = scope;
     }
 
     // Getters and Setters
@@ -47,5 +50,13 @@ public class PermissionRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 }

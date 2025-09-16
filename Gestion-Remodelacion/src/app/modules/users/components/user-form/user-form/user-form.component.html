@@ -18,6 +18,18 @@
             </mat-error>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="full-width" *ngIf="isSuperAdmin">
+            <mat-label>{{ 'GLOBAL.COMPANY' | translate }}</mat-label>
+            <mat-select formControlName="empresaId" required>
+                <mat-option *ngFor="let empresa of empresas" [value]="empresa.id">
+                    {{ empresa.nombreEmpresa }}
+                </mat-option>
+            </mat-select>
+            <mat-error *ngIf="userForm.get('empresaId')?.hasError('required') && userForm.get('empresaId')?.touched">
+                {{ 'USERS.COMPANY_REQUIRED' | translate }}
+            </mat-error>
+        </mat-form-field>
+
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'USERS.ROLES' | translate }}</mat-label>    
             <mat-select formControlName="roles" multiple required>

@@ -3,6 +3,7 @@ package com.gestionremodelacion.gestion.service.auth;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.gestionremodelacion.gestion.dto.request.LoginRequest;
 import com.gestionremodelacion.gestion.dto.request.RefreshTokenRequest;
 import com.gestionremodelacion.gestion.dto.response.AuthResponse;
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.model.Permission;
 import com.gestionremodelacion.gestion.model.RefreshToken;
 import com.gestionremodelacion.gestion.model.User;
@@ -65,6 +67,15 @@ public class AuthService {
             String jwtToken = jwtUtils.generateJwtToken(authentication);
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
 
+            // --- INICIO DE LA CORRECCIÓN ---
+            Empresa empresa = userDetails.getEmpresa();
+            Long empresaId = (empresa != null) ? empresa.getId() : null;
+            String plan = (empresa != null) ? empresa.getPlan().toString() : null;
+            String logoUrl = (empresa != null) ? empresa.getLogoUrl() : null;
+            String nombreEmpresa = (empresa != null) ? empresa.getNombreEmpresa() : null; // ✅ OBTENER EL NOMBRE
+
+            // --- FIN DE LA CORRECCIÓN ---
+
             return new AuthResponse(
                     jwtToken,
                     userDetails.getId(),
@@ -73,9 +84,10 @@ public class AuthService {
                     roles,
                     jwtUtils.getExpirationDateFromToken(jwtToken),
                     refreshToken.getToken(),
-                    userDetails.getEmpresa().getId(),
-                    userDetails.getEmpresa().getPlan().toString(),
-                    userDetails.getEmpresa().getLogoUrl());
+                    empresaId,
+                    plan,
+                    logoUrl,
+                    nombreEmpresa);
 
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("Credenciales inválidas");
@@ -102,11 +114,20 @@ public class AuthService {
                 .map(role -> role.getName().startsWith("ROLE_") ? role.getName() : "ROLE_" + role.getName())
                 .collect(Collectors.toList());
 
+        // --- INICIO DE LA CORRECCIÓN ---
+        Empresa empresa = user.getEmpresa();
+        Long empresaId = (empresa != null) ? empresa.getId() : null;
+        String plan = (empresa != null) ? empresa.getPlan().toString() : null;
+        String logoUrl = (empresa != null) ? empresa.getLogoUrl() : null;
+        String nombreEmpresa = (empresa != null) ? empresa.getNombreEmpresa() : null; // ✅ OBTENER EL NOMBRE
+
+        // --- FIN DE LA CORRECCIÓN ---
+
         String newJwtToken = jwtUtils.generateTokenFromUsername(
                 user.getUsername(),
                 permissions,
                 roles,
-                user.getEmpresa());
+                empresa);
 
         return new AuthResponse(
                 newJwtToken,
@@ -116,9 +137,10 @@ public class AuthService {
                 roles,
                 jwtUtils.getExpirationDateFromToken(newJwtToken),
                 refreshToken.getToken(),
-                user.getEmpresa().getId(),
-                user.getEmpresa().getPlan().toString(),
-                user.getEmpresa().getLogoUrl());
+                empresaId,
+                plan,
+                logoUrl,
+                nombreEmpresa);
     }
 
     @Transactional

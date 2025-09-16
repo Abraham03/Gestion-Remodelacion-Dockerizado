@@ -2,7 +2,7 @@
   <button mat-icon-button (click)="onToggleSidebar()">
     <mat-icon>menu</mat-icon>
   </button>
-  <span class="title">GBS RENOVATIONS LLC</span>
+  <span class="title">{{ authService.currentUserEmpresaNombre() }}</span>
   <span class="spacer"></span>
 
   <div class="language-switcher">

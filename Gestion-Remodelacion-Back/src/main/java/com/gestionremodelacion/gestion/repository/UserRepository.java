@@ -42,7 +42,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
                         @Param("filter") String filter,
                         Pageable pageable);
 
+        // MÉTODO PARA EL SUPER ADMIN
+        @Query("SELECT u FROM User u WHERE " +
+                        "(:filter IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :filter, '%')))")
+        Page<User> findAllWithFilter(@Param("filter") String filter, Pageable pageable);
+
         boolean existsByIdAndEmpresaId(Long id, Long empresaId);
+
+        boolean existsByEmpresaId(Long empresaId);
 
         List<User> findByRolesContainingAndEmpresaId(Role role, Long empresaId);
 

@@ -13,11 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionremodelacion.gestion.dto.request.RoleRequest;
 import com.gestionremodelacion.gestion.dto.response.RoleResponse;
+import com.gestionremodelacion.gestion.exception.BusinessRuleException;
 import com.gestionremodelacion.gestion.exception.DuplicateResourceException;
 import com.gestionremodelacion.gestion.exception.ErrorCatalog;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.RoleMapper;
 import com.gestionremodelacion.gestion.model.Permission;
+import com.gestionremodelacion.gestion.model.Permission.PermissionScope;
 import com.gestionremodelacion.gestion.model.Role;
 import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.repository.PermissionRepository;
@@ -45,10 +47,25 @@ public class RoleService {
 
     @Transactional(readOnly = true)
     public Page<RoleResponse> findAll(Pageable pageable, String searchTerm) {
-        Page<Role> rolesPage = (searchTerm != null && !searchTerm.trim().isEmpty())
-                ? roleRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchTerm, searchTerm,
-                        pageable)
-                : roleRepository.findAll(pageable);
+        User currentUser = userService.getCurrentUser();
+        boolean isSuperAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
+
+        Page<Role> rolesPage;
+
+        // ✅ LÓGICA MODIFICADA
+        if (isSuperAdmin) {
+            // El Super Admin ve todos los roles
+            rolesPage = (searchTerm != null && !searchTerm.trim().isEmpty())
+                    ? roleRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchTerm,
+                            searchTerm, pageable)
+                    : roleRepository.findAll(pageable);
+        } else {
+            // Un Admin normal solo ve los roles de "inquilino" (tenant)
+            String effectiveSearchTerm = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm : null;
+            rolesPage = roleRepository.findTenantRoles(effectiveSearchTerm, pageable);
+        }
+
         return rolesPage.map(roleMapper::toRoleResponse);
     }
 
@@ -64,6 +81,10 @@ public class RoleService {
         if (roleRepository.existsByName(roleRequest.getName())) {
             throw new DuplicateResourceException(ErrorCatalog.ROLE_NAME_ALREADY_EXISTS.getKey());
         }
+
+        // Validar que los permisos sean de la misma empresa
+        validatePermissionsScope(roleRequest.getPermissions());
+
         Role role = roleMapper.toRole(roleRequest); // Usar el método del mapper
 
         Set<Permission> permissions = new HashSet<>();
@@ -91,6 +112,9 @@ public class RoleService {
                 && roleRepository.existsByName(roleRequest.getName())) {
             throw new DuplicateResourceException(ErrorCatalog.ROLE_NAME_ALREADY_EXISTS.getKey());
         }
+
+        // Validar que los permisos sean de la misma empresa
+        validatePermissionsScope(roleRequest.getPermissions());
 
         // 3. Si no hay conflicto, actualizamos
         roleMapper.updateRoleFromRequest(roleRequest, existingRole); // Usar el método del mapper para actualizar campos
@@ -128,6 +152,48 @@ public class RoleService {
         }
         // Eliminar Rol
         roleRepository.deleteById(id);
+    }
+
+    // ✅ NUEVO MÉTODO PARA POBLAR LOS DROPDOWNS EN LOS FORMULARIOS
+    @Transactional(readOnly = true)
+    public List<RoleResponse> findAllForForm() {
+        User currentUser = userService.getCurrentUser();
+        boolean isSuperAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
+
+        List<Role> roles;
+        if (isSuperAdmin) {
+            roles = roleRepository.findAll();
+        } else {
+            roles = roleRepository.findAllTenantRolesForForm();
+        }
+
+        return roles.stream()
+                .map(roleMapper::toRoleResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * MÉTODO DE SEGURIDAD
+     * Verifica que un administrador de empresa no intente asignarse a sí mismo
+     * o a otros un permiso de nivel de PLATAFORMA.
+     */
+    private void validatePermissionsScope(Set<Long> permissionIds) {
+        User currentUser = userService.getCurrentUser();
+        boolean isSuperAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
+
+        // Si el usuario NO es Super Admin, no puede asignar permisos de PLATFORM.
+        if (!isSuperAdmin) {
+            List<Permission> requestedPermissions = permissionRepository.findAllById(permissionIds);
+            boolean hasPlatformPermission = requestedPermissions.stream()
+                    .anyMatch(p -> p.getScope() == PermissionScope.PLATFORM);
+
+            if (hasPlatformPermission) {
+                // Lanza un error si se intenta asignar un permiso no permitido.
+                throw new BusinessRuleException(ErrorCatalog.PERMISSION_NOT_ALLOWED.getKey());
+            }
+        }
     }
 
     @Transactional(readOnly = true)

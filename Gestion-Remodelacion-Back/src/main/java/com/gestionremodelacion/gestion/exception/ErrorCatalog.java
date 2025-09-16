@@ -28,18 +28,26 @@ public enum ErrorCatalog {
     USER_NOT_FOUND("error.user.notFound"),
     USERNAME_ALREADY_EXISTS("error.user.usernameExists"),
     CANNOT_DELETE_OWN_ACCOUNT("error.user.cannotDeleteSelf"),
+    SUPER_ADMIN_ROLE_ASSIGNMENT_NOT_ALLOWED("error.user.uperAdminRoleAssignmentNotAllowed"),
 
     // --- Errores de Roles y Permisos ---
     ROLE_NOT_FOUND("error.role.notFound"),
     ROLE_NAME_ALREADY_EXISTS("error.role.nameExists"),
     PERMISSION_NOT_FOUND("error.permission.notFound"),
+    PERMISSION_NOT_ALLOWED("error.permission.notAllowed"),
 
     // --- Errores de Empleados ---
     EMPLOYEE_ALREADY_IN_DESIRED_STATE("error.employee.alreadyInDesiredState"),
     INVALID_EMPLOYEE_FOR_COMPANY("error.employee.invalidForCompany"),
 
     // --- Errores de Horas Trabajadas ---
-    WORK_LOG_NOT_FOUND("error.workLog.notFound");
+    WORK_LOG_NOT_FOUND("error.workLog.notFound"),
+
+    // --- Errores de Companias ---
+    COMPANY_NOT_FOUND("error.company.notFound"),
+    COMPANY_HAS_ASSOCIATED_USERS("error.company.hasAssociatedUsers"),
+    COMPANY_NAME_ALREADY_EXISTS("error.company.nameExists"),
+    COMPANY_ID_REQUIRED("error.company.idRequired");
 
     private final String key;
 

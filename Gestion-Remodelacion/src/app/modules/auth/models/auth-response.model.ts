@@ -12,5 +12,6 @@ export interface AuthResponse {
    enabled: boolean; // Para habilitar/deshabilitar el usuario
     empresaId: number;
     plan: string,
-    logoUrl?: string
+    logoUrl?: string,
+    nombreEmpresa?: string
   }

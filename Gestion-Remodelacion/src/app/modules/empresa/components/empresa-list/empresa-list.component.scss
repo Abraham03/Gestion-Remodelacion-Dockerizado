@@ -1,0 +1,39 @@
+// src/app/modules/empresas/components/empresa-list/empresa-list.component.scss
+
+@use '../../../../../styles/abstracts/mixins' as mixins;
+@use '../../../../../styles/abstracts/variables' as vars;
+@use '../../../../../styles/components/tables';
+@use '../../../../../styles/base/base';
+
+// Estilos específicos
+.active-icon {
+  color: green;
+}
+
+.inactive-icon {
+  color: red;
+}
+
+.mat-column-nombreEmpresa {
+  font-weight: 500;
+  color: vars.$color-primary;
+}
+
+.table-actions {
+  // Incluyo el estilo que me pediste recordar para las acciones de la tabla
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: vars.$spacing-s;
+
+  @include mixins.respond-to(mobile) {
+    &.table-actions {
+      flex-direction: column;
+      width: 100%;
+      button {
+        width: 100%;
+      }
+    }
+  }
+}
