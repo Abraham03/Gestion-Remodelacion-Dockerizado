@@ -138,19 +138,40 @@ public class RoleService {
     @Transactional
     public void deleteRole(Long id) {
         User currentUser = userService.getCurrentUser();
-        Long empresaId = currentUser.getEmpresa().getId();
+        boolean isSuperAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
 
-        // 1. Verificar si el rol existe
-        Role role = roleRepository.findById(id)
+        Role roleToDelete = roleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey()));
 
-        // Desvincular el rol de los usuarios antes de eliminar
-        List<User> usersWithRole = userRepository.findByRolesContainingAndEmpresaId(role, empresaId);
-        for (User user : usersWithRole) {
-            user.removeRole(role);
-            userRepository.save(user);
+        // Regla de negocio: No se puede eliminar el rol SUPER_ADMIN
+        if ("ROLE_SUPER_ADMIN".equals(roleToDelete.getName())) {
+            throw new BusinessRuleException("error.role.cannotDeleteSuperAdmin"); // Añadir esta clave a ErrorCatalog
         }
-        // Eliminar Rol
+
+        List<User> usersWithRole;
+
+        if (isSuperAdmin) {
+            // El SUPER_ADMIN busca en TODOS los usuarios que tengan este rol.
+            usersWithRole = userRepository.findByRolesContaining(roleToDelete);
+        } else {
+            // El ADMIN normal busca solo en los usuarios de SU empresa.
+            // Se añade una validación para el caso (improbable) de que un admin no tenga
+            // empresa.
+            if (currentUser.getEmpresa() == null) {
+                throw new BusinessRuleException("error.company.requiredForAdmins"); // Añadir esta clave
+            }
+            Long empresaId = currentUser.getEmpresa().getId();
+            usersWithRole = userRepository.findByRolesContainingAndEmpresaId(roleToDelete, empresaId);
+        }
+
+        // Desvincula el rol de todos los usuarios encontrados.
+        for (User user : usersWithRole) {
+            user.removeRole(roleToDelete);
+            userRepository.save(user); // Guarda cada usuario modificado.
+        }
+
+        // Finalmente, elimina el rol.
         roleRepository.deleteById(id);
     }
 

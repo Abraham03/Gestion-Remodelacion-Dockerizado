@@ -16,6 +16,8 @@ public abstract class UserMapper {
 
     // Convierte entidad User a UserResponse DTO
     @Mapping(target = "roles", source = "roles") // Directly map the roles set
+    @Mapping(target = "empresaId", source = "empresa.id")
+    @Mapping(target = "nombreEmpresa", source = "empresa.nombreEmpresa")
     public abstract UserResponse toDto(User user);
 
     // Convierte UserRequest DTO a entidad User (para creación/actualización)

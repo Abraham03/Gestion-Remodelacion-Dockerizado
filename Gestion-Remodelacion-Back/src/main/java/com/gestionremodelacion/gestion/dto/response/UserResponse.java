@@ -9,18 +9,22 @@ public class UserResponse {
     private String username;
     private boolean enabled;
     private Set<RoleResponse> roles; // Changed to Set<RoleResponse>
-    // No incluyas autoridades/permisos directamente aquí, ya que se obtienen a través de los roles.
+    private Long empresaId;
+    private String nombreEmpresa;
 
     // Getters and Setters
     public Long getId() {
         return id;
     }
 
-    public UserResponse(Long id, String username, boolean enabled, Set<RoleResponse> roles) {
+    public UserResponse(Long id, String username, boolean enabled, Set<RoleResponse> roles, Long empresaId,
+            String nombreEmpresa) {
         this.id = id;
         this.username = username;
         this.enabled = enabled;
         this.roles = roles != null ? roles : Collections.emptySet();
+        this.empresaId = empresaId;
+        this.nombreEmpresa = nombreEmpresa;
     }
 
     public void setId(Long id) {
@@ -49,6 +53,22 @@ public class UserResponse {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public Long getEmpresaId() {
+        return empresaId;
+    }
+
+    public void setEmpresaId(Long empresaId) {
+        this.empresaId = empresaId;
+    }
+
+    public String getNombreEmpresa() {
+        return nombreEmpresa;
+    }
+
+    public void setNombreEmpresa(String nombreEmpresa) {
+        this.nombreEmpresa = nombreEmpresa;
     }
 
 }
