@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionremodelacion.gestion.dto.request.RoleRequest;
 import com.gestionremodelacion.gestion.dto.response.RoleResponse;
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
 import com.gestionremodelacion.gestion.exception.DuplicateResourceException;
 import com.gestionremodelacion.gestion.exception.ErrorCatalog;
@@ -45,25 +46,34 @@ public class RoleService {
         this.userService = userService;
     }
 
+    // Método de ayuda para verificar si el usuario es Super Admin
+    private boolean isSuperAdmin(User user) {
+        return user.getRoles().stream().anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
+    }
+
     @Transactional(readOnly = true)
     public Page<RoleResponse> findAll(Pageable pageable, String searchTerm) {
         User currentUser = userService.getCurrentUser();
-        boolean isSuperAdmin = currentUser.getRoles().stream()
-                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
-
         Page<Role> rolesPage;
+        String effectiveSearchTerm = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm : null;
 
-        // ✅ LÓGICA MODIFICADA
-        if (isSuperAdmin) {
+        // Validar si el usuario es Super Admin
+        if (isSuperAdmin(currentUser)) {
             // El Super Admin ve todos los roles
             rolesPage = (searchTerm != null && !searchTerm.trim().isEmpty())
                     ? roleRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchTerm,
                             searchTerm, pageable)
                     : roleRepository.findAll(pageable);
         } else {
-            // Un Admin normal solo ve los roles de "inquilino" (tenant)
-            String effectiveSearchTerm = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm : null;
-            rolesPage = roleRepository.findTenantRoles(effectiveSearchTerm, pageable);
+            // Valida si el usuario tiene una empresa asignada
+            if (currentUser.getEmpresa() == null) {
+                // No debería ver a nadie
+                return Page.empty();
+            }
+            // Obtener el ID de la empresa
+            Long empresaId = currentUser.getEmpresa().getId();
+            // Solo puede ver los roles de su empresa
+            rolesPage = roleRepository.findByEmpresaIdAndFilter(empresaId, effectiveSearchTerm, pageable);
         }
 
         return rolesPage.map(roleMapper::toRoleResponse);
@@ -71,31 +81,51 @@ public class RoleService {
 
     @Transactional(readOnly = true)
     public RoleResponse findById(Long id) {
-        return roleRepository.findById(id)
-                .map(roleMapper::toRoleResponse)
+        User currentUser = userService.getCurrentUser();
+        Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey()));
+
+        // Un ADMIN normal solo puede ver roles que pertenezcan a su propia empresa.
+        if (!isSuperAdmin(currentUser)) {
+            // Si el rol es global (empresa null) o de otra empresa, se niega el acceso.
+            if (role.getEmpresa() == null || !role.getEmpresa().getId().equals(currentUser.getEmpresa().getId())) {
+                throw new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey()); // Se simula que no existe.
+            }
+        }
+        return roleMapper.toRoleResponse(role);
     }
 
     @Transactional
     public RoleResponse createRole(RoleRequest roleRequest) {
-        if (roleRepository.existsByName(roleRequest.getName())) {
+        User currentUser = userService.getCurrentUser();
+        Empresa empresaDelUsuario = currentUser.getEmpresa();
+
+        // Un ADMIN debe tener una empresa para poder crear un rol.
+        if (!isSuperAdmin(currentUser) && empresaDelUsuario == null) {
+            throw new BusinessRuleException("error.company.requiredForAdmins");
+        }
+
+        // Se verifica que el nombre del rol no exista ya DENTRO de la misma empresa.
+        Long empresaIdParaBusqueda = isSuperAdmin(currentUser) ? null : empresaDelUsuario.getId();
+        if (roleRepository.existsByNameAndEmpresaId(roleRequest.getName(), empresaIdParaBusqueda)) {
             throw new DuplicateResourceException(ErrorCatalog.ROLE_NAME_ALREADY_EXISTS.getKey());
         }
 
         // Validar que los permisos sean de la misma empresa
         validatePermissionsScope(roleRequest.getPermissions());
+        Role role = roleMapper.toRole(roleRequest);
 
-        Role role = roleMapper.toRole(roleRequest); // Usar el método del mapper
-
-        Set<Permission> permissions = new HashSet<>();
-        if (roleRequest.getPermissions() != null && !roleRequest.getPermissions().isEmpty()) {
-            permissions = roleRequest.getPermissions().stream()
-                    .map(permissionId -> permissionRepository.findById(permissionId)
-                            .orElseThrow(() -> new ResourceNotFoundException(
-                                    ErrorCatalog.PERMISSION_NOT_FOUND.getKey())))
-                    .collect(Collectors.toSet());
+        // El rol pertenece a la empresa del ADMIN que lo crea. Si es SUPER_ADMIN, es un
+        // rol global (empresa null).
+        if (!isSuperAdmin(currentUser)) {
+            role.setEmpresa(empresaDelUsuario);
         }
-        role.setPermissions(permissions); // Asignar los permisos después del mapeo
+
+        Set<Permission> permissions = roleRequest.getPermissions().stream()
+                .map(permissionId -> permissionRepository.findById(permissionId)
+                        .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.PERMISSION_NOT_FOUND.getKey())))
+                .collect(Collectors.toSet());
+        role.setPermissions(permissions);
 
         Role savedRole = roleRepository.save(role);
         return roleMapper.toRoleResponse(savedRole);
@@ -103,23 +133,40 @@ public class RoleService {
 
     @Transactional
     public RoleResponse updateRole(Long id, RoleRequest roleRequest) {
-        // 1. Buscamos el rol a actualizar
+        User currentUser = userService.getCurrentUser();
+        Empresa empresaDelUsuario = currentUser.getEmpresa();
+
+        // Buscamos el rol a actualizar
         Role existingRole = roleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey()));
 
-        // 2. Verificamos si el nombre del rol ha cambiado Y si el nuevo ya existe
+        // --- VALIDACIONES DE SEGURIDAD ---
+        if (!isSuperAdmin(currentUser)) {
+            // Un ADMIN solo puede editar roles de su propia empresa.
+            if (existingRole.getEmpresa() == null
+                    || !existingRole.getEmpresa().getId().equals(empresaDelUsuario.getId())) {
+                throw new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey()); // Se simula que no existe
+            }
+            // Un ADMIN no puede editar el rol ADMIN base (si existiera y fuera global)
+            if ("ROLE_ADMIN".equals(existingRole.getName()) && existingRole.getEmpresa() == null) {
+                throw new BusinessRuleException("error.role.cannotEditBaseAdmin");
+            }
+        }
+
+        // Se verifica si el nombre del rol ha cambiado Y si el nuevo ya existe en la
+        // misma empresa
         if (!existingRole.getName().equals(roleRequest.getName())
-                && roleRepository.existsByName(roleRequest.getName())) {
+                && roleRepository.existsByNameAndEmpresaId(roleRequest.getName(), empresaDelUsuario.getId())) {
             throw new DuplicateResourceException(ErrorCatalog.ROLE_NAME_ALREADY_EXISTS.getKey());
         }
 
         // Validar que los permisos sean de la misma empresa
         validatePermissionsScope(roleRequest.getPermissions());
 
-        // 3. Si no hay conflicto, actualizamos
+        // Si no hay conflicto, actualizamos
         roleMapper.updateRoleFromRequest(roleRequest, existingRole); // Usar el método del mapper para actualizar campos
 
-        // 4. Actualizamos los permisos
+        // Actualizamos los permisos
         Set<Permission> newPermissions = new HashSet<>();
         if (roleRequest.getPermissions() != null && !roleRequest.getPermissions().isEmpty()) {
             newPermissions = roleRequest.getPermissions().stream()
@@ -168,25 +215,33 @@ public class RoleService {
         // Desvincula el rol de todos los usuarios encontrados.
         for (User user : usersWithRole) {
             user.removeRole(roleToDelete);
-            userRepository.save(user); // Guarda cada usuario modificado.
+            userRepository.save(user);
         }
 
         // Finalmente, elimina el rol.
         roleRepository.deleteById(id);
     }
 
-    // ✅ NUEVO MÉTODO PARA POBLAR LOS DROPDOWNS EN LOS FORMULARIOS
+    // MÉTODO PARA POBLAR LOS DROPDOWNS EN LOS FORMULARIOS
     @Transactional(readOnly = true)
     public List<RoleResponse> findAllForForm() {
         User currentUser = userService.getCurrentUser();
-        boolean isSuperAdmin = currentUser.getRoles().stream()
-                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
-
         List<Role> roles;
-        if (isSuperAdmin) {
+
+        if (isSuperAdmin(currentUser)) {
             roles = roleRepository.findAll();
         } else {
-            roles = roleRepository.findAllTenantRolesForForm();
+            if (currentUser.getEmpresa() == null)
+                return List.of();
+            Long empresaId = currentUser.getEmpresa().getId();
+            roles = roleRepository.findAllByEmpresaId(empresaId);
+        }
+
+        // Asegurarse de que SUPER_ADMIN nunca se envíe a un ADMIN normal
+        if (!isSuperAdmin(currentUser)) {
+            roles = roles.stream()
+                    .filter(role -> !"ROLE_SUPER_ADMIN".equals(role.getName()))
+                    .collect(Collectors.toList());
         }
 
         return roles.stream()
@@ -219,7 +274,19 @@ public class RoleService {
 
     @Transactional(readOnly = true)
     public Optional<Role> findByName(String name) {
-        return roleRepository.findByName(name);
+        User currentUser = userService.getCurrentUser();
+
+        if (isSuperAdmin(currentUser)) {
+            // Un SUPER_ADMIN puede buscar roles globales (sin empresa asignada).
+            return roleRepository.findByNameAndEmpresaIsNull(name);
+        } else {
+            // Un ADMIN normal busca roles por nombre DENTRO de su empresa.
+            if (currentUser.getEmpresa() == null) {
+                return Optional.empty();
+            }
+            Long empresaId = currentUser.getEmpresa().getId();
+            return roleRepository.findByNameAndEmpresaId(name, empresaId);
+        }
     }
 
 }

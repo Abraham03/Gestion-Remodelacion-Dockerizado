@@ -285,7 +285,7 @@ public class UserService {
         // Si el usuario que hace la petición NO es Super Admin...
         if (!isSuperAdmin) {
             // Buscamos si entre los roles solicitados está el de Super Admin
-            Optional<Role> superAdminRole = roleRepository.findByName("ROLE_SUPER_ADMIN");
+            Optional<Role> superAdminRole = roleRepository.findByNameAndEmpresaIsNull("ROLE_SUPER_ADMIN");
 
             if (superAdminRole.isPresent() && requestedRoleIds.contains(superAdminRole.get().getId())) {
                 // Si está, lanzamos una excepción porque no tiene permiso para asignarlo.

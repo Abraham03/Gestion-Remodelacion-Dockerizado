@@ -19,21 +19,37 @@ import com.gestionremodelacion.gestion.model.Role;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
 
-    Optional<Role> findByName(String name);
+        /**
+         * Métodos para buscar roles DENTRO de una empresa específica.
+         * Esto es crucial para que un ADMIN no pueda ver o crear roles con nombres
+         * duplicados que pertenecen a otra empresa.
+         */
+        Optional<Role> findByNameAndEmpresaId(String name, Long empresaId);
 
-    Page<Role> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String name, String description,
-            Pageable pageable);
+        boolean existsByNameAndEmpresaId(String name, Long empresaId);
 
-    Boolean existsByName(String name);
+        /**
+         * Busca roles que pertenezcan a una empresa
+         * específica Y que no sean el rol SUPER_ADMIN.
+         */
+        @Query("SELECT r FROM Role r WHERE r.empresa.id = :empresaId AND r.name <> 'ROLE_SUPER_ADMIN' AND " +
+                        "(:searchTerm IS NULL OR LOWER(r.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
+        Page<Role> findByEmpresaIdAndFilter(@Param("empresaId") Long empresaId, @Param("searchTerm") String searchTerm,
+                        Pageable pageable);
 
-    // ✅ NUEVO MÉTODO CON JPQL PARA BUSCAR ROLES EXCLUYENDO AL SUPER ADMIN
-    @Query("SELECT r FROM Role r WHERE r.name <> 'ROLE_SUPER_ADMIN' AND " +
-            "(:searchTerm IS NULL OR LOWER(r.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-            "LOWER(r.description) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
-    Page<Role> findTenantRoles(@Param("searchTerm") String searchTerm, Pageable pageable);
+        /**
+         * Consulta para poblar los dropdowns en el formulario de usuario,
+         * asegurando que un ADMIN solo pueda asignar roles de su propia empresa.
+         */
+        @Query("SELECT r FROM Role r WHERE r.empresa.id = :empresaId AND r.name <> 'ROLE_SUPER_ADMIN'")
+        List<Role> findAllByEmpresaId(@Param("empresaId") Long empresaId);
 
-    // ✅ NUEVO MÉTODO PARA EL FORMULARIO DE USUARIOS (SIN PAGINACIÓN)
-    @Query("SELECT r FROM Role r WHERE r.name <> 'ROLE_SUPER_ADMIN'")
-    List<Role> findAllTenantRolesForForm();
+        // Se necesita un método para buscar un rol global por nombre (como
+        // ROLE_SUPER_ADMIN)
+        Optional<Role> findByNameAndEmpresaIsNull(String name);
+
+        // Consulta para SUPER_ADMIN busca en todos los roles
+        Page<Role> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String name, String description,
+                        Pageable pageable);
 
 }
