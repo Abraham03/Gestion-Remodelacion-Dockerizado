@@ -22,14 +22,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionremodelacion.gestion.dto.response.ApiResponse;
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.empresa.model.Empresa.PlanSuscripcion;
 import com.gestionremodelacion.gestion.export.ExporterService;
+import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.proyecto.dto.request.ProyectoRequest;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoExcelDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoPdfDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoResponse;
 import com.gestionremodelacion.gestion.proyecto.service.ProyectoService;
 import com.gestionremodelacion.gestion.security.annotations.RequiresPlan;
+import com.gestionremodelacion.gestion.service.user.UserService;
 import com.itextpdf.text.DocumentException;
 
 import jakarta.validation.Valid;
@@ -40,10 +43,13 @@ public class ProyectoController {
 
     private final ProyectoService proyectoService;
     private final ExporterService exporterService;
+    private final UserService userService;
 
-    public ProyectoController(ProyectoService proyectoService, ExporterService exporterService) {
+    public ProyectoController(ProyectoService proyectoService, ExporterService exporterService,
+            UserService userService) {
         this.proyectoService = proyectoService;
         this.exporterService = exporterService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -93,14 +99,17 @@ public class ProyectoController {
      * Endpoint para exportar a Excel.
      */
     @GetMapping("/export/excel")
-    @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
+    @PreAuthorize("hasAuthority('PROYECTO_READ')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportProyectosToExcel(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws IOException {
 
+        User currentUser = userService.getCurrentUser();
+        Empresa empresa = currentUser.getEmpresa();
+
         List<ProyectoExcelDTO> proyectos = proyectoService.findProyectosForExcelExport(filter, sort);
-        ByteArrayOutputStream excelStream = exporterService.exportToExcel(proyectos, "Reporte de Proyectos");
+        ByteArrayOutputStream excelStream = exporterService.exportToExcel(proyectos, "Reporte de Proyectos", empresa);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Proyectos.xlsx");
@@ -114,17 +123,20 @@ public class ProyectoController {
      * Endpoint para exportar a PDF.
      */
     @GetMapping("/export/pdf")
-    @PreAuthorize("hasAuthority('EXPORT_PDF')")
+    @PreAuthorize("hasAuthority('PROYECTO_READ')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportProyectosToPdf(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws DocumentException, IOException {
 
+        User currentUser = userService.getCurrentUser();
+        Empresa empresa = currentUser.getEmpresa();
+
         List<ProyectoPdfDTO> proyectos = proyectoService.findProyectosForPdfExport(filter, sort);
         if (proyectos.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        ByteArrayOutputStream pdfStream = exporterService.exportToPdf(proyectos, "Reporte de Proyectos");
+        ByteArrayOutputStream pdfStream = exporterService.exportToPdf(proyectos, "Reporte de Proyectos", empresa);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Proyectos.pdf");

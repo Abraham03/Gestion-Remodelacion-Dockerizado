@@ -74,8 +74,11 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
     this.canDelete = this.authService.hasPermission('CLIENTE_DELETE');
     const userPlan = this.authService.currentUserPlan();
     const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
-    this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
-    this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
+    // Solo puedes exportar si tienes el plan PREMIUM, ya no es necesario el permiso de EXPORT  
+    this.canExportExcel = hasPremiumPlan;
+    this.canExportPdf = hasPremiumPlan;
+    //this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
+    //this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
   }
 
   loadClientes(): void {

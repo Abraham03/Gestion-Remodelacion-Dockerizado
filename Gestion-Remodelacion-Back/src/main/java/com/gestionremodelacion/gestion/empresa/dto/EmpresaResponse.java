@@ -19,6 +19,7 @@ public class EmpresaResponse {
     private String logoUrl;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
+    private String telefono;
 
     public Long getId() {
         return id;
@@ -114,6 +115,14 @@ public class EmpresaResponse {
 
     public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
         this.fechaActualizacion = fechaActualizacion;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
     }
 
 }

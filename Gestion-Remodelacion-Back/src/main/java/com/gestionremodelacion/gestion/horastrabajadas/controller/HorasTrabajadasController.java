@@ -22,13 +22,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionremodelacion.gestion.dto.response.ApiResponse;
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.empresa.model.Empresa.PlanSuscripcion;
 import com.gestionremodelacion.gestion.export.ExporterService;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.request.HorasTrabajadasRequest;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasExportDTO;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse;
 import com.gestionremodelacion.gestion.horastrabajadas.service.HorasTrabajadasService;
+import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.security.annotations.RequiresPlan;
+import com.gestionremodelacion.gestion.service.user.UserService;
 import com.itextpdf.text.DocumentException;
 
 import jakarta.validation.Valid;
@@ -39,10 +42,13 @@ public class HorasTrabajadasController {
 
     private final HorasTrabajadasService horasTrabajadasService;
     private final ExporterService exporterService;
+    private final UserService userService;
 
-    public HorasTrabajadasController(HorasTrabajadasService horasTrabajadasService, ExporterService exportService) {
+    public HorasTrabajadasController(HorasTrabajadasService horasTrabajadasService, ExporterService exportService,
+            UserService userService) {
         this.horasTrabajadasService = horasTrabajadasService;
         this.exporterService = exportService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -89,14 +95,17 @@ public class HorasTrabajadasController {
     }
 
     @GetMapping("/export/excel")
-    @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
+    @PreAuthorize("hasAuthority('HORASTRABAJADAS_READ')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportToExcel(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws IOException {
 
+        User currentUser = userService.getCurrentUser();
+        Empresa empresa = currentUser.getEmpresa();
+
         List<HorasTrabajadasExportDTO> data = horasTrabajadasService.findHorasTrabajadasForExport(filter, sort);
-        ByteArrayOutputStream stream = exporterService.exportToExcel(data, "Reporte deHoras Trabajadas");
+        ByteArrayOutputStream stream = exporterService.exportToExcel(data, "Reporte deHoras Trabajadas", empresa);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Horas_Trabajadas.xlsx");
@@ -107,20 +116,23 @@ public class HorasTrabajadasController {
     }
 
     /**
-     * ✅ NUEVO: Endpoint para exportar a PDF.
+     * Endpoint para exportar a PDF.
      */
     @GetMapping("/export/pdf")
-    @PreAuthorize("hasAuthority('EXPORT_PDF')")
+    @PreAuthorize("hasAuthority('HORASTRABAJADAS_READ')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportToPdf(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws DocumentException, IOException {
 
+        User currentUser = userService.getCurrentUser();
+        Empresa empresa = currentUser.getEmpresa();
+
         List<HorasTrabajadasExportDTO> data = horasTrabajadasService.findHorasTrabajadasForExport(filter, sort);
         if (data.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        ByteArrayOutputStream stream = exporterService.exportToPdf(data, "Reporte de Horas Trabajadas");
+        ByteArrayOutputStream stream = exporterService.exportToPdf(data, "Reporte de Horas Trabajadas", empresa);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Horas_Trabajadas.pdf");

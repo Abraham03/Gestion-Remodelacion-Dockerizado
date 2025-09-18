@@ -35,6 +35,8 @@ export class UserListComponent implements OnInit, AfterViewInit {
   canEdit = false;
   canDelete = false;
 
+  isSuperAdmin = false;
+
   displayedColumns: string[] = ['username', 'enabled', 'roles', 'actions'];
   dataSource = new MatTableDataSource<User>();
   totalElements = 0;
@@ -54,6 +56,12 @@ export class UserListComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.setPermissions();
+    // ✅ 2. SE VERIFICA EL ROL Y SE AJUSTAN LAS COLUMNAS
+    this.isSuperAdmin = this.authService.isSuperAdmin;
+    if (this.isSuperAdmin && !this.displayedColumns.includes('nombreEmpresa')) {
+      // Inserta la columna de empresa después de la de roles
+      this.displayedColumns.splice(3, 0, 'nombreEmpresa');
+    }    
   }
 
   ngAfterViewInit() {

@@ -10,6 +10,7 @@ export interface Empresa {
   fechaFinSuscripcion: string | Date | null;
   logoUrl: string | null;
   fechaCreacion?: string | Date;
+  telefono?: string | null;
 }
 
 export interface EmpresaDropdown {

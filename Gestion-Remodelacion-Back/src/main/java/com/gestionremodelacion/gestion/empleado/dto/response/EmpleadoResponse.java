@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.gestionremodelacion.gestion.empleado.model.ModeloDePago;
+
 public class EmpleadoResponse {
 
     private Long id;
@@ -18,18 +20,28 @@ public class EmpleadoResponse {
     private LocalDateTime fechaRegistro;
 
     public EmpleadoResponse(Long id, String nombreCompleto, String rolCargo, String telefonoContacto,
-            LocalDate fechaContratacion, BigDecimal costoPorHora, String modeloDePago,
+            LocalDate fechaContratacion, BigDecimal costoPorHora, ModeloDePago modeloDePago,
             Boolean activo, String notas, LocalDateTime fechaRegistro) {
         this.id = id;
         this.nombreCompleto = nombreCompleto;
         this.rolCargo = rolCargo;
         this.telefonoContacto = telefonoContacto;
         this.fechaContratacion = fechaContratacion;
-        this.costoPorHora = costoPorHora;
-        this.modeloDePago = modeloDePago;
+        this.modeloDePago = modeloDePago.toString();
         this.activo = activo;
         this.notas = notas;
         this.fechaRegistro = fechaRegistro;
+
+        // ✅ CAMBIO 2: Se añade la misma lógica de cálculo que en el DTO de exportación
+        if (modeloDePago == ModeloDePago.POR_DIA) {
+            // Si el pago es por día, se multiplica el costo por hora por 8 para mostrar el
+            // costo diario.
+            this.costoPorHora = costoPorHora.multiply(new BigDecimal("8"));
+        } else {
+            // Si es por hora, se mantiene el costo por hora.
+            this.costoPorHora = costoPorHora;
+        }
+
     }
 
     public LocalDate getFechaContratacion() {

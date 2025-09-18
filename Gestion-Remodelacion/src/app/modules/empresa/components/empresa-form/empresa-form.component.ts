@@ -57,7 +57,8 @@ export class EmpresaFormComponent implements OnInit {
       estadoSuscripcion: [this.data?.estadoSuscripcion || 'ACTIVA', Validators.required],
       fechaInicioSuscripcion: [this.data?.fechaInicioSuscripcion || null],
       fechaFinSuscripcion: [this.data?.fechaFinSuscripcion || null],
-      logoUrl: [this.data?.logoUrl || '']
+      logoUrl: [this.data?.logoUrl || ''],
+      telefono: [this.data?.telefono || '']
     });
   }
 

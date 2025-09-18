@@ -18,10 +18,18 @@
           <mat-icon>file_download</mat-icon>
           {{ 'PROJECTS.EXPORT_EXCEL' | translate }}
         </button>
+        <button mat-flat-button color="accent" *ngIf="!canExportExcel" disabled [matTooltip]="'EMPLOYEES.UPGRADE_PLAN_EXCEL' | translate">
+          <mat-icon>file_download</mat-icon>
+          {{ 'PROJECTS.EXPORT_EXCEL' | translate }}
+        </button>
         <button mat-flat-button color="primary" *ngIf="canExportPdf" (click)="exportTo('pdf')">
           <mat-icon>picture_as_pdf</mat-icon>
           {{ 'PROJECTS.EXPORT_PDF' | translate }}
-        </button>        
+        </button>
+        <button mat-flat-button color="primary" *ngIf="!canExportPdf" disabled [matTooltip]="'EMPLOYEES.UPGRADE_PLAN_PDF' | translate">
+          <mat-icon>picture_as_pdf</mat-icon>
+          {{ 'PROJECTS.EXPORT_PDF' | translate }}
+        </button>           
         </div>
     </div>
   </div>

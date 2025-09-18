@@ -91,6 +91,9 @@ public class Empresa {
     @Column(name = "logo_url")
     private String logoUrl;
 
+    @Column(name = "telefono")
+    private String telefono;
+
     @PrePersist
     protected void onCreate() {
         this.fechaCreacion = LocalDateTime.now();
@@ -204,6 +207,14 @@ public class Empresa {
 
     public void setLogoUrl(String logoUrl) {
         this.logoUrl = logoUrl;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
     }
 
 }

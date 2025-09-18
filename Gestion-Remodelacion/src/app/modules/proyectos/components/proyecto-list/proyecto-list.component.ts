@@ -85,8 +85,10 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
     this.canDelete = this.authService.hasPermission('PROYECTO_DELETE');
     const userPlan = this.authService.currentUserPlan();
     const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
-    this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
-    this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
+    this.canExportExcel = hasPremiumPlan;
+    this.canExportPdf = hasPremiumPlan;
+    //this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
+    //this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
   }
 
   loadProyectos(): void {

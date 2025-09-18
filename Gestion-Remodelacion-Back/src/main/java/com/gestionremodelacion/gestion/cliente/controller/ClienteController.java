@@ -26,7 +26,12 @@ import com.gestionremodelacion.gestion.cliente.dto.response.ClienteExportDTO;
 import com.gestionremodelacion.gestion.cliente.dto.response.ClienteResponse;
 import com.gestionremodelacion.gestion.cliente.service.ClienteService;
 import com.gestionremodelacion.gestion.dto.response.ApiResponse;
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
+import com.gestionremodelacion.gestion.empresa.model.Empresa.PlanSuscripcion;
 import com.gestionremodelacion.gestion.export.ExporterService;
+import com.gestionremodelacion.gestion.model.User;
+import com.gestionremodelacion.gestion.security.annotations.RequiresPlan;
+import com.gestionremodelacion.gestion.service.user.UserService;
 import com.itextpdf.text.DocumentException;
 
 import jakarta.validation.Valid;
@@ -37,10 +42,12 @@ public class ClienteController {
 
     private final ClienteService clienteService;
     private final ExporterService exporterService;
+    private final UserService userService;
 
-    public ClienteController(ClienteService clienteService, ExporterService exporterService) {
+    public ClienteController(ClienteService clienteService, ExporterService exporterService, UserService userService) {
         this.clienteService = clienteService;
         this.exporterService = exporterService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -84,12 +91,16 @@ public class ClienteController {
     // Nuevo endpoint para exportar a Excel
     @GetMapping("/export/excel")
     @PreAuthorize("hasAuthority('CLIENTE_READ')")
+    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportClientsToExcel(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws IOException {
 
+        User currentUser = userService.getCurrentUser();
+        Empresa empresa = currentUser.getEmpresa();
+
         List<ClienteExportDTO> clientes = clienteService.findClientesForExport(filter, sort);
-        ByteArrayOutputStream excelStream = exporterService.exportToExcel(clientes, "Reporte de Clientes");
+        ByteArrayOutputStream excelStream = exporterService.exportToExcel(clientes, "Reporte de Clientes", empresa);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Clientes.xlsx");
@@ -102,16 +113,20 @@ public class ClienteController {
     // Nuevo endpoint para exportar a PDF
     @GetMapping("/export/pdf")
     @PreAuthorize("hasAuthority('CLIENTE_READ')")
+    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportClientsToPdf(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws DocumentException, IOException {
+
+        User currentUser = userService.getCurrentUser();
+        Empresa empresa = currentUser.getEmpresa();
 
         List<ClienteExportDTO> clientes = clienteService.findClientesForExport(filter, sort);
         if (clientes.isEmpty()) {
             // Devuelve una respuesta HTTP 404 Not Found o 204 No Content
             return ResponseEntity.notFound().build();
         }
-        ByteArrayOutputStream pdfStream = exporterService.exportToPdf(clientes, "Reporte de Clientes");
+        ByteArrayOutputStream pdfStream = exporterService.exportToPdf(clientes, "Reporte de Clientes", empresa);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Clientes.pdf");

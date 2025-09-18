@@ -51,10 +51,10 @@
         </ng-container>
         <ng-container matColumnDef="horas">
           <th mat-header-cell *matHeaderCellDef mat-sort-header="horas">{{ 'WORK_HOURS.HOURS' | translate }}</th>
-          <td mat-cell *matCellDef="let element">{{ element.horas | number:'1.2-2' }}h</td>
-        </ng-container>
+          <td mat-cell *matCellDef="let element"> {{element.cantidad}} {{element.unidad}} </td>
+        </ng-container>      
         <ng-container matColumnDef="montoTotal">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header="montoTotal">{{ 'WORK_HOURS.LABOR_COST' | translate }}</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="montoTotal">{{ 'WORK_HOURS.LABOR_COST' | translate  }}</th>
           <td mat-cell *matCellDef="let element">{{ element.montoTotal | currency:'USD' }}</td>
         </ng-container>
         <ng-container matColumnDef="actividadRealizada">

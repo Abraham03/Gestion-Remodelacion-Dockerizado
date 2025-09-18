@@ -236,15 +236,43 @@ public class UserService {
     @Transactional
     public void deleteById(Long id) {
         User currentUser = getCurrentUser();
-        Long empresaId = currentUser.getEmpresa().getId();
+        boolean isSuperAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
 
-        User userToDelete = userRepository.findByIdAndEmpresaId(id, empresaId)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
-
+        // Regla de negocio: Nadie puede eliminar su propia cuenta.
         if (currentUser.getId().equals(id)) {
             throw new BusinessRuleException(ErrorCatalog.CANNOT_DELETE_OWN_ACCOUNT.getKey());
         }
 
+        User userToDelete;
+        if (isSuperAdmin) {
+            // El SUPER_ADMIN busca al usuario por ID en toda la base de datos.
+            userToDelete = userRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
+        } else {
+            // Un ADMIN normal busca al usuario por ID dentro de su propia empresa.
+            if (currentUser.getEmpresa() == null) {
+                // Si un admin no tiene empresa, no puede borrar a nadie.
+                throw new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey());
+            }
+            Long empresaId = currentUser.getEmpresa().getId();
+            userToDelete = userRepository.findByIdAndEmpresaId(id, empresaId)
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.USER_NOT_FOUND.getKey()));
+        }
+
+        // Regla de negocio: Nadie puede eliminar a un SUPER_ADMIN, excepto tal vez otro
+        // SUPER_ADMIN
+        // (aunque se recomienda desactivarlo en lugar de borrarlo).
+        boolean isTargetSuperAdmin = userToDelete.getRoles().stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
+
+        if (isTargetSuperAdmin) {
+            throw new BusinessRuleException(ErrorCatalog.CANNOT_DELETE_SUPER_ADMIN.getKey()); // Añadir esta clave a
+                                                                                              // ErrorCatalog
+        }
+
+        // Antes de eliminar al usuario, se eliminan sus refresh tokens para invalidar
+        // cualquier sesión activa.
         refreshTokenRepository.deleteByUser(userToDelete);
         userRepository.delete(userToDelete);
     }

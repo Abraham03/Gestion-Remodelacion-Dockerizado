@@ -27,14 +27,14 @@ public interface HorasTrabajadasRepository extends JpaRepository<HorasTrabajadas
 
         // Consulta optimizada que devuelve directamente el DTO.
         @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
-                        + "h.id, e.id, e.nombreCompleto, p.id, p.nombreProyecto, "
+                        + "h.id, e.id, e.nombreCompleto, e, p.id, p.nombreProyecto, " // <-- 'e' añadido
                         + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro) "
                         + "FROM HorasTrabajadas h JOIN h.empleado e JOIN h.proyecto p WHERE h.empresa.id = :empresaId")
         Page<HorasTrabajadasResponse> findAllWithDetails(@Param("empresaId") Long empresaId, Pageable pageable);
 
         // Consulta optimizada con filtro por nombre de empleado o proyecto.
         @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
-                        + "h.id, e.id, e.nombreCompleto, p.id, p.nombreProyecto, "
+                        + "h.id, e.id, e.nombreCompleto, e, p.id, p.nombreProyecto, " // <-- 'e' añadido
                         + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro) "
                         + "FROM HorasTrabajadas h JOIN h.empleado e JOIN h.proyecto p WHERE h.empresa.id = :empresaId AND ("
                         + "LOWER(e.nombreCompleto) LIKE LOWER(CONCAT('%', :filter, '%')) OR "

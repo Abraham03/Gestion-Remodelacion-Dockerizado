@@ -28,6 +28,7 @@ public class EmpresaRequest {
     private String idClientePago;
     private LocalDateTime trialTerminaEn;
     private String logoUrl;
+    private String telefono;
 
     public String getNombreEmpresa() {
         return nombreEmpresa;
@@ -99,6 +100,10 @@ public class EmpresaRequest {
 
     public void setLogoUrl(String logoUrl) {
         this.logoUrl = logoUrl;
+    }
+
+    public String getTelefono() {
+        return telefono;
     }
 
 }

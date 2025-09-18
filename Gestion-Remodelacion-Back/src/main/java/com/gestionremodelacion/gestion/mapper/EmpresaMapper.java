@@ -11,7 +11,7 @@ import com.gestionremodelacion.gestion.empresa.model.Empresa;
 @Mapper(componentModel = "spring")
 public interface EmpresaMapper {
 
-    // Convierte Entidad -> DTO de Respuesta
+    @Mapping(target = "telefono", source = "telefono")
     EmpresaResponse toDto(Empresa empresa);
 
     // Convierte DTO de Petición -> Nueva Entidad

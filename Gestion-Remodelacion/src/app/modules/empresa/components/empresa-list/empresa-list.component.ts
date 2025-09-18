@@ -20,6 +20,7 @@ import { Empresa } from '../../model/Empresa';
 import { EmpresaService } from '../../service/empresa.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { EmpresaFormComponent } from '../empresa-form/empresa-form.component';
+import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
 
 @Component({
   selector: 'app-empresa-list',
@@ -27,7 +28,7 @@ import { EmpresaFormComponent } from '../empresa-form/empresa-form.component';
   imports: [
     CommonModule, MatTableModule, MatPaginatorModule, MatSortModule, MatDialogModule,
     MatInputModule, MatFormFieldModule, MatIconModule, MatTooltipModule,
-    MatButtonModule, MatSnackBarModule, TranslateModule, MatChipsModule
+    MatButtonModule, MatSnackBarModule, TranslateModule, MatChipsModule, PhonePipe
   ],
   templateUrl: './empresa-list.component.html',
   styleUrls: ['./empresa-list.component.scss']
@@ -38,7 +39,7 @@ export class EmpresaListComponent implements OnInit, AfterViewInit {
   canEdit = false;
   canChangeStatus = false;
 
-  displayedColumns: string[] = ['nombreEmpresa', 'plan', 'estadoSuscripcion', 'activo', 'fechaFinSuscripcion', 'acciones'];
+  displayedColumns: string[] = ['nombreEmpresa', 'plan', 'estadoSuscripcion', 'activo', 'fechaFinSuscripcion','telefono', 'acciones'];
   dataSource = new MatTableDataSource<Empresa>();
   totalElements = 0;
   pageSize = 10;

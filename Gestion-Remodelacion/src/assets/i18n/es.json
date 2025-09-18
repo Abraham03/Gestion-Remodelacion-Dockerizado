@@ -34,7 +34,8 @@
     "PASSWORD_REQUIRED": "La contraseña es obligatoria.",
     "LOG_IN": "Ingresar",
     "FORGOT_PASSWORD": "¿Olvidaste tu contraseña?",
-    "SESSION_EXPIRED": "Tu sesión ha expirado. Por favor, inicia sesión de nuevo."
+    "SESSION_EXPIRED": "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.",
+    "CLOSE": "Cerrar"
   },
   "HEADER": {
     "LOGOUT": "Cerrar sesión"
@@ -295,7 +296,8 @@
     "USERNAME_REQUIRED": "El nombre de usuario es obligatorio.",
     "PASSWORD_REQUIRED": "La contraseña es obligatoria.",
     "ROLES_REQUIRED": "Se debe asignar al menos un rol.",
-    "COMPANY_REQUIRED": "La empresa es obligatoria."
+    "COMPANY_REQUIRED": "La empresa es obligatoria.",
+    "PASSWORD_HINT": "Dejar en blanco para no cambiar la contraseña."
   },
   "ROLES": {
     "MANAGEMENT": "Gestión de Roles",
@@ -328,6 +330,7 @@
     "MANAGEMENT": "Gestión de Empresas",
     "SEARCH_EMPRESA": "Buscar empresa",
     "PLACEHOLDER_SEARCH": "Ej. Tech Solutions LLC",
+    "PLACEHOLDER_PHONE": "Ej. 5512345678",
     "ADD_EMPRESA": "Agregar Empresa",
     "EDIT_EMPRESA": "Editar Empresa",
     "CREATE_EMPRESA": "Nueva Empresa",
@@ -336,6 +339,7 @@
     "LOGO": "Logotipo",
     "NAME": "Nombre de la Empresa",
     "PLAN": "Plan",
+    "PHONE": "Teléfono",
     "SUBSCRIPTION_STATUS": "Estado de Suscripción",
     "START_DATE": "Fecha de Inicio",
     "EXPIRATION_DATE": "Fecha de Vencimiento",

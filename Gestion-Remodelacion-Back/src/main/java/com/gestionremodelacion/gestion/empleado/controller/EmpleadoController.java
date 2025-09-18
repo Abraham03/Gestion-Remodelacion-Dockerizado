@@ -28,9 +28,12 @@ import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoDropdownRes
 import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoExportDTO;
 import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoResponse;
 import com.gestionremodelacion.gestion.empleado.service.EmpleadoService;
+import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.empresa.model.Empresa.PlanSuscripcion;
 import com.gestionremodelacion.gestion.export.ExporterService;
+import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.security.annotations.RequiresPlan;
+import com.gestionremodelacion.gestion.service.user.UserService;
 import com.itextpdf.text.DocumentException;
 
 import jakarta.validation.Valid;
@@ -41,10 +44,13 @@ public class EmpleadoController {
 
     private final EmpleadoService empleadoService;
     private final ExporterService exporterService;
+    private final UserService userService;
 
-    public EmpleadoController(EmpleadoService empleadoService, ExporterService exporterService) {
+    public EmpleadoController(EmpleadoService empleadoService, ExporterService exporterService,
+            UserService userService) {
         this.empleadoService = empleadoService;
         this.exporterService = exporterService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -106,15 +112,18 @@ public class EmpleadoController {
 
     // Endpoint para exportar a Excel
     @GetMapping("/export/excel")
-    @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
+    @PreAuthorize("hasAuthority('EMPLEADO_READ')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportEmpleadosToExcel(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws IOException {
 
+        User currentUser = userService.getCurrentUser();
+        Empresa empresa = currentUser.getEmpresa();
+
         List<EmpleadoExportDTO> empleados = empleadoService.findEmpleadosForExport(filter, sort);
 
-        ByteArrayOutputStream excelStream = exporterService.exportToExcel(empleados, "Reporte deEmpleados");
+        ByteArrayOutputStream excelStream = exporterService.exportToExcel(empleados, "Reporte deEmpleados", empresa);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Empleados.xlsx");
@@ -126,11 +135,14 @@ public class EmpleadoController {
 
     // Endpoint para exportar a PDF
     @GetMapping("/export/pdf")
-    @PreAuthorize("hasAuthority('EXPORT_PDF')")
+    @PreAuthorize("hasAuthority('EMPLEADO_READ')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportEmpleadosToPdf(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws DocumentException, IOException {
+
+        User currentUser = userService.getCurrentUser();
+        Empresa empresa = currentUser.getEmpresa();
 
         List<EmpleadoExportDTO> empleados = empleadoService.findEmpleadosForExport(filter, sort);
 
@@ -138,7 +150,7 @@ public class EmpleadoController {
             return ResponseEntity.noContent().build();
         }
 
-        ByteArrayOutputStream pdfStream = exporterService.exportToPdf(empleados, "Reporte de Empleados");
+        ByteArrayOutputStream pdfStream = exporterService.exportToPdf(empleados, "Reporte de Empleados", empresa);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Empleados.pdf");

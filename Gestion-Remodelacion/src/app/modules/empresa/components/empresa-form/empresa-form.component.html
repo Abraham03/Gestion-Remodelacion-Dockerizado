@@ -12,6 +12,11 @@
           {{ 'EMPRESAS.NAME_REQUIRED' | translate }}
         </mat-error>
       </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'EMPRESAS.PHONE' | translate }}</mat-label>
+          <input matInput type="tel" formControlName="telefono" [placeholder]="'EMPRESAS.PLACEHOLDER_PHONE' | translate">
+        </mat-form-field>          
     </div>
 
     <div class="form-section">
@@ -35,7 +40,7 @@
               {{ 'EMPRESAS.STATUS.' + estado | translate }}
             </mat-option>
           </mat-select>
-        </mat-form-field>
+        </mat-form-field>    
       </div>
       <div class="form-row">
         <mat-form-field appearance="outline" class="flex-item">

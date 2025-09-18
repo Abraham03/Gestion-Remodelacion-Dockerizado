@@ -89,8 +89,11 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
     this.canDelete = this.authService.hasPermission('HORASTRABAJADAS_DELETE');
     const userPlan = this.authService.currentUserPlan();
     const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
-    this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
-    this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
+    // Podra exportar solo si tiene un plan premium
+    this.canExportExcel = hasPremiumPlan;
+    this.canExportPdf = hasPremiumPlan;
+    //this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
+    //this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
   }
 
   loadHorasTrabajadas(): void {

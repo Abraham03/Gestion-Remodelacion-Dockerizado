@@ -56,6 +56,11 @@
           </td>
         </ng-container>
 
+        <ng-container matColumnDef="telefono">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPRESAS.PHONE' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.telefono | phone }}</td>
+        </ng-container>
+
         <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef>{{ 'GLOBAL.ACTIONS' | translate }}</th>
           <td mat-cell *matCellDef="let element" class="mat-column-acciones">

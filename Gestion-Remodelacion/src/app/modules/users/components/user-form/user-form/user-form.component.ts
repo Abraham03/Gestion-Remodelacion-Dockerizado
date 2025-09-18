@@ -19,7 +19,6 @@ import { NotificationService } from '../../../../../core/services/notification.s
 import { EmpresaService } from '../../../../empresa/service/empresa.service';
 import { EmpresaDropdown } from '../../../../empresa/model/Empresa';
 import { AuthService } from '../../../../../core/services/auth.service';
-import { DropdownItem } from '../../../../../core/models/dropdown-item.model';
 
 @Component({
   selector: 'app-user-form',

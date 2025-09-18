@@ -29,6 +29,7 @@ public enum ErrorCatalog {
     USERNAME_ALREADY_EXISTS("error.user.usernameExists"),
     CANNOT_DELETE_OWN_ACCOUNT("error.user.cannotDeleteSelf"),
     SUPER_ADMIN_ROLE_ASSIGNMENT_NOT_ALLOWED("error.user.uperAdminRoleAssignmentNotAllowed"),
+    CANNOT_DELETE_SUPER_ADMIN("error.user.cannotDeleteSuperAdmin"), // error.user.cannotDeleteSuperAdmin
 
     // --- Errores de Roles y Permisos ---
     ROLE_NOT_FOUND("error.role.notFound"),

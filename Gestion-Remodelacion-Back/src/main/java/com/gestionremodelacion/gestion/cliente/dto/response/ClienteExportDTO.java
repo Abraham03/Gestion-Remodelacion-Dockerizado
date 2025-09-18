@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.gestionremodelacion.gestion.cliente.model.Cliente;
 import com.gestionremodelacion.gestion.export.Exportable;
+import com.gestionremodelacion.gestion.util.FormatUtils;
 
 public class ClienteExportDTO implements Exportable {
 
@@ -26,13 +27,14 @@ public class ClienteExportDTO implements Exportable {
                 ? this.cliente.getFechaRegistro().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                 : "";
 
+        String telefonoFormateado = FormatUtils.formatPhoneNumber(this.cliente.getTelefonoContacto());
+
         return Arrays.asList(Arrays.asList(
                 this.cliente.getNombreCliente(),
-                this.cliente.getTelefonoContacto(),
+                telefonoFormateado,
                 this.cliente.getDireccion(),
                 this.cliente.getNotas(),
-                fechaFormateada
-        ));
+                fechaFormateada));
     }
 
 }

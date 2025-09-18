@@ -34,7 +34,8 @@
     "PASSWORD_REQUIRED": "Password is required.",
     "LOG_IN": "Log In",
     "FORGOT_PASSWORD": "Forgot your password?",
-    "SESSION_EXPIRED": "Your session has expired. Please log in again."
+    "SESSION_EXPIRED": "Your session has expired. Please log in again.",
+    "CLOSE": "Close"
   },
   "HEADER": {
     "LOGOUT": "Log out"
@@ -294,7 +295,9 @@
     "USERNAME_REQUIRED": "Username is required.",
     "PASSWORD_REQUIRED": "Password is required.",
     "ROLES_REQUIRED": "At least one role must be assigned.",
-    "COMPANY_REQUIRED": "Company is required."
+    "COMPANY_REQUIRED": "Company is required.",
+    "PASSWORD_HINT": "Leave blank to not change the password."
+
   },
   "ROLES": {
     "MANAGEMENT": "Role Management",
@@ -327,6 +330,7 @@
     "MANAGEMENT": "Company Management",
     "SEARCH_EMPRESA": "Search company",
     "PLACEHOLDER_SEARCH": "E.g. Tech Solutions LLC",
+    "PLACEHOLDER_PHONE": "Ej. 5512345678",
     "ADD_EMPRESA": "Add Company",
     "EDIT_EMPRESA": "Edit Company",
     "CREATE_EMPRESA": "New Company",
@@ -334,6 +338,7 @@
     "SUBSCRIPTION": "Subscription",
     "LOGO": "Logo",
     "NAME": "Company Name",
+    "PHONE": "Phone",
     "PLAN": "Plan",
     "SUBSCRIPTION_STATUS": "Subscription Status",
     "START_DATE": "Start Date",
