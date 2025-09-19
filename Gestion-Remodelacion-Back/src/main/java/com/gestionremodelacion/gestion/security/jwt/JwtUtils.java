@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.gestionremodelacion.gestion.config.JwtProperties;
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
@@ -22,6 +23,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Utilidades JWT mejoradas con: - Métodos para claims personalizados -
@@ -32,11 +34,22 @@ import io.jsonwebtoken.security.SignatureException;
 public class JwtUtils {
 
     private final JwtProperties jwtProperties;
-    private final Key key;
+    private Key key;
 
     public JwtUtils(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
         this.key = Keys.hmacShaKeyFor(jwtProperties.getSecretKey().getBytes());
+    }
+
+    @PostConstruct
+    public void init() {
+        String secret = jwtProperties.getSecretKey();
+        if (!StringUtils.hasText(secret)) {
+            // Este error es más descriptivo y te dirá exactamente qué falló.
+            throw new IllegalArgumentException("La clave secreta de JWT no puede ser nula o vacía. " +
+                    "Verifica la propiedad 'jwt.secret' y la conexión con Secret Manager.");
+        }
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
     public String generateJwtToken(Authentication authentication) {

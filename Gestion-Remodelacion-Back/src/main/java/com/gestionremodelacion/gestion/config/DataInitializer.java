@@ -1,8 +1,5 @@
 package com.gestionremodelacion.gestion.config;
 
-import org.springframework.stereotype.Component;
-
-@Component
 public class DataInitializer {
 
     public DataInitializer() {
