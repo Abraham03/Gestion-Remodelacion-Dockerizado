@@ -2,6 +2,7 @@ package com.gestionremodelacion.gestion.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -40,6 +41,8 @@ import com.gestionremodelacion.gestion.security.jwt.RateLimitFilter;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class SecurityConfig {
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
 
     private final RateLimitFilter rateLimitFilter;
     private final JwtAuthFilter jwtAuthFilter;
