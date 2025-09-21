@@ -74,6 +74,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html")
                         .permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(EndpointRequest.to("health")).permitAll()
                         // --- Rutas protegidas por permisos/roles usando hasAuthority() ---
                         // Uso de HttpMethod.GET, HttpMethod.POST, etc. para evitar warnings futuros.
@@ -136,11 +137,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
+
+        config.setAllowedOriginPatterns(List.of(allowedOrigins));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "Skip-Interceptor"));
         config.setExposedHeaders(List.of("Authorization", "X-Refresh-Token"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -149,6 +152,7 @@ public class SecurityConfig {
 
     // Este filtro se registra con la máxima prioridad para asegurar que se ejecute
     // siempre.
+
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilterRegistrationBean() {
         FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(

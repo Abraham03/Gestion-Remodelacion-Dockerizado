@@ -72,8 +72,8 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
     this.canDelete = this.authService.hasPermission('EMPLEADO_DELETE');
     const userPlan = this.authService.currentUserPlan();
     const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
-    this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
-    this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
+    this.canExportExcel = hasPremiumPlan;
+    this.canExportPdf = hasPremiumPlan;
   }
 
   loadEmpleados(): void {
