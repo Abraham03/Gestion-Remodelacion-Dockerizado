@@ -95,7 +95,7 @@ public class HorasTrabajadasController {
     }
 
     @GetMapping("/export/excel")
-    @PreAuthorize("hasAuthority('HORASTRABAJADAS_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportToExcel(
             @RequestParam(name = "filter", required = false) String filter,
@@ -119,7 +119,7 @@ public class HorasTrabajadasController {
      * Endpoint para exportar a PDF.
      */
     @GetMapping("/export/pdf")
-    @PreAuthorize("hasAuthority('HORASTRABAJADAS_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_PDF')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportToPdf(
             @RequestParam(name = "filter", required = false) String filter,

@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>{{ (isEditMode ? 'PERMISSIONS.EDIT_PERMISSION' : 'PERMISSIONS.CREATE_PERMISSION') | translate }}</h2>
+
+<form [formGroup]="permissionForm" (ngSubmit)="onSubmit()">
+    <mat-dialog-content>
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'PERMISSIONS.NAME' | translate }}</mat-label>
+            <input matInput formControlName="name" required cdkFocusInitial>
+            <mat-error *ngIf="permissionForm.get('name')?.hasError('required')">
+                {{ 'VALIDATION.FIELD_REQUIRED' | translate }}
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'PERMISSIONS.DESCRIPTION' | translate }}</mat-label>
+            <textarea matInput formControlName="description" required></textarea>
+            <mat-error *ngIf="permissionForm.get('description')?.hasError('required')">
+                {{ 'VALIDATION.FIELD_REQUIRED' | translate }}
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'PERMISSIONS.SCOPE' | translate }}</mat-label>
+            <mat-select formControlName="scope" required>
+                <mat-option *ngFor="let scope of scopes" [value]="scope">
+                    {{ scope }}
+                </mat-option>
+            </mat-select>
+             <mat-error *ngIf="permissionForm.get('scope')?.hasError('required')">
+                {{ 'VALIDATION.FIELD_REQUIRED' | translate }}
+            </mat-error>
+        </mat-form-field>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="onCancel()">{{ 'GLOBAL.CANCEL' | translate }}</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="permissionForm.invalid">
+            {{ (isEditMode ? 'GLOBAL.UPDATE' : 'GLOBAL.CREATE') | translate }}
+        </button>
+    </mat-dialog-actions>
+</form>

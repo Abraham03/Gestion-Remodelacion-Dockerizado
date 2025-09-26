@@ -1,0 +1,36 @@
+<h1 mat-dialog-title>{{ 'USERS.INVITE_NEW_USER' | translate }}</h1>
+<div mat-dialog-content>
+  <p>{{ 'USERS.INVITE_INSTRUCTION' | translate }}</p>
+  <form [formGroup]="inviteForm" (ngSubmit)="onSubmit()">
+    
+    <mat-form-field *ngIf="isSuperAdmin" appearance="outline" class="full-width">
+      <mat-label>{{ 'GLOBAL.COMPANY' | translate }}</mat-label>
+      <mat-select formControlName="empresaId" required>
+        <mat-option *ngFor="let empresa of empresas" [value]="empresa.id">
+          {{ empresa.nombreEmpresa }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="inviteForm.get('empresaId')?.hasError('required')">
+        {{ 'USERS.COMPANY_REQUIRED' | translate }}
+      </mat-error>
+    </mat-form-field>
+    
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'GLOBAL.EMAIL' | translate }}</mat-label>
+      <input matInput formControlName="email" type="email" [placeholder]="'GLOBAL.EMAIL_PLACEHOLDER' | translate" required>
+      <mat-error *ngIf="inviteForm.get('email')?.hasError('required')">
+        {{ 'VALIDATION.EMAIL_REQUIRED' | translate }}
+      </mat-error>
+      <mat-error *ngIf="inviteForm.get('email')?.hasError('email')">
+        {{ 'VALIDATION.EMAIL_INVALID' | translate }}
+      </mat-error>
+    </mat-form-field>
+
+  </form>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="onCancel()">{{ 'GLOBAL.CANCEL' | translate }}</button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="inviteForm.invalid || isLoading">
+    {{ 'USERS.SEND_INVITATION' | translate }}
+  </button>
+</div>

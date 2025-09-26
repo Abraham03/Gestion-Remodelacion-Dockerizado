@@ -9,9 +9,13 @@
                (input)="applyFilterIfEmpty(filterValue.value)">
         <mat-icon matSuffix (click)="applyFilter(filterValue.value)">search</mat-icon>
       </mat-form-field>
+      <button mat-flat-button color="accent" *ngIf="canCreate" (click)="openInviteDialog()">
+        <mat-icon>person_add</mat-icon> {{ 'USERS.INVITE_USER' | translate }}
+      </button>      
       <button mat-flat-button color="primary" *ngIf="canCreate" (click)="openUserForm()">
         <mat-icon>add</mat-icon> {{ 'USERS.REGISTER_USER' | translate }}
       </button>
+      
     </div>
   </div>
 

@@ -125,6 +125,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/empresas/**").hasRole("SUPER_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/empresas/**").hasRole("SUPER_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/empresas/**").hasRole("SUPER_ADMIN")
+                        // solicitud para invitar a un empleado a una empresa
+                        .requestMatchers(HttpMethod.POST, "/api/invitations/**").hasAuthority("INVITE_USER")
+                        .requestMatchers(HttpMethod.GET, "/api/invitations/validate").permitAll()
                         // Cualquier otra solicitud debe estar autenticada
                         .anyRequest().authenticated())
                 .addFilterBefore(rateLimitFilter, LogoutFilter.class)

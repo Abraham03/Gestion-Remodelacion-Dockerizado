@@ -58,6 +58,7 @@ export class UserFormComponent implements OnInit {
       id: [data?.id || null],
       username: [data?.username || '', Validators.required],
       password: ['', this.isEditMode ? [] : Validators.required],
+      email: [data?.email || '', [Validators.required, Validators.email]],
       enabled: [data?.enabled ?? true],
       roles: [data?.roles.map(role => role.id) || [], Validators.required],
       empresaId: [data?.empresaId || null],

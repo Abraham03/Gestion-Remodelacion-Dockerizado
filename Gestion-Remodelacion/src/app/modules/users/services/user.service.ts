@@ -1,3 +1,4 @@
+/* src/app/modules/users/services/user.service.ts */
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -47,5 +48,17 @@ export class UserService extends BaseService<User> {
   deleteUser(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }  
+
+  inviteUser(email: string, empresaId?: number): Observable<any> {
+    const inviteApiUrl = `${environment.apiUrl}/invitations`;
+    
+    // Construimos el cuerpo de la petición
+    const payload: { email: string; empresaId?: number } = { email };
+    if (empresaId) {
+      payload.empresaId = empresaId;
+    }
+    
+    return this.http.post<any>(inviteApiUrl, payload);
+  }
 
 }

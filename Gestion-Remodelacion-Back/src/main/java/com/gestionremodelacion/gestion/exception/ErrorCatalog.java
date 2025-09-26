@@ -54,7 +54,14 @@ public enum ErrorCatalog {
     FILE_UPLOAD_ERROR("error.file.upload"),
     FILE_EMPTY("error.file.empty"),
     FILE_SIZE_EXCEEDED("error.file.sizeExceeded"),
-    FILE_INVALID_TYPE("error.file.invalidType");
+    FILE_INVALID_TYPE("error.file.invalidType"),
+
+    // --- Errores de Invitaciones por email
+    INVITATION_EMAIL_ALREADY_EXISTS("error.invitation.emailExists"),
+    INVITATION_ALREADY_SENT("error.invitation.alreadySent"),
+    VALIDATION_TOKEN_INVALID("error.validation.tokenInvalid"),
+    VALIDATION_TOKEN_USED("error.validation.tokenUsed"),
+    VALIDATION_TOKEN_EXPIRED("error.validation.tokenExpired");
 
     private final String key;
 

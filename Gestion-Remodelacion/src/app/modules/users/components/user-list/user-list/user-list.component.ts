@@ -18,6 +18,7 @@ import { User } from '../../../../../core/models/user.model';
 import { UserService } from '../../../services/user.service';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { UserFormComponent } from '../../user-form/user-form/user-form.component';
+import { InviteUserDialogComponent } from '../../invite-user-dialog/invite-user-dialog.component';
 
 @Component({
   selector: 'app-user-list',
@@ -56,7 +57,7 @@ export class UserListComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.setPermissions();
-    // ✅ 2. SE VERIFICA EL ROL Y SE AJUSTAN LAS COLUMNAS
+    // SE VERIFICA EL ROL Y SE AJUSTAN LAS COLUMNAS
     this.isSuperAdmin = this.authService.isSuperAdmin;
     if (this.isSuperAdmin && !this.displayedColumns.includes('nombreEmpresa')) {
       // Inserta la columna de empresa después de la de roles
@@ -97,6 +98,22 @@ export class UserListComponent implements OnInit, AfterViewInit {
         },
       });
   }
+
+  // Agrega el nuevo método para abrir el diálogo de invitación
+openInviteDialog(): void {
+  const dialogRef = this.dialog.open(InviteUserDialogComponent, {
+    width: '400px',
+    disableClose: true 
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    // El diálogo devuelve 'true' si la invitación fue exitosa.
+    if (result) {
+      // Opcional: No es necesario recargar la lista de usuarios, ya que el nuevo usuario aún no se ha registrado.
+      // this.loadUsers();
+    }
+  });
+}
 
   openUserForm(user?: User): void {
     const dialogRef = this.dialog.open(UserFormComponent, {

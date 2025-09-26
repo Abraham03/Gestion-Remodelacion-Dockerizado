@@ -1,0 +1,44 @@
+<div class="page-container">
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title>{{ 'AUTH.COMPLETE_REGISTRATION' | translate }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="isLoading" class="spinner-container">
+        <mat-spinner diameter="50"></mat-spinner>
+      </div>
+
+      <div *ngIf="errorMessage && !isLoading" class="error-message">
+        <mat-icon color="warn">error</mat-icon>
+        <span>{{ errorMessage | translate }}</span>
+        <a routerLink="/login">{{ 'AUTH.GO_TO_LOGIN' | translate }}</a>
+      </div>
+
+      <form *ngIf="!errorMessage && !isLoading" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'USERS.USERNAME' | translate }}</mat-label>
+          <input matInput formControlName="username" required>
+          <mat-error>{{ 'VALIDATION.USERNAME_REQUIRED' | translate }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'GLOBAL.EMAIL' | translate }}</mat-label>
+          <input matInput formControlName="email" type="email" required>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'AUTH.PASSWORD' | translate }}</mat-label>
+          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" required>
+          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error>{{ 'VALIDATION.PASSWORD_MIN_LENGTH' | translate:{min: 6} }}</mat-error>
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" class="full-width" type="submit" [disabled]="registerForm.invalid">
+          {{ 'AUTH.REGISTER' | translate }}
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

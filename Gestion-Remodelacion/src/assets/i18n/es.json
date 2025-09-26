@@ -10,6 +10,7 @@
     "UPDATE": "Actualizar",
     "ACTIONS": "Acciones",
     "CLOSE": "Cerrar",
+    "EMAIL": "Correo",
     "SEARCH": "Buscar",
     "FILTER": "Filtrar",
     "ACTIVE": "Activo",
@@ -50,7 +51,8 @@
     "REPORTS": "Reportes",
     "ROLES": "Roles",
     "USERS": "Usuarios",
-    "EMPRESAS": "Empresas"
+    "EMPRESAS": "Empresas",
+    "PERMISSIONS": "Permisos"
 
   },
   "FOOTER": {
@@ -325,6 +327,42 @@
     "ERROR_LOADING": "Error al cargar los roles.",
     "ERROR_LOADING_PERMISSIONS": "Error al cargar la lista de permisos.",
     "VALIDATION_ERROR": "Por favor, complete todos los campos requeridos."
+  },
+  "PERMISSIONS": {
+    "CREATE_PERMISSION": "Nuevo Permiso",
+    "EDIT_PERMISSION": "Editar Permiso",
+    "ACTIONS": "Acciones",
+    "NAME": "Nombre",
+    "DESCRIPTION": "Descripción",
+    "SCOPE": "Alcance",
+    "MANAGEMENT": "Gestión de Permisos",
+    "NAME_REQUIRED": "El nombre del permiso es obligatorio.",
+    "DESCRIPTION_REQUIRED": "La descripción es obligatoria.",
+    "SCOPE_REQUIRED": "El alcance es obligatorio.",
+    "LOADING_PERMISSIONS": "Cargando permisos...",
+    "NO_PERMISSIONS_FOUND": "No se encontraron permisos que coincidan con el filtro.",
+    "CONFIRM_DELETE": "¿Estás seguro de eliminar este permiso?",
+    "SUCCESSFULLY_CREATED": "Permiso creado correctamente.",
+    "SUCCESSFULLY_UPDATED": "Permiso actualizado correctamente.",
+    "SUCCESSFULLY_DELETED": "Permiso eliminado correctamente.",
+    "ERROR_LOADING": "Error al cargar los permisos.",
+    "VALIDATION_ERROR": "Por favor, complete todos los campos requeridos."
+  
+  },
+  "VALIDATION": {
+    "TOKEN_MISSING": "El token de autenticación es obligatorio.",
+    "TOKEN_INVALID": "El token de autenticación es inválido.",
+    "USERNAME_REQUIRED": "El nombre de usuario es obligatorio.",
+    "PASSWORD_MIN_LENGTH": "La contraseña debe tener al menos 6 caracteres.",
+    "FIELD_REQUIRED": "Este campo es obligatorio."
+  },
+  "AUTH": {
+    "COMPLETE_REGISTRATION": "Por favor, completa tu registro.",
+    "REGISTER": "Registrar",
+    "REGISTER_SUCCESS": "Registro exitoso.",
+    "REGISTER_ERROR": "Error al registrar el usuario.",
+    "GO_TO_LOGIN": "Ir a Iniciar Sesión",
+    "PASSWORD":"Contraseña"
   },
   "EMPRESAS": {
     "MANAGEMENT": "Gestión de Empresas",

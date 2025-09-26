@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionremodelacion.gestion.dto.request.LoginRequest;
@@ -34,14 +35,14 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-
     private final UserService userService;
     private final AuthService authService;
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshTokenService;
     private final RoleService roleService;
 
-    public AuthController(UserService userService, AuthService authService, JwtUtils jwtUtils , RefreshTokenService refreshTokenService, RoleService roleService) {
+    public AuthController(UserService userService, AuthService authService, JwtUtils jwtUtils,
+            RefreshTokenService refreshTokenService, RoleService roleService) {
         this.userService = userService;
         this.authService = authService;
         this.jwtUtils = jwtUtils;
@@ -55,6 +56,16 @@ public class AuthController {
         return ResponseEntity.ok(authService.authenticate(loginRequest));
     }
 
+    @PostMapping("/register-by-invitation")
+    public ResponseEntity<ApiResponse<Void>> registerUserByInvitation(
+            @Valid @RequestBody UserRequest signUpRequest,
+            @RequestParam String token) {
+
+        authService.registerUserFromInvitation(signUpRequest, token);
+        return ResponseEntity.status(201).body(
+                new ApiResponse<>(201, "Usuario registrado exitosamente gracias a la invitación.", null));
+    }
+
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> registerUser(
             @Valid @RequestBody UserRequest signUpRequest) {
@@ -63,17 +74,20 @@ public class AuthController {
         if (signUpRequest.getRoles() == null || signUpRequest.getRoles().isEmpty()) { // Use getRoleIds
             // Fetch the 'USER' role by name and get its ID
             Role userRole = roleService.findByName("ROLE_USER") // Assuming role service has findByName
-                    .orElseThrow(() -> new EntityNotFoundException("Default role 'ROLE_USER' not found. Please create it."));
+                    .orElseThrow(
+                            () -> new EntityNotFoundException("Default role 'ROLE_USER' not found. Please create it."));
             signUpRequest.setRoles(Set.of(userRole.getId())); // Set the ID as a Set<Long>
         }
 
         // Ensure 'enabled' is set for new users during signup if not already
-        // Your UserRequest now has `enabled`. If your frontend doesn't send it for signup,
-        // you might want a default here. Assuming `UserRequest` already has a default or is handled.
+        // Your UserRequest now has `enabled`. If your frontend doesn't send it for
+        // signup,
+        // you might want a default here. Assuming `UserRequest` already has a default
+        // or is handled.
         if (Boolean.FALSE.equals(signUpRequest.isEnabled())) {
             signUpRequest.setEnabled(true);
         }
-        
+
         userService.createUser(signUpRequest);
         return ResponseEntity.status(201).body(
                 new ApiResponse<>(201, "Usuario registrado exitosamente", null));
@@ -92,7 +106,7 @@ public class AuthController {
         String token = authHeader.substring(7); // Eliminar "Bearer "
         authService.logout(token);
 
-        // Obtener el refresh token del usuario actual y revocarlo también        
+        // Obtener el refresh token del usuario actual y revocarlo también
         String username = jwtUtils.getUserNameFromJwtToken(token);
         refreshTokenService.findByUser(username).ifPresent(refreshToken -> {
             refreshTokenService.revokeByToken(refreshToken.getToken());

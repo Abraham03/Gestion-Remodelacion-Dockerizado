@@ -10,7 +10,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { PermissionService } from '../../../../../core/services/permission.service';
+import { PermissionService } from '../../../../permissions/services/permission.service';
 import { Role, RoleRequest } from '../../../../../core/models/role.model';
 import { Permission } from '../../../../../core/models/permission.model';
 import { RoleService } from '../../../services/role.service';
@@ -102,7 +102,7 @@ export class RoleFormComponent implements OnInit {
 
     const roleRequest: RoleRequest = this.roleForm.value;
     
-    // ✅ CORRECCIÓN: La llamada a `updateRole` debe recibir el ID y el objeto por separado.
+    // La llamada a `updateRole` debe recibir el ID y el objeto por separado.
     const serviceCall = this.isEditMode && this.data
       ? this.roleService.updateRole(this.data.id!, roleRequest)
       : this.roleService.createRole(roleRequest);

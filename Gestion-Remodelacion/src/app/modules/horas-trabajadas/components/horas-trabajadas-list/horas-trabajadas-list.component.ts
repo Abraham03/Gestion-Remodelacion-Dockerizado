@@ -26,7 +26,7 @@ import { ExportService } from '../../../../core/services/export.service';
   imports: [
     CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule,
     MatPaginatorModule, MatFormFieldModule, MatInputModule, MatDialogModule,
-    DatePipe, DecimalPipe, MatSortModule, TranslateModule
+    DatePipe, MatSortModule, TranslateModule
   ],
   providers: [DatePipe],
   templateUrl: './horas-trabajadas-list.component.html',
@@ -89,11 +89,8 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
     this.canDelete = this.authService.hasPermission('HORASTRABAJADAS_DELETE');
     const userPlan = this.authService.currentUserPlan();
     const hasPremiumPlan = userPlan === 'NEGOCIOS' || userPlan === 'PROFESIONAL';
-    // Podra exportar solo si tiene un plan premium
-    this.canExportExcel = hasPremiumPlan;
-    this.canExportPdf = hasPremiumPlan;
-    //this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
-    //this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
+    this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
+    this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
   }
 
   loadHorasTrabajadas(): void {

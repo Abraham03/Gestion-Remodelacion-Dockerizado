@@ -46,18 +46,21 @@ public class EmpresaController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<EmpresaResponse> getEmpresaById(@PathVariable Long id) {
         EmpresaResponse empresa = empresaService.findById(id);
         return ResponseEntity.ok(empresa);
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<EmpresaResponse> createEmpresa(@Valid @RequestBody EmpresaRequest empresaRequest) {
         EmpresaResponse nuevaEmpresa = empresaService.create(empresaRequest);
         return new ResponseEntity<>(nuevaEmpresa, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<EmpresaResponse> updateEmpresa(@PathVariable Long id,
             @Valid @RequestBody EmpresaRequest empresaRequest) {
         EmpresaResponse empresaActualizada = empresaService.update(id, empresaRequest);
@@ -65,12 +68,14 @@ public class EmpresaController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> deleteEmpresa(@PathVariable Long id) {
         empresaService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> changeEmpresaStatus(@PathVariable Long id, @RequestParam boolean activo) {
         empresaService.changeStatus(id, activo);
         return ResponseEntity.ok().build();

@@ -5,14 +5,16 @@ public class PermissionResponse {
     private Long id;
     private String name;
     private String description;
+    private String scope;
 
     public PermissionResponse() {
     }
 
-    public PermissionResponse(Long id, String name, String description) {
+    public PermissionResponse(Long id, String name, String description, String scope) {
         this.id = id;
         this.name = name;
         this.description = description;
+        this.scope = scope;
     }
 
     public Long getId() {
@@ -37,6 +39,14 @@ public class PermissionResponse {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 
 }

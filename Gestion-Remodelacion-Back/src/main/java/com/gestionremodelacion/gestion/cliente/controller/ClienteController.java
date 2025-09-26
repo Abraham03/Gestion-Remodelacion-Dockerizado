@@ -90,7 +90,7 @@ public class ClienteController {
 
     // Nuevo endpoint para exportar a Excel
     @GetMapping("/export/excel")
-    @PreAuthorize("hasAuthority('CLIENTE_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportClientsToExcel(
             @RequestParam(name = "filter", required = false) String filter,
@@ -112,7 +112,7 @@ public class ClienteController {
 
     // Nuevo endpoint para exportar a PDF
     @GetMapping("/export/pdf")
-    @PreAuthorize("hasAuthority('CLIENTE_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_PDF')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportClientsToPdf(
             @RequestParam(name = "filter", required = false) String filter,

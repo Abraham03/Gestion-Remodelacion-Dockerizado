@@ -99,7 +99,7 @@ public class ProyectoController {
      * Endpoint para exportar a Excel.
      */
     @GetMapping("/export/excel")
-    @PreAuthorize("hasAuthority('PROYECTO_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportProyectosToExcel(
             @RequestParam(name = "filter", required = false) String filter,
@@ -123,7 +123,7 @@ public class ProyectoController {
      * Endpoint para exportar a PDF.
      */
     @GetMapping("/export/pdf")
-    @PreAuthorize("hasAuthority('PROYECTO_READ')")
+    @PreAuthorize("hasAuthority('EXPORT_PDF')")
     @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
     public ResponseEntity<byte[]> exportProyectosToPdf(
             @RequestParam(name = "filter", required = false) String filter,
