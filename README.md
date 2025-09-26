@@ -1,179 +1,193 @@
 
 ```
 Proyecto Gestion Remodelacion
-├─ db_init.sql
 ├─ docker-compose.yml
 ├─ Gestion-Remodelacion
 │  ├─ .angular
 │  │  └─ cache
-│  │     └─ 19.0.7
+│  │     └─ 19.2.15
 │  │        └─ gestion-remodelacion
 │  │           ├─ .tsbuildinfo
-│  │           ├─ angular-compiler.db
-│  │           ├─ angular-compiler.db-lock
 │  │           └─ vite
-│  │              └─ deps
-│  │                 ├─ @angular_cdk_layout.js
-│  │                 ├─ @angular_cdk_layout.js.map
-│  │                 ├─ @angular_cdk_text-field.js
-│  │                 ├─ @angular_cdk_text-field.js.map
-│  │                 ├─ @angular_common.js
-│  │                 ├─ @angular_common.js.map
-│  │                 ├─ @angular_common_http.js
-│  │                 ├─ @angular_common_http.js.map
-│  │                 ├─ @angular_core.js
-│  │                 ├─ @angular_core.js.map
-│  │                 ├─ @angular_core_rxjs-interop.js
-│  │                 ├─ @angular_core_rxjs-interop.js.map
-│  │                 ├─ @angular_forms.js
-│  │                 ├─ @angular_forms.js.map
-│  │                 ├─ @angular_material_button.js
-│  │                 ├─ @angular_material_button.js.map
-│  │                 ├─ @angular_material_card.js
-│  │                 ├─ @angular_material_card.js.map
-│  │                 ├─ @angular_material_checkbox.js
-│  │                 ├─ @angular_material_checkbox.js.map
-│  │                 ├─ @angular_material_chips.js
-│  │                 ├─ @angular_material_chips.js.map
-│  │                 ├─ @angular_material_core.js
-│  │                 ├─ @angular_material_core.js.map
-│  │                 ├─ @angular_material_datepicker.js
-│  │                 ├─ @angular_material_datepicker.js.map
-│  │                 ├─ @angular_material_dialog.js
-│  │                 ├─ @angular_material_dialog.js.map
-│  │                 ├─ @angular_material_divider.js
-│  │                 ├─ @angular_material_divider.js.map
-│  │                 ├─ @angular_material_form-field.js
-│  │                 ├─ @angular_material_form-field.js.map
-│  │                 ├─ @angular_material_grid-list.js
-│  │                 ├─ @angular_material_grid-list.js.map
-│  │                 ├─ @angular_material_icon.js
-│  │                 ├─ @angular_material_icon.js.map
-│  │                 ├─ @angular_material_input.js
-│  │                 ├─ @angular_material_input.js.map
-│  │                 ├─ @angular_material_list.js
-│  │                 ├─ @angular_material_list.js.map
-│  │                 ├─ @angular_material_menu.js
-│  │                 ├─ @angular_material_menu.js.map
-│  │                 ├─ @angular_material_paginator.js
-│  │                 ├─ @angular_material_paginator.js.map
-│  │                 ├─ @angular_material_progress-bar.js
-│  │                 ├─ @angular_material_progress-bar.js.map
-│  │                 ├─ @angular_material_progress-spinner.js
-│  │                 ├─ @angular_material_progress-spinner.js.map
-│  │                 ├─ @angular_material_select.js
-│  │                 ├─ @angular_material_select.js.map
-│  │                 ├─ @angular_material_sidenav.js
-│  │                 ├─ @angular_material_sidenav.js.map
-│  │                 ├─ @angular_material_snack-bar.js
-│  │                 ├─ @angular_material_snack-bar.js.map
-│  │                 ├─ @angular_material_sort.js
-│  │                 ├─ @angular_material_sort.js.map
-│  │                 ├─ @angular_material_table.js
-│  │                 ├─ @angular_material_table.js.map
-│  │                 ├─ @angular_material_toolbar.js
-│  │                 ├─ @angular_material_toolbar.js.map
-│  │                 ├─ @angular_material_tooltip.js
-│  │                 ├─ @angular_material_tooltip.js.map
-│  │                 ├─ @angular_platform-browser.js
-│  │                 ├─ @angular_platform-browser.js.map
-│  │                 ├─ @angular_platform-browser_animations_async.js
-│  │                 ├─ @angular_platform-browser_animations_async.js.map
-│  │                 ├─ @angular_router.js
-│  │                 ├─ @angular_router.js.map
-│  │                 ├─ angular-highcharts.js
-│  │                 ├─ angular-highcharts.js.map
-│  │                 ├─ browser-3P5Y4CLF.js
-│  │                 ├─ browser-3P5Y4CLF.js.map
-│  │                 ├─ chart__js.js
-│  │                 ├─ chart__js.js.map
-│  │                 ├─ chunk-2O4WY5GE.js
-│  │                 ├─ chunk-2O4WY5GE.js.map
-│  │                 ├─ chunk-3ZFKUGTQ.js
-│  │                 ├─ chunk-3ZFKUGTQ.js.map
-│  │                 ├─ chunk-42FJBLFI.js
-│  │                 ├─ chunk-42FJBLFI.js.map
-│  │                 ├─ chunk-4GJYMFY4.js
-│  │                 ├─ chunk-4GJYMFY4.js.map
-│  │                 ├─ chunk-4MBDVZGL.js
-│  │                 ├─ chunk-4MBDVZGL.js.map
-│  │                 ├─ chunk-4N4GOYJH.js
-│  │                 ├─ chunk-4N4GOYJH.js.map
-│  │                 ├─ chunk-5FQ7BG6O.js
-│  │                 ├─ chunk-5FQ7BG6O.js.map
-│  │                 ├─ chunk-5OPE3T2R.js
-│  │                 ├─ chunk-5OPE3T2R.js.map
-│  │                 ├─ chunk-6MXPI6W2.js
-│  │                 ├─ chunk-6MXPI6W2.js.map
-│  │                 ├─ chunk-7D6K5LNB.js
-│  │                 ├─ chunk-7D6K5LNB.js.map
-│  │                 ├─ chunk-7QTR2XT7.js
-│  │                 ├─ chunk-7QTR2XT7.js.map
-│  │                 ├─ chunk-7SEOQMOG.js
-│  │                 ├─ chunk-7SEOQMOG.js.map
-│  │                 ├─ chunk-CFW2C634.js
-│  │                 ├─ chunk-CFW2C634.js.map
-│  │                 ├─ chunk-ELV73LDX.js
-│  │                 ├─ chunk-ELV73LDX.js.map
-│  │                 ├─ chunk-EWAF2W56.js
-│  │                 ├─ chunk-EWAF2W56.js.map
-│  │                 ├─ chunk-EYJL3T2M.js
-│  │                 ├─ chunk-EYJL3T2M.js.map
-│  │                 ├─ chunk-FHTVLBLO.js
-│  │                 ├─ chunk-FHTVLBLO.js.map
-│  │                 ├─ chunk-FJEZGUGP.js
-│  │                 ├─ chunk-FJEZGUGP.js.map
-│  │                 ├─ chunk-GPCSZJUN.js
-│  │                 ├─ chunk-GPCSZJUN.js.map
-│  │                 ├─ chunk-HKKKA6TZ.js
-│  │                 ├─ chunk-HKKKA6TZ.js.map
-│  │                 ├─ chunk-HKXUORRE.js
-│  │                 ├─ chunk-HKXUORRE.js.map
-│  │                 ├─ chunk-HYM4XKNU.js
-│  │                 ├─ chunk-HYM4XKNU.js.map
-│  │                 ├─ chunk-J4J6SCKB.js
-│  │                 ├─ chunk-J4J6SCKB.js.map
-│  │                 ├─ chunk-JXBCBRYI.js
-│  │                 ├─ chunk-JXBCBRYI.js.map
-│  │                 ├─ chunk-K2YQG3KS.js
-│  │                 ├─ chunk-K2YQG3KS.js.map
-│  │                 ├─ chunk-K4EDBYWU.js
-│  │                 ├─ chunk-K4EDBYWU.js.map
-│  │                 ├─ chunk-MSC5CIUV.js
-│  │                 ├─ chunk-MSC5CIUV.js.map
-│  │                 ├─ chunk-OIBNGD5S.js
-│  │                 ├─ chunk-OIBNGD5S.js.map
-│  │                 ├─ chunk-QXKNPCFH.js
-│  │                 ├─ chunk-QXKNPCFH.js.map
-│  │                 ├─ chunk-R2FZGUEZ.js
-│  │                 ├─ chunk-R2FZGUEZ.js.map
-│  │                 ├─ chunk-RBLYMXH2.js
-│  │                 ├─ chunk-RBLYMXH2.js.map
-│  │                 ├─ chunk-REZCVUKO.js
-│  │                 ├─ chunk-REZCVUKO.js.map
-│  │                 ├─ chunk-TXDUYLVM.js
-│  │                 ├─ chunk-TXDUYLVM.js.map
-│  │                 ├─ chunk-U3QFJ237.js
-│  │                 ├─ chunk-U3QFJ237.js.map
-│  │                 ├─ chunk-U4V2OAGR.js
-│  │                 ├─ chunk-U4V2OAGR.js.map
-│  │                 ├─ chunk-UB5ZHTYX.js
-│  │                 ├─ chunk-UB5ZHTYX.js.map
-│  │                 ├─ chunk-UK57K4GX.js
-│  │                 ├─ chunk-UK57K4GX.js.map
-│  │                 ├─ chunk-WYEIONTA.js
-│  │                 ├─ chunk-WYEIONTA.js.map
-│  │                 ├─ chunk-WZLSAKRM.js
-│  │                 ├─ chunk-WZLSAKRM.js.map
-│  │                 ├─ chunk-XJQXRUMU.js
-│  │                 ├─ chunk-XJQXRUMU.js.map
-│  │                 ├─ chunk-XLZ7IRYS.js
-│  │                 ├─ chunk-XLZ7IRYS.js.map
+│  │              ├─ deps
+│  │              │  ├─ @angular_cdk_bidi.js
+│  │              │  ├─ @angular_cdk_bidi.js.map
+│  │              │  ├─ @angular_cdk_layout.js
+│  │              │  ├─ @angular_cdk_layout.js.map
+│  │              │  ├─ @angular_cdk_scrolling.js
+│  │              │  ├─ @angular_cdk_scrolling.js.map
+│  │              │  ├─ @angular_cdk_text-field.js
+│  │              │  ├─ @angular_cdk_text-field.js.map
+│  │              │  ├─ @angular_common.js
+│  │              │  ├─ @angular_common.js.map
+│  │              │  ├─ @angular_common_http.js
+│  │              │  ├─ @angular_common_http.js.map
+│  │              │  ├─ @angular_core.js
+│  │              │  ├─ @angular_core.js.map
+│  │              │  ├─ @angular_forms.js
+│  │              │  ├─ @angular_forms.js.map
+│  │              │  ├─ @angular_material_button.js
+│  │              │  ├─ @angular_material_button.js.map
+│  │              │  ├─ @angular_material_card.js
+│  │              │  ├─ @angular_material_card.js.map
+│  │              │  ├─ @angular_material_checkbox.js
+│  │              │  ├─ @angular_material_checkbox.js.map
+│  │              │  ├─ @angular_material_chips.js
+│  │              │  ├─ @angular_material_chips.js.map
+│  │              │  ├─ @angular_material_core.js
+│  │              │  ├─ @angular_material_core.js.map
+│  │              │  ├─ @angular_material_datepicker.js
+│  │              │  ├─ @angular_material_datepicker.js.map
+│  │              │  ├─ @angular_material_dialog.js
+│  │              │  ├─ @angular_material_dialog.js.map
+│  │              │  ├─ @angular_material_divider.js
+│  │              │  ├─ @angular_material_divider.js.map
+│  │              │  ├─ @angular_material_form-field.js
+│  │              │  ├─ @angular_material_form-field.js.map
+│  │              │  ├─ @angular_material_grid-list.js
+│  │              │  ├─ @angular_material_grid-list.js.map
+│  │              │  ├─ @angular_material_icon.js
+│  │              │  ├─ @angular_material_icon.js.map
+│  │              │  ├─ @angular_material_input.js
+│  │              │  ├─ @angular_material_input.js.map
+│  │              │  ├─ @angular_material_list.js
+│  │              │  ├─ @angular_material_list.js.map
+│  │              │  ├─ @angular_material_menu.js
+│  │              │  ├─ @angular_material_menu.js.map
+│  │              │  ├─ @angular_material_paginator.js
+│  │              │  ├─ @angular_material_paginator.js.map
+│  │              │  ├─ @angular_material_progress-bar.js
+│  │              │  ├─ @angular_material_progress-bar.js.map
+│  │              │  ├─ @angular_material_progress-spinner.js
+│  │              │  ├─ @angular_material_progress-spinner.js.map
+│  │              │  ├─ @angular_material_select.js
+│  │              │  ├─ @angular_material_select.js.map
+│  │              │  ├─ @angular_material_sidenav.js
+│  │              │  ├─ @angular_material_sidenav.js.map
+│  │              │  ├─ @angular_material_snack-bar.js
+│  │              │  ├─ @angular_material_snack-bar.js.map
+│  │              │  ├─ @angular_material_sort.js
+│  │              │  ├─ @angular_material_sort.js.map
+│  │              │  ├─ @angular_material_table.js
+│  │              │  ├─ @angular_material_table.js.map
+│  │              │  ├─ @angular_material_toolbar.js
+│  │              │  ├─ @angular_material_toolbar.js.map
+│  │              │  ├─ @angular_material_tooltip.js
+│  │              │  ├─ @angular_material_tooltip.js.map
+│  │              │  ├─ @angular_platform-browser.js
+│  │              │  ├─ @angular_platform-browser.js.map
+│  │              │  ├─ @angular_platform-browser_animations_async.js
+│  │              │  ├─ @angular_platform-browser_animations_async.js.map
+│  │              │  ├─ @angular_router.js
+│  │              │  ├─ @angular_router.js.map
+│  │              │  ├─ @ngx-translate_core.js
+│  │              │  ├─ @ngx-translate_core.js.map
+│  │              │  ├─ @ngx-translate_http-loader.js
+│  │              │  ├─ @ngx-translate_http-loader.js.map
+│  │              │  ├─ angular-highcharts.js
+│  │              │  ├─ angular-highcharts.js.map
+│  │              │  ├─ browser-4DFK2GBS.js
+│  │              │  ├─ browser-4DFK2GBS.js.map
+│  │              │  ├─ chart__js.js
+│  │              │  ├─ chart__js.js.map
+│  │              │  ├─ chunk-2HO4TAWF.js
+│  │              │  ├─ chunk-2HO4TAWF.js.map
+│  │              │  ├─ chunk-2O4WY5GE.js
+│  │              │  ├─ chunk-2O4WY5GE.js.map
+│  │              │  ├─ chunk-42FJBLFI.js
+│  │              │  ├─ chunk-42FJBLFI.js.map
+│  │              │  ├─ chunk-4S3KYZTJ.js
+│  │              │  ├─ chunk-4S3KYZTJ.js.map
+│  │              │  ├─ chunk-5FVXQZWU.js
+│  │              │  ├─ chunk-5FVXQZWU.js.map
+│  │              │  ├─ chunk-6KA53MNJ.js
+│  │              │  ├─ chunk-6KA53MNJ.js.map
+│  │              │  ├─ chunk-6M22K5DV.js
+│  │              │  ├─ chunk-6M22K5DV.js.map
+│  │              │  ├─ chunk-7AKJHWCU.js
+│  │              │  ├─ chunk-7AKJHWCU.js.map
+│  │              │  ├─ chunk-7BLI7KBP.js
+│  │              │  ├─ chunk-7BLI7KBP.js.map
+│  │              │  ├─ chunk-7CCYIGP4.js
+│  │              │  ├─ chunk-7CCYIGP4.js.map
+│  │              │  ├─ chunk-7UG3T73H.js
+│  │              │  ├─ chunk-7UG3T73H.js.map
+│  │              │  ├─ chunk-B67JW5JT.js
+│  │              │  ├─ chunk-B67JW5JT.js.map
+│  │              │  ├─ chunk-BMODJYTA.js
+│  │              │  ├─ chunk-BMODJYTA.js.map
+│  │              │  ├─ chunk-BPVM52MJ.js
+│  │              │  ├─ chunk-BPVM52MJ.js.map
+│  │              │  ├─ chunk-C3RLSBDP.js
+│  │              │  ├─ chunk-C3RLSBDP.js.map
+│  │              │  ├─ chunk-C6LR7YUE.js
+│  │              │  ├─ chunk-C6LR7YUE.js.map
+│  │              │  ├─ chunk-DF5PPZ43.js
+│  │              │  ├─ chunk-DF5PPZ43.js.map
+│  │              │  ├─ chunk-EDLLLPTT.js
+│  │              │  ├─ chunk-EDLLLPTT.js.map
+│  │              │  ├─ chunk-EKILFAZT.js
+│  │              │  ├─ chunk-EKILFAZT.js.map
+│  │              │  ├─ chunk-F6SD5BSU.js
+│  │              │  ├─ chunk-F6SD5BSU.js.map
+│  │              │  ├─ chunk-G4QVF5MF.js
+│  │              │  ├─ chunk-G4QVF5MF.js.map
+│  │              │  ├─ chunk-GTISQ5ZC.js
+│  │              │  ├─ chunk-GTISQ5ZC.js.map
+│  │              │  ├─ chunk-GVKITJRN.js
+│  │              │  ├─ chunk-GVKITJRN.js.map
+│  │              │  ├─ chunk-HHY6PXRK.js
+│  │              │  ├─ chunk-HHY6PXRK.js.map
+│  │              │  ├─ chunk-JXBCBRYI.js
+│  │              │  ├─ chunk-JXBCBRYI.js.map
+│  │              │  ├─ chunk-KHHMMHU5.js
+│  │              │  ├─ chunk-KHHMMHU5.js.map
+│  │              │  ├─ chunk-KWBX7L4D.js
+│  │              │  ├─ chunk-KWBX7L4D.js.map
+│  │              │  ├─ chunk-MY4HZF5H.js
+│  │              │  ├─ chunk-MY4HZF5H.js.map
+│  │              │  ├─ chunk-NQGXRE42.js
+│  │              │  ├─ chunk-NQGXRE42.js.map
+│  │              │  ├─ chunk-NTVRGWQ2.js
+│  │              │  ├─ chunk-NTVRGWQ2.js.map
+│  │              │  ├─ chunk-OEOH75ZL.js
+│  │              │  ├─ chunk-OEOH75ZL.js.map
+│  │              │  ├─ chunk-OIBNGD5S.js
+│  │              │  ├─ chunk-OIBNGD5S.js.map
+│  │              │  ├─ chunk-PEBH6BBU.js
+│  │              │  ├─ chunk-PEBH6BBU.js.map
+│  │              │  ├─ chunk-QPZSB7XD.js
+│  │              │  ├─ chunk-QPZSB7XD.js.map
+│  │              │  ├─ chunk-QWE4EVHZ.js
+│  │              │  ├─ chunk-QWE4EVHZ.js.map
+│  │              │  ├─ chunk-RBDVXSCG.js
+│  │              │  ├─ chunk-RBDVXSCG.js.map
+│  │              │  ├─ chunk-SAOS2WZP.js
+│  │              │  ├─ chunk-SAOS2WZP.js.map
+│  │              │  ├─ chunk-TXDUYLVM.js
+│  │              │  ├─ chunk-TXDUYLVM.js.map
+│  │              │  ├─ chunk-UPREHSS6.js
+│  │              │  ├─ chunk-UPREHSS6.js.map
+│  │              │  ├─ chunk-VF6BF5W6.js
+│  │              │  ├─ chunk-VF6BF5W6.js.map
+│  │              │  ├─ chunk-VW7CLBK4.js
+│  │              │  ├─ chunk-VW7CLBK4.js.map
+│  │              │  ├─ chunk-WPM5VTLQ.js
+│  │              │  ├─ chunk-WPM5VTLQ.js.map
+│  │              │  ├─ chunk-YDR23K2V.js
+│  │              │  ├─ chunk-YDR23K2V.js.map
+│  │              │  ├─ chunk-YSHNKRIB.js
+│  │              │  ├─ chunk-YSHNKRIB.js.map
+│  │              │  ├─ chunk-ZRKG4SLN.js
+│  │              │  ├─ chunk-ZRKG4SLN.js.map
+│  │              │  ├─ package.json
+│  │              │  ├─ rxjs.js
+│  │              │  ├─ rxjs.js.map
+│  │              │  ├─ rxjs_operators.js
+│  │              │  ├─ rxjs_operators.js.map
+│  │              │  └─ _metadata.json
+│  │              └─ deps_ssr
 │  │                 ├─ package.json
-│  │                 ├─ rxjs.js
-│  │                 ├─ rxjs.js.map
-│  │                 ├─ rxjs_operators.js
-│  │                 ├─ rxjs_operators.js.map
 │  │                 └─ _metadata.json
 │  ├─ .editorconfig
 │  ├─ angular.json
@@ -227,8 +241,10 @@ Proyecto Gestion Remodelacion
 │  │     │  └─ styles-SA777J4E.css
 │  │     └─ prerendered-routes.json
 │  ├─ Dockerfile
+│  ├─ Dockerfile-local
 │  ├─ estructura_carpetas.txt
-│  ├─ nginx.conf
+│  ├─ nginx-local.conf
+│  ├─ nginx.conf.template
 │  ├─ package-lock.json
 │  ├─ package.json
 │  ├─ public
@@ -324,6 +340,20 @@ Proyecto Gestion Remodelacion
 │  │  │  │  │  │  └─ empleado.model.ts
 │  │  │  │  │  └─ services
 │  │  │  │  │     └─ empleado.service.ts
+│  │  │  │  ├─ empresa
+│  │  │  │  │  ├─ components
+│  │  │  │  │  │  ├─ empresa-form
+│  │  │  │  │  │  │  ├─ empresa-form.component.html
+│  │  │  │  │  │  │  ├─ empresa-form.component.scss
+│  │  │  │  │  │  │  └─ empresa-form.component.ts
+│  │  │  │  │  │  └─ empresa-list
+│  │  │  │  │  │     ├─ empresa-list.component.html
+│  │  │  │  │  │     ├─ empresa-list.component.scss
+│  │  │  │  │  │     └─ empresa-list.component.ts
+│  │  │  │  │  ├─ model
+│  │  │  │  │  │  └─ Empresa.ts
+│  │  │  │  │  └─ service
+│  │  │  │  │     └─ empresa.service.ts
 │  │  │  │  ├─ horas-trabajadas
 │  │  │  │  │  ├─ components
 │  │  │  │  │  │  ├─ horas-trabajadas-form
@@ -438,7 +468,8 @@ Proyecto Gestion Remodelacion
 │  │  │  │  ├─ en.json
 │  │  │  │  └─ es.json
 │  │  │  ├─ images
-│  │  │  │  └─ logo_GBS.png
+│  │  │  │  ├─ logo_GBS.png
+│  │  │  │  └─ tech solutions.png
 │  │  │  └─ styles
 │  │  │     └─ theme.css
 │  │  ├─ environments
@@ -541,11 +572,23 @@ Proyecto Gestion Remodelacion
 │  │  │  │           │  └─ service
 │  │  │  │           │     └─ EmpleadoService.java
 │  │  │  │           ├─ empresa
-│  │  │  │           │  └─ model
-│  │  │  │           │     └─ Empresa.java
+│  │  │  │           │  ├─ controller
+│  │  │  │           │  │  └─ EmpresaController.java
+│  │  │  │           │  ├─ dto
+│  │  │  │           │  │  ├─ EmpresaRequest.java
+│  │  │  │           │  │  ├─ EmpresaResponse.java
+│  │  │  │           │  │  └─ EmpresaSimpleResponse.java
+│  │  │  │           │  ├─ model
+│  │  │  │           │  │  └─ Empresa.java
+│  │  │  │           │  ├─ repository
+│  │  │  │           │  │  └─ EmpresaRepository.java
+│  │  │  │           │  └─ service
+│  │  │  │           │     └─ EmpresaService.java
 │  │  │  │           ├─ exception
 │  │  │  │           │  ├─ BusinessRuleException.java
 │  │  │  │           │  ├─ DuplicateResourceException.java
+│  │  │  │           │  ├─ ErrorCatalog.java
+│  │  │  │           │  ├─ FileUploadException.java
 │  │  │  │           │  └─ ResourceNotFoundException.java
 │  │  │  │           ├─ export
 │  │  │  │           │  ├─ Exportable.java
@@ -566,9 +609,22 @@ Proyecto Gestion Remodelacion
 │  │  │  │           │  │  └─ HorasTrabajadasRepository.java
 │  │  │  │           │  └─ service
 │  │  │  │           │     └─ HorasTrabajadasService.java
+│  │  │  │           ├─ invitation
+│  │  │  │           │  ├─ controller
+│  │  │  │           │  │  └─ InvitationController.java
+│  │  │  │           │  ├─ model
+│  │  │  │           │  │  └─ Invitacion.java
+│  │  │  │           │  ├─ repository
+│  │  │  │           │  │  └─ InvitacionRepository.java
+│  │  │  │           │  ├─ request
+│  │  │  │           │  │  └─ InvitationRequest.java
+│  │  │  │           │  ├─ response
+│  │  │  │           │  └─ service
+│  │  │  │           │     └─ InvitationService.java
 │  │  │  │           ├─ mapper
 │  │  │  │           │  ├─ ClienteMapper.java
 │  │  │  │           │  ├─ EmpleadoMapper.java
+│  │  │  │           │  ├─ EmpresaMapper.java
 │  │  │  │           │  ├─ HorasTrabajadasMapper.java
 │  │  │  │           │  ├─ PermissionMapper.java
 │  │  │  │           │  ├─ ProyectoMapper.java
@@ -579,6 +635,8 @@ Proyecto Gestion Remodelacion
 │  │  │  │           │  ├─ RefreshToken.java
 │  │  │  │           │  ├─ Role.java
 │  │  │  │           │  └─ User.java
+│  │  │  │           ├─ notification
+│  │  │  │           │  └─ NotificationService.java
 │  │  │  │           ├─ proyecto
 │  │  │  │           │  ├─ controller
 │  │  │  │           │  │  └─ ProyectoController.java
@@ -613,26 +671,34 @@ Proyecto Gestion Remodelacion
 │  │  │  │           │     ├─ JwtAuthFilter.java
 │  │  │  │           │     ├─ JwtUtils.java
 │  │  │  │           │     └─ RateLimitFilter.java
-│  │  │  │           └─ service
-│  │  │  │              ├─ auth
-│  │  │  │              │  ├─ AuthService.java
-│  │  │  │              │  ├─ JwtService.java
-│  │  │  │              │  ├─ RefreshTokenService.java
-│  │  │  │              │  └─ TokenBlacklistService.java
-│  │  │  │              ├─ dashboard
-│  │  │  │              │  └─ DashboardService.java
-│  │  │  │              ├─ impl
-│  │  │  │              │  ├─ UserDetailsImpl.java
-│  │  │  │              │  └─ UserDetailsServiceImpl.java
-│  │  │  │              ├─ permission
-│  │  │  │              │  └─ PermissionService.java
-│  │  │  │              ├─ role
-│  │  │  │              │  └─ RoleService.java
-│  │  │  │              └─ user
-│  │  │  │                 └─ UserService.java
+│  │  │  │           ├─ service
+│  │  │  │           │  ├─ auth
+│  │  │  │           │  │  ├─ AuthService.java
+│  │  │  │           │  │  ├─ JwtService.java
+│  │  │  │           │  │  ├─ RefreshTokenService.java
+│  │  │  │           │  │  └─ TokenBlacklistService.java
+│  │  │  │           │  ├─ dashboard
+│  │  │  │           │  │  └─ DashboardService.java
+│  │  │  │           │  ├─ FileUploadService.java
+│  │  │  │           │  ├─ impl
+│  │  │  │           │  │  ├─ UserDetailsImpl.java
+│  │  │  │           │  │  └─ UserDetailsServiceImpl.java
+│  │  │  │           │  ├─ permission
+│  │  │  │           │  │  └─ PermissionService.java
+│  │  │  │           │  ├─ role
+│  │  │  │           │  │  └─ RoleService.java
+│  │  │  │           │  └─ user
+│  │  │  │           │     └─ UserService.java
+│  │  │  │           └─ util
+│  │  │  │              └─ FormatUtils.java
 │  │  │  └─ resources
 │  │  │     ├─ application-docker.properties
+│  │  │     ├─ application-local.properties
+│  │  │     ├─ application-prod.properties
 │  │  │     ├─ application.properties
+│  │  │     ├─ db
+│  │  │     │  └─ migration
+│  │  │     │     └─ V2__Create_invitations_table.sql
 │  │  │     └─ images
 │  │  │        ├─ logo_Excel.jpg
 │  │  │        ├─ logo_Excel.png
@@ -642,6 +708,8 @@ Proyecto Gestion Remodelacion
 │  └─ target
 │     ├─ classes
 │     │  ├─ application-docker.properties
+│     │  ├─ application-local.properties
+│     │  ├─ application-prod.properties
 │     │  ├─ application.properties
 │     │  ├─ com
 │     │  │  └─ gestionremodelacion
@@ -712,13 +780,25 @@ Proyecto Gestion Remodelacion
 │     │  │        │  └─ service
 │     │  │        │     └─ EmpleadoService.class
 │     │  │        ├─ empresa
-│     │  │        │  └─ model
-│     │  │        │     ├─ Empresa$EstadoSuscripcion.class
-│     │  │        │     ├─ Empresa$PlanSuscripcion.class
-│     │  │        │     └─ Empresa.class
+│     │  │        │  ├─ controller
+│     │  │        │  │  └─ EmpresaController.class
+│     │  │        │  ├─ dto
+│     │  │        │  │  ├─ EmpresaRequest.class
+│     │  │        │  │  ├─ EmpresaResponse.class
+│     │  │        │  │  └─ EmpresaSimpleResponse.class
+│     │  │        │  ├─ model
+│     │  │        │  │  ├─ Empresa$EstadoSuscripcion.class
+│     │  │        │  │  ├─ Empresa$PlanSuscripcion.class
+│     │  │        │  │  └─ Empresa.class
+│     │  │        │  ├─ repository
+│     │  │        │  │  └─ EmpresaRepository.class
+│     │  │        │  └─ service
+│     │  │        │     └─ EmpresaService.class
 │     │  │        ├─ exception
 │     │  │        │  ├─ BusinessRuleException.class
 │     │  │        │  ├─ DuplicateResourceException.class
+│     │  │        │  ├─ ErrorCatalog.class
+│     │  │        │  ├─ FileUploadException.class
 │     │  │        │  └─ ResourceNotFoundException.class
 │     │  │        ├─ export
 │     │  │        │  ├─ Exportable.class
@@ -739,11 +819,25 @@ Proyecto Gestion Remodelacion
 │     │  │        │  │  └─ HorasTrabajadasRepository.class
 │     │  │        │  └─ service
 │     │  │        │     └─ HorasTrabajadasService.class
+│     │  │        ├─ invitation
+│     │  │        │  ├─ controller
+│     │  │        │  │  └─ InvitationController.class
+│     │  │        │  ├─ model
+│     │  │        │  │  └─ Invitacion.class
+│     │  │        │  ├─ repository
+│     │  │        │  │  └─ InvitacionRepository.class
+│     │  │        │  ├─ request
+│     │  │        │  │  └─ InvitationRequest.class
+│     │  │        │  ├─ response
+│     │  │        │  └─ service
+│     │  │        │     └─ InvitationService.class
 │     │  │        ├─ mapper
 │     │  │        │  ├─ ClienteMapper.class
 │     │  │        │  ├─ ClienteMapperImpl.class
 │     │  │        │  ├─ EmpleadoMapper.class
 │     │  │        │  ├─ EmpleadoMapperImpl.class
+│     │  │        │  ├─ EmpresaMapper.class
+│     │  │        │  ├─ EmpresaMapperImpl.class
 │     │  │        │  ├─ HorasTrabajadasMapper.class
 │     │  │        │  ├─ HorasTrabajadasMapperImpl.class
 │     │  │        │  ├─ PermissionMapper.class
@@ -755,10 +849,13 @@ Proyecto Gestion Remodelacion
 │     │  │        │  ├─ UserMapper.class
 │     │  │        │  └─ UserMapperImpl.class
 │     │  │        ├─ model
+│     │  │        │  ├─ Permission$PermissionScope.class
 │     │  │        │  ├─ Permission.class
 │     │  │        │  ├─ RefreshToken.class
 │     │  │        │  ├─ Role.class
 │     │  │        │  └─ User.class
+│     │  │        ├─ notification
+│     │  │        │  └─ NotificationService.class
 │     │  │        ├─ proyecto
 │     │  │        │  ├─ controller
 │     │  │        │  │  └─ ProyectoController.class
@@ -794,23 +891,29 @@ Proyecto Gestion Remodelacion
 │     │  │        │     ├─ JwtAuthFilter.class
 │     │  │        │     ├─ JwtUtils.class
 │     │  │        │     └─ RateLimitFilter.class
-│     │  │        └─ service
-│     │  │           ├─ auth
-│     │  │           │  ├─ AuthService.class
-│     │  │           │  ├─ JwtService.class
-│     │  │           │  ├─ RefreshTokenService.class
-│     │  │           │  └─ TokenBlacklistService.class
-│     │  │           ├─ dashboard
-│     │  │           │  └─ DashboardService.class
-│     │  │           ├─ impl
-│     │  │           │  ├─ UserDetailsImpl.class
-│     │  │           │  └─ UserDetailsServiceImpl.class
-│     │  │           ├─ permission
-│     │  │           │  └─ PermissionService.class
-│     │  │           ├─ role
-│     │  │           │  └─ RoleService.class
-│     │  │           └─ user
-│     │  │              └─ UserService.class
+│     │  │        ├─ service
+│     │  │        │  ├─ auth
+│     │  │        │  │  ├─ AuthService.class
+│     │  │        │  │  ├─ JwtService.class
+│     │  │        │  │  ├─ RefreshTokenService.class
+│     │  │        │  │  └─ TokenBlacklistService.class
+│     │  │        │  ├─ dashboard
+│     │  │        │  │  └─ DashboardService.class
+│     │  │        │  ├─ FileUploadService.class
+│     │  │        │  ├─ impl
+│     │  │        │  │  ├─ UserDetailsImpl.class
+│     │  │        │  │  └─ UserDetailsServiceImpl.class
+│     │  │        │  ├─ permission
+│     │  │        │  │  └─ PermissionService.class
+│     │  │        │  ├─ role
+│     │  │        │  │  └─ RoleService.class
+│     │  │        │  └─ user
+│     │  │        │     └─ UserService.class
+│     │  │        └─ util
+│     │  │           └─ FormatUtils.class
+│     │  ├─ db
+│     │  │  └─ migration
+│     │  │     └─ V2__Create_invitations_table.sql
 │     │  └─ images
 │     │     ├─ logo_Excel.jpg
 │     │     ├─ logo_Excel.png
@@ -823,6 +926,7 @@ Proyecto Gestion Remodelacion
 │     │              └─ mapper
 │     │                 ├─ ClienteMapperImpl.java
 │     │                 ├─ EmpleadoMapperImpl.java
+│     │                 ├─ EmpresaMapperImpl.java
 │     │                 ├─ HorasTrabajadasMapperImpl.java
 │     │                 ├─ PermissionMapperImpl.java
 │     │                 ├─ ProyectoMapperImpl.java
@@ -830,18 +934,10 @@ Proyecto Gestion Remodelacion
 │     │                 └─ UserMapperImpl.java
 │     ├─ generated-test-sources
 │     │  └─ test-annotations
-│     ├─ gestion-backend.jar
-│     ├─ gestion-backend.jar.original
-│     ├─ maven-archiver
-│     │  └─ pom.properties
 │     ├─ maven-status
 │     │  └─ maven-compiler-plugin
-│     │     ├─ compile
-│     │     │  └─ default-compile
-│     │     │     ├─ createdFiles.lst
-│     │     │     └─ inputFiles.lst
-│     │     └─ testCompile
-│     │        └─ default-testCompile
+│     │     └─ compile
+│     │        └─ default-compile
 │     │           ├─ createdFiles.lst
 │     │           └─ inputFiles.lst
 │     └─ test-classes

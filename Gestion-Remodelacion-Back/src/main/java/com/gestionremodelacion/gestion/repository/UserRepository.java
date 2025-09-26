@@ -33,6 +33,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
          */
         Boolean existsByUsername(String username);
 
+        // Verifica si un email ya existe en todo el sistema
+        Boolean existsByEmail(String email);
+
         Optional<User> findByIdAndEmpresaId(Long id, Long empresaId);
 
         @Query("SELECT u FROM User u LEFT JOIN u.roles r " + // <-- CAMBIADO A LEFT JOIN

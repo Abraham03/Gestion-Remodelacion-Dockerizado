@@ -1,6 +1,5 @@
 /* src/app/modules/cliente/components/cliente-list/cliente-list.component.scss */
 
-// ✅ CAMBIO: Se reemplaza @import por @use y se asignan alias.
 @use '../../../../../styles/abstracts/mixins' as mixins;
 @use '../../../../../styles/abstracts/variables' as vars;
 @use '../../../../../styles/components/tables';
@@ -8,7 +7,7 @@
 
 .mat-column-nombreCliente {
   font-weight: 500;
-  // ✅ CAMBIO: Se prefija la variable con 'vars'.
+  // Se prefija la variable con 'vars'.
   color: vars.$color-primary;
 }
 
@@ -22,10 +21,10 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  // ✅ CAMBIO: Se prefija la variable con 'vars'.
+  // Se prefija la variable con 'vars'.
   gap: vars.$spacing-s;
 
-  // ✅ CAMBIO: Se prefija el mixin con 'mixins'.
+  // Se prefija el mixin con 'mixins'.
   @include mixins.respond-to(mobile) {
     // Para el div que contiene los botones
     &.table-actions {

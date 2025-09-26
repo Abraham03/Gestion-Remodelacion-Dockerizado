@@ -6,6 +6,8 @@ import { AuthService } from './core/services/auth.service';
 import { inject } from '@angular/core';
 import { validTokenGuard } from './core/guards/valid-token.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { RegisterInvitationComponent } from './modules/auth/components/register-invitation/register-invitation.component';
+import { PermissionsComponent } from './modules/permissions/components/permissions/permissions.component';
 
 export const routes: Routes = [
   {
@@ -13,6 +15,11 @@ export const routes: Routes = [
     component: LoginComponent,
     // Este canActivate asegura que si ya estás logueado, te redirija al dashboard
     canActivate: [() => !inject(AuthService).isAuthenticated() ? true : inject(Router).parseUrl('/dashboard')]
+  },
+    {
+    path: 'register-invitation',
+    component: RegisterInvitationComponent,
+    // No lleva guardias porque debe ser accesible para usuarios no logueados
   },
   {
     path: '',
@@ -71,7 +78,13 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { permission: 'ROLE_READ' } // Permiso para roles
       },
-            {
+      {
+        path: 'permisos',
+        component: PermissionsComponent, // Se puede usar component directamente para componentes standalone
+        canActivate: [roleGuard],
+        data: { permission: 'PERMISSION_READ' } // Protegido por el permiso correspondiente
+      },
+      {
         path: 'forbidden', // Ruta para acceso denegado
         loadComponent: () => import('./shared/components/forbidden/forbidden.component').then(m => m.ForbiddenComponent)
       },

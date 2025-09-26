@@ -157,11 +157,11 @@ export class AuthService implements OnDestroy {
   }
 
   /**
-   * ⭐️ CRÍTICO: Este método se ha modificado para realizar la conversión.
+   * Este método se ha modificado para realizar la conversión.
    * Transforma la lista de strings de roles del backend en una lista de objetos Role.
    */
   private mapToUser(response: AuthResponse): User {
-    // ⭐️ Mapeamos el string[] de roles del backend a un Role[] en el frontend
+    // Mapea el string[] de roles del backend a un Role[] en el frontend
     const userRoles: Role[] = (response.roles || []).map(roleName => ({
       id: 0, // Un ID temporal o nulo, ya que no lo recibes del backend
       name: roleName,
@@ -172,13 +172,14 @@ export class AuthService implements OnDestroy {
     return {
       id: response.id,
       username: response.username,
+      email: response.email,
       authorities: response.authorities,
       token: response.token,
       refreshToken: response.refreshToken,
       expirationDate: response.expirationDate,
       type: response.type,
       enabled: response.enabled ?? true,
-      roles: userRoles, // ⭐️ Asignamos el nuevo array de objetos Role
+      roles: userRoles, 
       accountNonExpired: true,
       accountNonLocked: true,
       credentialsNonExpired: true,
@@ -269,4 +270,5 @@ export class AuthService implements OnDestroy {
       panelClass: ['error-snackbar']
     });
   }
+  
 }

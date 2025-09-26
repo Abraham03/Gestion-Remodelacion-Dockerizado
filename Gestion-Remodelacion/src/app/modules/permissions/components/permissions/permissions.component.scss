@@ -1,0 +1,23 @@
+@use '../../../../../styles/components/tables';
+@use '../../../../../styles/abstracts/variables' as vars;
+
+.mat-column-name {
+  font-weight: 500;
+  color: vars.$color-primary;
+}
+
+.scope-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.scope-system {
+  background-color: vars.$color-accent;
+}
+
+.scope-tenant {
+  background-color: #6c757d; // Un color gris para diferenciar
+}

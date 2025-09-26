@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AuthResponse } from '../models/auth-response.model';
+import { UserRequest } from '../../../core/models/user.model';
 
 
 @Injectable({
@@ -69,4 +70,9 @@ export class AuthApiService {
       status: error.status || 500
     }));
   }
+
+  registerByInvitation(signupData: UserRequest, token: string): Observable<any> {
+    const params = new HttpParams().set('token', token);
+    return this.http.post(`${this.apiUrl}/register-by-invitation`, signupData, { params });
+  }  
 }

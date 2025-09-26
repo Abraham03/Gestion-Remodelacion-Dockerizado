@@ -11,6 +11,7 @@
     "ACTIONS": "Actions",
     "CLOSE": "Close",
     "SEARCH": "Search",
+    "EMAIL": "Email",
     "FILTER": "Filter",
     "ACTIVE": "Active",
     "INACTIVE": "Inactive",
@@ -50,7 +51,8 @@
     "REPORTS": "Reports",
     "ROLES": "Roles",
     "USERS": "Users",
-    "EMPRESAS": "Companies"
+    "EMPRESAS": "Companies",
+    "PERMISSIONS": "Permissions"
   },
   "FOOTER": {
     "COPYRIGHT": "© {{year}} TECH SOLUTIONS LLC. All rights reserved."
@@ -326,6 +328,43 @@
     "ERROR_LOADING_PERMISSIONS": "Error loading the permissions list.",
     "VALIDATION_ERROR": "Please complete all required fields."
   },
+  "PERMISSIONS": {
+    "CREATE_PERMISSION": "New Permission",
+    "EDIT_PERMISSION": "Edit Permission",
+    "ACTIONS": "Actions",
+    "NAME": "Name",
+    "DESCRIPTION": "Description",
+    "SCOPE": "Scope",
+    "MANAGEMENT": "Permission Management",
+    "NAME_REQUIRED": "Permission name is required.",
+    "DESCRIPTION_REQUIRED": "Description is required.",
+    "SCOPE_REQUIRED": "Scope is required.",
+    "LOADING_PERMISSIONS": "Loading permissions...",
+    "NO_PERMISSIONS_FOUND": "No permissions found matching the filter.",
+    "CONFIRM_DELETE": "Are you sure you want to delete this permission?",
+    "SUCCESSFULLY_CREATED": "Permission created successfully.",
+    "SUCCESSFULLY_UPDATED": "Permission updated successfully.",
+    "SUCCESSFULLY_DELETED": "Permission deleted successfully.",
+    "ERROR_LOADING": "Error loading permissions.",
+    "VALIDATION_ERROR": "Please complete all required fields"
+  },
+  "VALIDATION": {
+    "TOKEN_MISSING": "Authentication token is required.",
+    "TOKEN_INVALID": "Authentication token is invalid.",
+    "USERNAME_REQUIRED": "Username is required.",
+    "PASSWORD_MIN_LENGTH": "Password must be at least 6 characters long.",
+    "FIELD_REQUIRED": "This field is required."
+
+  },
+  "AUTH": {
+  "COMPLETE_REGISTRATION": "Please complete your registration.",
+  "REGISTER": "Register",
+  "REGISTER_SUCCESS": "Registration successful.",
+  "REGISTER_ERROR": "Registration error.",
+  "GO_TO_LOGIN": "Go to login",
+  "PASSWORD": "Password"
+
+  },
   "EMPRESAS": {
     "MANAGEMENT": "Company Management",
     "SEARCH_EMPRESA": "Search company",
@@ -378,8 +417,7 @@
     "unexpected": "An unexpected server error occurred.",
     "auth": {
       "notAuthenticated": "No authenticated user in the current session.",
-      "userNotFoundInDb": "Authenticated user not found in the database."
-    },
+      "userNotFoundInDb": "Authenticated user not found in the database."    },
     "user": {
       "notFound": "User not found.",
       "usernameExists": "The username is already in use.",

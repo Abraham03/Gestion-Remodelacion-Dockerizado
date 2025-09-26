@@ -32,6 +32,9 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
          * Busca roles que pertenezcan a una empresa
          * específica Y que no sean el rol SUPER_ADMIN.
          */
+
+        Optional<Role> findByName(String name);
+
         @Query("SELECT r FROM Role r WHERE r.empresa.id = :empresaId AND r.name <> 'ROLE_SUPER_ADMIN' AND " +
                         "(:searchTerm IS NULL OR LOWER(r.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
         Page<Role> findByEmpresaIdAndFilter(@Param("empresaId") Long empresaId, @Param("searchTerm") String searchTerm,

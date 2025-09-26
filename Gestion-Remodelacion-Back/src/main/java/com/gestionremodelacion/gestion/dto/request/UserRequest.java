@@ -2,6 +2,7 @@ package com.gestionremodelacion.gestion.dto.request;
 
 import java.util.Set;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -15,6 +16,10 @@ public class UserRequest {
 
     // Password is only required for creation, not necessarily for update
     private String password;
+
+    @Email
+    @NotBlank
+    private String email;
 
     private Set<Long> roles; // Names of roles (e.g., "ADMIN", "USER")
 
@@ -69,6 +74,14 @@ public class UserRequest {
 
     public void setEmpresaId(Long empresaId) {
         this.empresaId = empresaId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
 }
