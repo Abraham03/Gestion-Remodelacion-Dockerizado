@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionremodelacion.gestion.cliente.dto.request.ClienteRequest;
+import com.gestionremodelacion.gestion.cliente.dto.response.ClienteDropdownResponse;
 import com.gestionremodelacion.gestion.cliente.dto.response.ClienteExportDTO;
 import com.gestionremodelacion.gestion.cliente.dto.response.ClienteResponse;
 import com.gestionremodelacion.gestion.cliente.model.Cliente;
@@ -31,6 +32,24 @@ public class ClienteService {
         this.clienteRepository = clienteRepository;
         this.clienteMapper = clienteMapper;
         this.userService = userService;
+    }
+
+    // Metodo para obtener los clientes para ClienteDropdownResponse
+    @Transactional(readOnly = true)
+    public List<ClienteDropdownResponse> getClientesForDropdown() {
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        // ordenamos por defecto nombre ASC
+        Sort sort = Sort.by(Sort.Direction.ASC, "nombreCliente");
+
+        List<Cliente> clientes = clienteRepository.findAllByEmpresaId(empresaId, sort);
+
+        // Mapea los clientes a ClienteDropdownResponse
+        return clientes.stream()
+                .map(cliente -> new ClienteDropdownResponse(cliente.getId(), cliente.getNombreCliente()))
+                .collect(Collectors.toList());
+
     }
 
     @Transactional(readOnly = true)

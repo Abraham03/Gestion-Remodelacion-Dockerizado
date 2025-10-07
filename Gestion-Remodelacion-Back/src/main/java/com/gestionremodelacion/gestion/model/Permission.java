@@ -1,5 +1,7 @@
 package com.gestionremodelacion.gestion.model;
 
+import java.util.Set;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -7,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 /**
@@ -34,7 +37,10 @@ public class Permission {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PermissionScope scope = PermissionScope.TENANT; // Valor por defecto
+    private PermissionScope scope;
+
+    @ManyToMany(mappedBy = "permissions")
+    private Set<Role> roles;
 
     public Long getId() {
         return id;
@@ -66,6 +72,14 @@ public class Permission {
 
     public void setScope(PermissionScope scope) {
         this.scope = scope;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
 }

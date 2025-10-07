@@ -30,10 +30,10 @@ export class BaseService<T> {
     return response as Page<T>;
   }
 
-  protected extractSingleData(response: ApiResponse<T>): T {
+  protected extractSingleData<U>(response: ApiResponse<U>): U {
     if (response && 'data' in response && response.data) {
       return response.data;
     }
-    return response as T;
+    return response as U;
   }
 }

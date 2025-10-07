@@ -63,7 +63,7 @@ public class EmpleadoController {
     }
 
     @GetMapping("/dropdown")
-    @PreAuthorize("hasAuthority('EMPLEADO_READ')")
+    @PreAuthorize("hasAuthority('EMPLEADO_DROPDOWN')")
     public ResponseEntity<ApiResponse<List<EmpleadoDropdownResponse>>> getEmpleadosForDropdown() {
         List<EmpleadoDropdownResponse> empleados = empleadoService.getEmpleadosForDropdown();
         return ResponseEntity

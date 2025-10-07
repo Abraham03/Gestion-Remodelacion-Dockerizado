@@ -92,6 +92,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/roles/**").hasAuthority("ROLE_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/roles/**").hasAuthority("ROLE_DELETE")
                         // Permisos: (si tuvieras un controlador para gestionar permisos)
+                        .requestMatchers(HttpMethod.GET, "/api/permissions/dropdown")
+                        .hasAuthority("PERMISSION_DROPDOWN")
                         .requestMatchers(HttpMethod.GET, "/api/permissions/**").hasAuthority("PERMISSION_READ")
                         .requestMatchers(HttpMethod.POST, "/api/permissions/**").hasAuthority("PERMISSION_CREATE")
                         .requestMatchers(HttpMethod.PUT, "/api/permissions/**").hasAuthority("PERMISSION_UPDATE")

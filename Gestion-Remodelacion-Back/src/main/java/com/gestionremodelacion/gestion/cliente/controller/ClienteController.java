@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionremodelacion.gestion.cliente.dto.request.ClienteRequest;
+import com.gestionremodelacion.gestion.cliente.dto.response.ClienteDropdownResponse;
 import com.gestionremodelacion.gestion.cliente.dto.response.ClienteExportDTO;
 import com.gestionremodelacion.gestion.cliente.dto.response.ClienteResponse;
 import com.gestionremodelacion.gestion.cliente.service.ClienteService;
@@ -56,6 +57,14 @@ public class ClienteController {
             @RequestParam(name = "filter", required = false) String filter) {
         Page<ClienteResponse> page = clienteService.getAllClientes(pageable, filter);
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Clientes obtenidos con éxito", page));
+    }
+
+    // Nuevo endpoint para obtener el dropdown de clientes
+    @GetMapping("/dropdown")
+    @PreAuthorize("hasAuthority('CLIENTE_DROPDOWN')")
+    public ResponseEntity<ApiResponse<List<ClienteDropdownResponse>>> getDropdownForClientes() {
+        List<ClienteDropdownResponse> clientes = clienteService.getClientesForDropdown();
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Clientes obtenidos con éxito", clientes));
     }
 
     @GetMapping("/{id}")

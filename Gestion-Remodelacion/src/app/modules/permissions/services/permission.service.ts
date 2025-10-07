@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Permission, PermissionRequest } from '../../../core/models/permission.model';
+import { Permission, PermissionDropdownResponse, PermissionRequest } from '../../../core/models/permission.model';
 import { map } from 'rxjs/operators';
 import { BaseService } from '../../../core/services/base.service';
 import { Page } from '../../../core/models/page.model';
@@ -50,7 +50,15 @@ export class PermissionService extends BaseService<Permission> {
   }
 
   deletePermission(id: number): Observable<void> {
-    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${id}`).pipe(map(res => res.data));
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }  
+
+  // Metodo para obtener permisos para PermissionDropdownResponse
+  getPermissionsForDropdown(): Observable<PermissionDropdownResponse[]> {
+    return this.http.get<ApiResponse<PermissionDropdownResponse[]>>(`${this.apiUrl}/dropdown`)
+    .pipe(
+      map(response => this.extractSingleData(response))
+    );
+  }
 
 }

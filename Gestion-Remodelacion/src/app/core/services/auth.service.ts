@@ -127,7 +127,7 @@ export class AuthService implements OnDestroy {
   }
 
   hasPermission(permission: string): boolean {
-    if (this.hasRole('ADMIN')) {
+    if (this.hasRole('ROLE_SUPER_ADMIN')) {
       return true;
     }
     return this.userPermissions().includes(permission);

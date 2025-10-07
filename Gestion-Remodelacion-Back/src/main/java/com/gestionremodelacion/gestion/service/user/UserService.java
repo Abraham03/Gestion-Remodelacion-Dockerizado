@@ -206,6 +206,11 @@ public class UserService {
         existingUser.setUsername(userRequest.getUsername());
         existingUser.setEnabled(userRequest.isEnabled());
 
+        // Actualizar el correo solo si se proporciona un nuevo correo
+        if (userRequest.getEmail() != null && !userRequest.getEmail().trim().isEmpty()) {
+            existingUser.setEmail(userRequest.getEmail());
+        }
+
         // 5. Actualizar la contraseña solo si se proporciona una nueva
         if (userRequest.getPassword() != null && !userRequest.getPassword().trim().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));

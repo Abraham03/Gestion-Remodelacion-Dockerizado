@@ -16,21 +16,25 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 /**
  * Entidad que representa un rol en el sistema. Los roles agrupan permisos y son
  * asignados a usuarios.
  */
 @Entity
-@Table(name = "roles")
-
+@Table(name = "roles", uniqueConstraints = {
+        // Define una restricción de unicidad compuesta por las columnas 'name' y
+        // 'id_empresa'
+        @UniqueConstraint(columnNames = { "name", "id_empresa" })
+})
 public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String name;
 
     @Column(length = 500)

@@ -12,7 +12,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { PermissionService } from '../../../../permissions/services/permission.service';
 import { Role, RoleRequest } from '../../../../../core/models/role.model';
-import { Permission } from '../../../../../core/models/permission.model';
+import { Permission, PermissionDropdownResponse } from '../../../../../core/models/permission.model';
 import { RoleService } from '../../../services/role.service';
 import { NotificationService } from '../../../../../core/services/notification.service';
 
@@ -29,7 +29,7 @@ import { NotificationService } from '../../../../../core/services/notification.s
 export class RoleFormComponent implements OnInit {
   roleForm: FormGroup;
   isEditMode: boolean;
-  allPermissions: Permission[] = [];
+  allPermissions: PermissionDropdownResponse[] = [];
 
   private translate = inject(TranslateService);
 
@@ -56,9 +56,10 @@ export class RoleFormComponent implements OnInit {
   }
 
   loadAllPermissions(): void {
-    this.permissionService.getAllPermissions().subscribe({
+    this.permissionService.getPermissionsForDropdown().subscribe({
       next: (permissions) => {
         this.allPermissions = permissions;
+        console.log(this.allPermissions);
         if (this.isEditMode && this.data?.permissions) {
           const permissionFormArray = this.roleForm.get('permissions') as FormArray;
           this.data.permissions.forEach(p => {

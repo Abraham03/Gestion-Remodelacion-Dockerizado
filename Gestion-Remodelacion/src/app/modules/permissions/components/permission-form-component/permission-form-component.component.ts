@@ -8,6 +8,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { Permission, PermissionRequest } from '../../../../core/models/permission.model';
 import { PermissionService } from '../../services/permission.service';
+import { NotificationService } from '../../../../core/services/notification.service'; 
 
 // Angular Material Imports
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -28,7 +29,7 @@ import { MatSelectModule } from '@angular/material/select';
 export class PermissionFormComponent implements OnInit {
   permissionForm: FormGroup;
   isEditMode: boolean;
-  scopes = ['SYSTEM', 'TENANT'];
+  scopes = ['PLATFORM', 'TENANT'];
 
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<PermissionFormComponent>);
@@ -36,7 +37,10 @@ export class PermissionFormComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private translate = inject(TranslateService);
   
-  constructor(@Inject(MAT_DIALOG_DATA) public data: Permission | undefined) {
+  constructor(
+    @Inject(MAT_DIALOG_DATA) public data: Permission | undefined,
+    private notificationService: NotificationService
+  ) {
     this.isEditMode = !!data;
     this.permissionForm = this.fb.group({
       id: [data?.id || null],
@@ -50,7 +54,6 @@ export class PermissionFormComponent implements OnInit {
     // Si estamos editando, no se puede cambiar el nombre ni el scope por seguridad
     if (this.isEditMode) {
       this.permissionForm.get('name')?.disable();
-      this.permissionForm.get('scope')?.disable();
     }
   }
 
@@ -70,6 +73,7 @@ export class PermissionFormComponent implements OnInit {
     serviceCall.subscribe({
       next: () => {
         this.snackBar.open(this.translate.instant(successKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
+        this.notificationService.notifyDataChange();
         this.dialogRef.close(true);
       },
       error: (err: HttpErrorResponse) => {

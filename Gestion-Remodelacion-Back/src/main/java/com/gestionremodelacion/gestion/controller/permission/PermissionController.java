@@ -1,11 +1,12 @@
 package com.gestionremodelacion.gestion.controller.permission;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,15 +14,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionremodelacion.gestion.dto.request.PermissionRequest;
 import com.gestionremodelacion.gestion.dto.response.ApiResponse;
+import com.gestionremodelacion.gestion.dto.response.PermissionDropdownResponse;
 import com.gestionremodelacion.gestion.dto.response.PermissionResponse;
 import com.gestionremodelacion.gestion.service.permission.PermissionService;
 
 import jakarta.validation.Valid;
 
-@Controller
+@RestController
 @RequestMapping("/api/permissions")
 public class PermissionController {
 
@@ -46,16 +49,26 @@ public class PermissionController {
         return ResponseEntity.ok(ApiResponse.success(permission));
     }
 
+    // Nuevo metodo para obtener los permisos para PermissionDropdownResponse
+    @GetMapping("/dropdown")
+    @PreAuthorize("hasAuthority('PERMISSION_DROPDOWN')")
+    public ResponseEntity<ApiResponse<List<PermissionDropdownResponse>>> getPermissionsForDropdown() {
+        List<PermissionDropdownResponse> permissions = permissionService.getPermissionsForDropdown();
+        return ResponseEntity.ok(ApiResponse.success(permissions));
+    }
+
     @PostMapping
     @PreAuthorize("hasAuthority('PERMISSION_CREATE')") // Nuevo permiso
-    public ResponseEntity<ApiResponse<PermissionResponse>> createPermission(@Valid @RequestBody PermissionRequest permissionDto) {
+    public ResponseEntity<ApiResponse<PermissionResponse>> createPermission(
+            @Valid @RequestBody PermissionRequest permissionDto) {
         PermissionResponse createdPermission = permissionService.createPermission(permissionDto);
         return ResponseEntity.ok(ApiResponse.success(createdPermission));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_UPDATE')") // Nuevo permiso
-    public ResponseEntity<ApiResponse<PermissionResponse>> updatePermission(@PathVariable Long id, @Valid @RequestBody PermissionRequest permissionDto) {
+    public ResponseEntity<ApiResponse<PermissionResponse>> updatePermission(@PathVariable Long id,
+            @Valid @RequestBody PermissionRequest permissionDto) {
         PermissionResponse updatedPermission = permissionService.updatePermission(id, permissionDto);
         return ResponseEntity.ok(ApiResponse.success(updatedPermission));
     }
@@ -64,7 +77,7 @@ public class PermissionController {
     @PreAuthorize("hasAuthority('PERMISSION_DELETE')") // Nuevo permiso
     public ResponseEntity<ApiResponse<Void>> deletePermission(@PathVariable Long id) {
         permissionService.deletePermission(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.noContent().build();
     }
 
 }
