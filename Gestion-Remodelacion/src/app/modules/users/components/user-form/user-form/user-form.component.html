@@ -22,7 +22,7 @@
 
     <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ 'GLOBAL.EMAIL' | translate }}</mat-label>
-        <input matInput formControlName="email" type="email" required />
+        <input matInput formControlName="email" type="email" [required]="!isEditMode" />
         <mat-error *ngIf="userForm.get('email')?.hasError('required') && userForm.get('email')?.touched">
             {{ 'VALIDATION.EMAIL_REQUIRED' | translate }}
         </mat-error>

@@ -2,7 +2,7 @@
 <div mat-dialog-content>
   <p>{{ 'USERS.INVITE_INSTRUCTION' | translate }}</p>
   <form [formGroup]="inviteForm" (ngSubmit)="onSubmit()">
-    
+
     <mat-form-field *ngIf="isSuperAdmin" appearance="outline" class="full-width">
       <mat-label>{{ 'GLOBAL.COMPANY' | translate }}</mat-label>
       <mat-select formControlName="empresaId" required>
@@ -14,7 +14,19 @@
         {{ 'USERS.COMPANY_REQUIRED' | translate }}
       </mat-error>
     </mat-form-field>
-    
+
+    <mat-form-field *ngIf="isSuperAdmin" appearance="outline" class="full-width">
+        <mat-label>{{ 'GLOBAL.ROLE' | translate }}</mat-label>
+        <mat-select formControlName="rolAAsignar" required>
+            <mat-option *ngFor="let role of rolesDeEmpresa" [value]="role.name">
+                {{ role.name }}
+            </mat-option>
+        </mat-select>
+        <mat-error *ngIf="inviteForm.get('rolAAsignar')?.hasError('required')">
+            {{ 'USERS.ROLE_REQUIRED' | translate }}
+        </mat-error>
+    </mat-form-field>
+
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>{{ 'GLOBAL.EMAIL' | translate }}</mat-label>
       <input matInput formControlName="email" type="email" [placeholder]="'GLOBAL.EMAIL_PLACEHOLDER' | translate" required>

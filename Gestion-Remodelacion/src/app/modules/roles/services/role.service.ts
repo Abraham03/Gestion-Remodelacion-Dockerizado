@@ -36,17 +36,20 @@ export class RoleService extends BaseService<Role>{
     );
   }
 
-  getAllRolesForForm(): Observable<Role[]> {
-    const pageableParams = new HttpParams().set('page', '0').set('size', '100');
-    return this.http
-      .get<ApiResponse<Page<Role>>>(this.apiUrl, { params: pageableParams })
-      .pipe(
-        map((response) => {
-          const processedPage = this.extractPageData(response);
-          return processedPage?.content ?? [];
-        })
-      );
-  }
+getAllRolesForForm(empresaId?: number): Observable<Role[]> {
+    let url = `${this.apiUrl}/all`;
+    let params = new HttpParams();
+
+    if (empresaId) {
+        // Si se provee un empresaId, usamos el nuevo endpoint del SUPER_ADMIN
+        url = `${this.apiUrl}/dropdown`;
+        params = params.set('empresaId', empresaId.toString());
+    }
+
+    return this.http.get<ApiResponse<Role[]>>(url, { params }).pipe(
+        map(response => this.extractSingleData(response) || [])
+    );
+}
 
   findAllForForm(): Observable<Role[]> {
     const params = new HttpParams()

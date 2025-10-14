@@ -1,5 +1,7 @@
 {
   "GLOBAL": {
+    "EMAIL_PLACEHOLDER": "Email",
+    "ROLE": "Role",
     "SAVE": "Save",
     "CANCEL": "Cancel",
     "EDIT": "Edit",
@@ -298,7 +300,11 @@
     "PASSWORD_REQUIRED": "Password is required.",
     "ROLES_REQUIRED": "At least one role must be assigned.",
     "COMPANY_REQUIRED": "Company is required.",
-    "PASSWORD_HINT": "Leave blank to not change the password."
+    "PASSWORD_HINT": "Leave blank to not change the password.",
+    "INVITATION_SENT_SUCCESS": "Invitation sent successfully.",
+     "INVITE_USER": "Invite User",
+     "SEND_INVITATION": "Send Invitation",
+     "INVITE_INSTRUCTION": "Invite instructions"
 
   },
   "ROLES": {
@@ -407,6 +413,9 @@
     "GO_TO_DASHBOARD": "Go to Dashboard"
   },
   "error": {
+    "invitation":{
+      "emailExists": "The email address is already in use, cannot invite."
+    },
     "resource": {
       "notFound": "The requested resource was not found."
     },

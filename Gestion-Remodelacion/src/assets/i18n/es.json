@@ -1,5 +1,7 @@
 {
   "GLOBAL": {
+    "EMAIL_PLACEHOLDER": "Correo electrónico",
+    "ROLE": "Rol",
     "SAVE": "Guardar",
     "CANCEL": "Cancelar",
     "EDIT": "Editar",
@@ -299,7 +301,11 @@
     "PASSWORD_REQUIRED": "La contraseña es obligatoria.",
     "ROLES_REQUIRED": "Se debe asignar al menos un rol.",
     "COMPANY_REQUIRED": "La empresa es obligatoria.",
-    "PASSWORD_HINT": "Dejar en blanco para no cambiar la contraseña."
+    "PASSWORD_HINT": "Dejar en blanco para no cambiar la contraseña.",
+    "INVITATION_SENT_SUCCESS": "Invitación enviada exitosamente.",
+    "INVITE_USER": "Invitar Usuario",
+    "SEND_INVITATION": "Enviar Invitación",
+     "INVITE_INSTRUCTION": "Instrucciones de invitación"
   },
   "ROLES": {
     "MANAGEMENT": "Gestión de Roles",
@@ -406,6 +412,9 @@
     "GO_TO_DASHBOARD": "Ir al Dashboard"
   },
     "error": {
+     "invitation":{
+       "emailExists":"El correo electrónico ya existe, no se pudo enviar la invitación."
+     }, 
     "resource": {
       "notFound": "El recurso solicitado no fue encontrado."
     },
