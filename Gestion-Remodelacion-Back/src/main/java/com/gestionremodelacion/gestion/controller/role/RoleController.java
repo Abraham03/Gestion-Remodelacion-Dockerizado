@@ -53,6 +53,14 @@ public class RoleController {
                 .ok(new ApiResponse<>(HttpStatus.OK.value(), "Roles para formulario obtenidos con éxito", roles));
     }
 
+    @GetMapping("/dropdown")
+    @PreAuthorize("hasAuthority('ROLE_DROPDOWN')")
+    public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRolesForFormByEmpresa(@RequestParam Long empresaId) {
+        List<RoleResponse> roles = roleService.findAllForForm(empresaId);
+        return ResponseEntity
+                .ok(new ApiResponse<>(HttpStatus.OK.value(), "Roles para formulario obtenidos con éxito", roles));
+    }
+
     @GetMapping("/{id}") // NEW: Get Role by ID
     @PreAuthorize("hasAuthority('ROLE_READ')")
     public ResponseEntity<ApiResponse<RoleResponse>> getRoleById(@PathVariable Long id) {

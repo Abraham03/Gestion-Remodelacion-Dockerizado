@@ -45,7 +45,7 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
          * asegurando que un ADMIN solo pueda asignar roles de su propia empresa.
          */
         @Query("SELECT r FROM Role r WHERE r.empresa.id = :empresaId AND r.name <> 'ROLE_SUPER_ADMIN'")
-        List<Role> findAllByEmpresaId(@Param("empresaId") Long empresaId);
+        List<Role> findAllByEmpresaId(Long empresaId);
 
         // Se necesita un método para buscar un rol global por nombre (como
         // ROLE_SUPER_ADMIN)

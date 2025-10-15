@@ -18,7 +18,6 @@ public class UserRequest {
     private String password;
 
     @Email
-    @NotBlank
     private String email;
 
     private Set<Long> roles; // Names of roles (e.g., "ADMIN", "USER")

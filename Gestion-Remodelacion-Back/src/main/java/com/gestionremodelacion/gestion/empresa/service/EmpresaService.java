@@ -1,12 +1,14 @@
 package com.gestionremodelacion.gestion.empresa.service;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +22,11 @@ import com.gestionremodelacion.gestion.exception.DuplicateResourceException;
 import com.gestionremodelacion.gestion.exception.ErrorCatalog;
 import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.EmpresaMapper;
+import com.gestionremodelacion.gestion.model.Permission;
+import com.gestionremodelacion.gestion.model.Permission.PermissionScope;
+import com.gestionremodelacion.gestion.model.Role;
+import com.gestionremodelacion.gestion.repository.PermissionRepository;
+import com.gestionremodelacion.gestion.repository.RoleRepository;
 import com.gestionremodelacion.gestion.repository.UserRepository;
 import com.gestionremodelacion.gestion.service.FileUploadService;
 
@@ -32,13 +39,18 @@ public class EmpresaService {
     private final UserRepository userRepository;
     private final EmpresaMapper empresaMapper;
     private final FileUploadService fileUploadService;
+    private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
 
     public EmpresaService(EmpresaRepository empresaRepository, UserRepository userRepository,
-            EmpresaMapper empresaMapper, @Autowired(required = false) @Nullable FileUploadService fileUploadService) {
+            EmpresaMapper empresaMapper, @Autowired(required = false) @Nullable FileUploadService fileUploadService,
+            RoleRepository roleRepository, PermissionRepository permissionRepository) {
         this.empresaRepository = empresaRepository;
         this.userRepository = userRepository;
         this.empresaMapper = empresaMapper;
         this.fileUploadService = fileUploadService;
+        this.roleRepository = roleRepository;
+        this.permissionRepository = permissionRepository;
     }
 
     @Transactional
@@ -60,10 +72,31 @@ public class EmpresaService {
             throw new DuplicateResourceException(ErrorCatalog.COMPANY_NAME_ALREADY_EXISTS.getKey());
         }
         Empresa nuevaEmpresa = empresaMapper.toEntity(empresaRequest);
-        // El logoUrl se asigna directamente desde el request (si el super admin lo
-        // proporciona)
         nuevaEmpresa.setLogoUrl(empresaRequest.getLogoUrl());
-        return empresaMapper.toDto(empresaRepository.save(nuevaEmpresa));
+        Empresa savedEmpresa = empresaRepository.save(nuevaEmpresa);
+
+        // --- Creacion y Asignacion del Rol ADMIN con los permisos TENANT ---
+        Role adminRole = new Role();
+        adminRole.setName("ADMIN");
+        adminRole.setDescription("Administrador de la empresa" + savedEmpresa.getNombreEmpresa());
+        adminRole.setEmpresa(savedEmpresa);
+
+        List<Permission> tenantPermissions = permissionRepository.findByScope(PermissionScope.TENANT, Sort.by("name"));
+        adminRole.setPermissions(new HashSet<>(tenantPermissions));
+
+        Role userRole = new Role();
+        userRole.setName("ROLE_USER");
+        userRole.setDescription("Usuario estándar de la empresa " + savedEmpresa.getNombreEmpresa());
+        userRole.setEmpresa(savedEmpresa);
+
+        // Asignarle un conjunto MÍNIMO de permisos. ¡Tú decides cuáles!
+        // Por ejemplo, solo leer proyectos y crear horas.
+        List<Permission> basicPermissions = permissionRepository
+                .findAllByNameIn(List.of("HORASTRABAJADAS_READ", "HORASTRABAJADAS_CREATE", "HORASTRABAJADAS_UPDATE"));
+        userRole.setPermissions(new HashSet<>(basicPermissions));
+        roleRepository.save(userRole);
+
+        return empresaMapper.toDto(savedEmpresa);
     }
 
     @Transactional

@@ -25,6 +25,9 @@ public class Invitacion {
     @Column(nullable = false)
     private String email;
 
+    @Column(name = "rol_a_asignar", nullable = false)
+    private String rolAAsignar = "ROLE_USER";
+
     @Column(unique = true, nullable = false)
     private String token;
 
@@ -86,6 +89,14 @@ public class Invitacion {
 
     public void setUtilizada(boolean utilizada) {
         this.utilizada = utilizada;
+    }
+
+    public String getRolAAsignar() {
+        return rolAAsignar;
+    }
+
+    public void setRolAAsignar(String rolAAsignar) {
+        this.rolAAsignar = rolAAsignar;
     }
 
 }

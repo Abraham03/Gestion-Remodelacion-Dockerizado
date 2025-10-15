@@ -186,15 +186,17 @@ public class AuthService {
             throw new DuplicateResourceException(ErrorCatalog.USERNAME_ALREADY_EXISTS.getKey());
         }
 
-        // --- INICIO DE LA LÓGICA CORREGIDA ---
-
         // 3. Obtener el ID de la empresa directamente desde la invitación.
         Empresa empresa = invitacion.getEmpresa();
 
-        // 4. Buscar el rol ROLE_USER DENTRO de la empresa correcta.
-        Role userRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "El rol por defecto 'ROLE_USER' no fue encontrado para esta empresa."));
+        // Se obtiene el role a asignar
+        String roleNameToAssign = invitacion.getRolAAsignar();
+
+        // Busca el rol por nombre DENTRO de la empresa O a nivel global
+        Role roleToAssign = roleRepository
+                .findByNameAndEmpresaId(roleNameToAssign, empresa.getId())
+                .or(() -> roleRepository.findByNameAndEmpresaIsNull(roleNameToAssign))
+                .orElseThrow(() -> new EntityNotFoundException("El rol '" + roleNameToAssign + "' no fue encontrado."));
 
         // 5. Crear la nueva entidad de Usuario
         User newUser = new User();
@@ -203,7 +205,7 @@ public class AuthService {
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
         newUser.setEnabled(true);
         newUser.setEmpresa(empresa);
-        newUser.setRoles(Set.of(userRole));
+        newUser.setRoles(Set.of(roleToAssign));
 
         // 6. Guardar el nuevo usuario
         userRepository.save(newUser);

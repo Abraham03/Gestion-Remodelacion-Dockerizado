@@ -9,6 +9,12 @@ public class InvitationRequest {
 
     private Long empresaId;
 
+    private String rolAAsignar;
+
+    public String getRolAAsignar() {
+        return rolAAsignar;
+    }
+
     public Long getEmpresaId() {
         return empresaId;
     }

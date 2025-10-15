@@ -2,7 +2,6 @@ package com.gestionremodelacion.gestion.invitation.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,12 +10,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionremodelacion.gestion.dto.response.ApiResponse;
-import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
 import com.gestionremodelacion.gestion.invitation.request.InvitationRequest;
 import com.gestionremodelacion.gestion.invitation.response.InvitationDetailsResponse;
 import com.gestionremodelacion.gestion.invitation.service.InvitationService;
-import com.gestionremodelacion.gestion.service.impl.UserDetailsImpl;
+import com.gestionremodelacion.gestion.model.User;
+import com.gestionremodelacion.gestion.service.user.UserService;
 
 import jakarta.validation.Valid;
 
@@ -25,45 +24,32 @@ import jakarta.validation.Valid;
 public class InvitationController {
 
     private final InvitationService invitationService;
+    private final UserService userService;
 
-    public InvitationController(InvitationService invitationService) {
+    public InvitationController(InvitationService invitationService, UserService userService) {
         this.invitationService = invitationService;
+        this.userService = userService;
+    }
+
+    @PostMapping("/super")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> createInvitationBySuperAdmin(
+            @Valid @RequestBody InvitationRequest request) {
+        invitationService.createAndSendInvitation(request.getEmail(), request.getEmpresaId(),
+                request.getRolAAsignar());
+        return ResponseEntity.ok(new ApiResponse<>(200, "Invitación enviada por Super Admin.", null));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('INVITE_USER')") // Asegúrate de crear este permiso y asignarlo a los roles de admin
-    public ResponseEntity<ApiResponse<Void>> inviteUser(@Valid @RequestBody InvitationRequest invitationRequest) {
-
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication()
-                .getPrincipal();
-
-        Long empresaId; // <-- Se declara la variable una sola vez aquí.
-
-        boolean isSuperAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_SUPER_ADMIN"));
-
-        if (isSuperAdmin) {
-            // If the user is a SUPER ADMIN, the 'empresaId' MUST come in the request.
-            empresaId = invitationRequest.getEmpresaId();
-            if (empresaId == null) {
-                throw new BusinessRuleException("Para el SUPER ADMIN, el campo 'empresaId' es obligatorio.");
-            }
-        } else {
-            // If the user is a normal Admin, we take the ID from their own company.
-            Empresa empresa = userDetails.getEmpresa();
-            if (empresa == null) {
-                throw new BusinessRuleException(
-                        "El usuario administrador debe pertenecer a una empresa para enviar invitaciones.");
-            }
-            empresaId = empresa.getId();
+    @PreAuthorize("hasAuthority('INVITE_USER')")
+    public ResponseEntity<ApiResponse<Void>> createInvitationByAdmin(@Valid @RequestBody InvitationRequest request) {
+        User currentUser = userService.getCurrentUser();
+        if (currentUser.getEmpresa() == null) {
+            throw new BusinessRuleException("No perteneces a ninguna empresa para poder invitar usuarios.");
         }
-
-        // The redundant block of code that was here has been removed.
-        // The logic above already handles all cases correctly.
-
-        invitationService.createAndSendInvitation(invitationRequest.getEmail(), empresaId);
-
-        return ResponseEntity.ok(new ApiResponse<>(200, "Invitación enviada correctamente.", null));
+        // El rol se fija a "ROLE_USER" por seguridad.
+        invitationService.createAndSendInvitation(request.getEmail(), currentUser.getEmpresa().getId(), "ROLE_USER");
+        return ResponseEntity.ok(new ApiResponse<>(200, "Invitación enviada.", null));
     }
 
     @GetMapping("/validate")

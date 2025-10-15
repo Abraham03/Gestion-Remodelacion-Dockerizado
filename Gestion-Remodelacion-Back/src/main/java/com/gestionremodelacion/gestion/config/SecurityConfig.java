@@ -87,6 +87,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("USER_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("USER_DELETE")
                         // Roles: cada operación requiere un permiso específico
+                        .requestMatchers(HttpMethod.GET, "/api/roles/dropdown").hasAuthority("ROLE_DROPDOWN")
                         .requestMatchers(HttpMethod.GET, "/api/roles/**").hasAuthority("ROLE_READ")
                         .requestMatchers(HttpMethod.POST, "/api/roles/**").hasAuthority("ROLE_CREATE")
                         .requestMatchers(HttpMethod.PUT, "/api/roles/**").hasAuthority("ROLE_UPDATE")

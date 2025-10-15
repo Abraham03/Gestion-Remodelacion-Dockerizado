@@ -34,7 +34,7 @@ public class InvitationService {
     }
 
     @Transactional
-    public void createAndSendInvitation(String email, Long empresaId) {
+    public void createAndSendInvitation(String email, Long empresaId, String roleNameToAssign) {
         if (userRepository.existsByEmail(email)) {
             throw new BusinessRuleException(ErrorCatalog.INVITATION_EMAIL_ALREADY_EXISTS.getKey());
         }
@@ -50,6 +50,7 @@ public class InvitationService {
         invitacion.setEmail(email);
         invitacion.setToken(UUID.randomUUID().toString());
         invitacion.setEmpresa(empresa);
+        invitacion.setRolAAsignar(roleNameToAssign);
         invitacion.setFechaExpiracion(LocalDateTime.now().plusHours(48));
         invitacionRepository.save(invitacion);
 

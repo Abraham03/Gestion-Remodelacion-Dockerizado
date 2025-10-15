@@ -26,4 +26,6 @@ public interface PermissionRepository extends JpaRepository<Permission, Long> {
 
     Page<Permission> findByScope(PermissionScope scope, Pageable pageable);
 
+    List<Permission> findAllByNameIn(List<String> of);
+
 }

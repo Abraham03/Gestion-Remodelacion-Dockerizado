@@ -182,6 +182,17 @@ public class RoleService {
         return roleMapper.toRoleResponse(updatedRole);
     }
 
+    @Transactional(readOnly = true)
+    public List<RoleResponse> findAllForForm(Long empresaId) {
+        if (!isSuperAdmin(userService.getCurrentUser())) {
+            // Un no-superadmin no debería poder pedir roles de cualquier empresa
+            throw new BusinessRuleException("Acceso denegado.");
+        }
+        return roleRepository.findAllByEmpresaId(empresaId).stream()
+                .map(roleMapper::toRoleResponse)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void deleteRole(Long id) {
         User currentUser = userService.getCurrentUser();

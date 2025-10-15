@@ -1,0 +1,1 @@
+ALTER TABLE invitaciones ADD COLUMN rol_a_asignar VARCHAR(255) NOT NULL DEFAULT 'ROLE_USER';
