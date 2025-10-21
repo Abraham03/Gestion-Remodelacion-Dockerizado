@@ -111,7 +111,7 @@ export class EmpleadoFormComponent implements OnInit {
       }
 
       const serviceCall = this.isEditMode
-        ? this.empleadoService.updateEmpleado(this.data.id!, empleado)
+        ? this.empleadoService.updateEmpleado(empleado)
         : this.empleadoService.createEmpleado(empleado);
       
       const successKey = this.isEditMode ? 'EMPLOYEES.SUCCESSFULLY_UPDATED' : 'EMPLOYEES.SUCCESSFULLY_CREATED';

@@ -15,12 +15,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Empresa } from '../../model/Empresa';
 import { EmpresaService } from '../../service/empresa.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { EmpresaFormComponent } from '../empresa-form/empresa-form.component';
 import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
+import { EmpresaQuery } from '../../state/empresas.query';
+import { AsyncPipe } from '@angular/common';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-empresa-list',
@@ -28,7 +31,8 @@ import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
   imports: [
     CommonModule, MatTableModule, MatPaginatorModule, MatSortModule, MatDialogModule,
     MatInputModule, MatFormFieldModule, MatIconModule, MatTooltipModule,
-    MatButtonModule, MatSnackBarModule, TranslateModule, MatChipsModule, PhonePipe
+    MatButtonModule, MatSnackBarModule, TranslateModule, MatChipsModule, PhonePipe, 
+    MatProgressBarModule,AsyncPipe 
   ],
   templateUrl: './empresa-list.component.html',
   styleUrls: ['./empresa-list.component.scss']
@@ -40,7 +44,14 @@ export class EmpresaListComponent implements OnInit, AfterViewInit {
   canChangeStatus = false;
 
   displayedColumns: string[] = ['nombreEmpresa', 'plan', 'estadoSuscripcion', 'activo', 'fechaFinSuscripcion','telefono', 'acciones'];
-  dataSource = new MatTableDataSource<Empresa>();
+
+  // Se inyecta el Query de empresas
+  private empresaQuery = inject(EmpresaQuery);
+
+  // Se define Observable para los datos y el estado de carga
+  empresas$: Observable<Empresa[]> = this.empresaQuery.selectAll();
+  loading$: Observable<boolean> = this.empresaQuery.selectLoading();
+
   totalElements = 0;
   pageSize = 10;
   currentPage = 0;
@@ -76,14 +87,7 @@ export class EmpresaListComponent implements OnInit, AfterViewInit {
   loadEmpresas(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
     this.empresaService.getEmpresas(this.currentPage, this.pageSize, this.filterValue, sortParam)
-      .subscribe({
-        next: (response) => {
-          this.dataSource.data = response.content;
-          this.totalElements = response.totalElements;
-          this.cdr.detectChanges();
-        },
-        error: (error) => this.handleApiError(error, 'EMPRESAS.ERROR_LOADING'),
-      });
+      .subscribe();
   }
 
   applyFilter(filterValue: string): void {

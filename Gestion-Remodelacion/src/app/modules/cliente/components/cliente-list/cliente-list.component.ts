@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule, DatePipe } from '@angular/common';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Cliente } from '../../models/cliente.model';
 import { ClienteService } from '../../services/cliente.service';
 import { ClienteFormComponent } from '../cliente-form/cliente-form.component';
@@ -19,25 +20,38 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../../core/services/auth.service';
 import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
-// 👉 1. Importa TranslateModule y TranslateService
+// Importa TranslateModule y TranslateService
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-
+import { ClientesQuery } from '../../state/cliente.query';
+import { AsyncPipe } from '@angular/common';
+import { Observable } from 'rxjs';
 @Component({
   selector: 'app-cliente-list',
   standalone: true,
   imports: [
     CommonModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatIconModule,
-    MatFormFieldModule, MatInputModule, MatTooltipModule, MatDialogModule,
-    MatSortModule, PhonePipe, TranslateModule, // 👈 2. Agrega TranslateModule
+    MatFormFieldModule, MatInputModule, MatTooltipModule, MatDialogModule, MatProgressBarModule,
+    MatSortModule, PhonePipe, TranslateModule, AsyncPipe
   ],
   providers: [DatePipe],
   templateUrl: './cliente-list.component.html',
   styleUrls: ['./cliente-list.component.scss'],
 })
 export class ClienteListComponent implements OnInit, AfterViewInit {
-  // ... (propiedades existentes sin cambios)
-  dataSource = new MatTableDataSource<Cliente>([]);
+  canExportExcel = false;
+  canExportPdf = false;
+  canCreate = false;
+  canEdit = false;
+  canDelete = false;
+
   displayedColumns: string[] = ['nombreCliente', 'telefonoContacto', 'direccion', 'fechaRegistro', 'notas', 'acciones'];
+  
+  // Se inyecta el Query de Clientes
+  private clientesQuery = inject(ClientesQuery);
+  // Se define Observables para los datos y el estado de carga
+  clientes$: Observable<Cliente[]> = this.clientesQuery.selectAll();
+  loading$: Observable<boolean> = this.clientesQuery.selectLoading();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   totalElements = 0;
   pageSize = 5;
@@ -45,13 +59,10 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
   filterValue = '';
   currentSort = 'nombreCliente';
   sortDirection = 'asc';
-  canExportExcel = false;
-  canExportPdf = false;
-  canCreate = false;
-  canEdit = false;
-  canDelete = false;
+  
 
-  // 👉 3. Inyecta TranslateService
+
+  
   private clienteService = inject(ClienteService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
@@ -84,23 +95,7 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
   loadClientes(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
     this.clienteService.getClientes(this.pageNumber, this.pageSize, this.filterValue, sortParam)
-      .subscribe({
-        next: (response) => {
-          this.dataSource.data = response.content;
-          this.totalElements = response.totalElements;
-          this.pageNumber = response.number;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error al cargar clientes:', err);
-          // 👉 4. Usa traducciones en los mensajes de error
-          this.snackBar.open(
-            this.translate.instant('CLIENTS.ERROR_LOADING'),
-            this.translate.instant('GLOBAL.CLOSE'),
-            { duration: 5000 }
-          );
-        },
-      });
+      .subscribe();
   }
 
   applyFilter(filterValue: string): void {
@@ -129,13 +124,13 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
   }
 
   deleteCliente(id: number): void {
-    // 👉 5. Traduce el mensaje de confirmación
+    // Traduce el mensaje de confirmación
     const confirmMessage = this.translate.instant('GLOBAL.CONFIRM_DELETE');
     if (confirm(confirmMessage)) {
       this.clienteService.deleteCliente(id).subscribe({
         next: () => {
           this.loadClientes();
-          // 👉 6. Traduce el mensaje de éxito
+          // Traduce el mensaje de éxito
           this.snackBar.open(
             this.translate.instant('GLOBAL.SUCCESSFULLY_DELETED'),
             this.translate.instant('GLOBAL.CLOSE'),

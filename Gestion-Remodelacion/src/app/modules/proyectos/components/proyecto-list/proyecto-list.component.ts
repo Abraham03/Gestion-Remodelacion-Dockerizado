@@ -22,6 +22,9 @@ import { ProyectosFormComponent } from '../proyecto-form/proyectos-form.componen
 import { ExportService } from '../../../../core/services/export.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { Observable } from 'rxjs';
+import { ProyectosQuery } from '../../state/proyecto.query';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-proyectos-list',
@@ -29,7 +32,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
   imports: [
     CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule,
     MatPaginatorModule, MatFormFieldModule, MatInputModule, MatDialogModule,
-    MatSortModule, MatChipsModule, MatProgressBarModule, TranslateModule,
+    MatSortModule, MatChipsModule, MatProgressBarModule, TranslateModule, AsyncPipe
   ],
   templateUrl: './proyecto-list.component.html',
   styleUrls: ['./proyecto-list.component.scss'],
@@ -42,8 +45,15 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   canEdit = false;
   canDelete = false;
   private destroy$ = new Subject<void>();
-  dataSource = new MatTableDataSource<Proyecto>([]);
+  //dataSource = new MatTableDataSource<Proyecto>([]);
   displayedColumns: string[] = ['nombreProyecto', 'nombreCliente', 'nombreEmpleadoResponsable', 'estado', 'progresoPorcentaje', 'fechaInicio', 'fechaFinEstimada', 'acciones'];
+
+  // Se inyecta el Query de Proyectos
+  private proyectosQuery = inject(ProyectosQuery);
+  
+  // Se define Observables para los datos y el estado de carga
+  proyectos$: Observable<Proyecto[]> = this.proyectosQuery.selectAll();
+  loading$: Observable<boolean> = this.proyectosQuery.selectLoading();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
@@ -58,7 +68,6 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private exportService = inject(ExportService);
-  private cdr = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private translate = inject(TranslateService);
@@ -93,21 +102,12 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
 
   loadProyectos(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    this.proyectosService.getProyectosPaginated(this.currentPage, this.pageSize, this.filterValue, sortParam)
-      .subscribe({
-        next: (response) => {
-          this.dataSource.data = response.content;
-          this.totalElements = response.totalElements;
-          if (this.paginator) {
-            this.paginator.pageIndex = response.number;
-          }
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error('Error al cargar proyectos:', error);
-          this.snackBar.open(this.translate.instant('PROJECTS.ERROR_LOADING'), this.translate.instant('GLOBAL.CLOSE'), { duration: 5000 });
-        },
-      });
+    this.proyectosService.getProyectosPaginated(
+      this.currentPage, 
+      this.pageSize, 
+      this.filterValue, 
+      sortParam)
+      .subscribe();
   }
 
   openForm(proyecto?: Proyecto): void {

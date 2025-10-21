@@ -35,8 +35,15 @@
   </div>
 
   <div class="table-card">
+
+    <mat-progress-bar 
+      *ngIf="loading$ | async" 
+      mode="indeterminate" 
+      class="table-loading-bar">
+    </mat-progress-bar>
+
     <div class="table-container">
-      <table mat-table [dataSource]="dataSource" class="responsive-table" matSort (matSortChange)="onSortChange($event)">
+      <table mat-table [dataSource]="(horasTrabajadas$ | async) || []" class="responsive-table" matSort (matSortChange)="onSortChange($event)">
         <ng-container matColumnDef="fecha">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'WORK_HOURS.DATE' | translate }}</th>
           <td mat-cell *matCellDef="let element">{{ element.fecha | date:'shortDate' }}</td>

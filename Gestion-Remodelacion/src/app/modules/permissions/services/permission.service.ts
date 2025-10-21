@@ -7,20 +7,22 @@ import { map } from 'rxjs/operators';
 import { BaseService } from '../../../core/services/base.service';
 import { Page } from '../../../core/models/page.model';
 import { ApiResponse } from '../../../core/models/ApiResponse';
-
+// imports de akita
+import { PermissionStore } from '../state/permission.store';
+import { PermissionQuery } from '../state/permission.query';
 @Injectable({
   providedIn: 'root',
 })
 export class PermissionService extends BaseService<Permission> {
-  constructor(http: HttpClient) {
+  constructor(
+    http: HttpClient,
+    private permissionStore: PermissionStore,
+    private permissionQuery: PermissionQuery
+  ) {
     super(http, `${environment.apiUrl}/permissions`);
   }
 
-  /**
-   * Obtiene la lista completa de todos los permisos disponibles en el sistema.
-   * Este método es utilizado principalmente por RoleFormComponent para mostrar
-   * las opciones de permisos a asignar a un rol.
-   */
+/*
   getAllPermissions(): Observable<Permission[]> {
     const params = new HttpParams()
       .set('size', '1000') // <-- Es mejor usar un tamaño grande para obtener todos los permisos
@@ -30,8 +32,8 @@ export class PermissionService extends BaseService<Permission> {
       map((response) => this.extractPageData(response).content)
     );
   }
-
-  // MÉTODO NUEVO para obtener permisos paginados
+*/
+  // Metodo para obtener paginado en permission component list
   getPaginated(page: number, size: number): Observable<Page<Permission>> {
     const params = new HttpParams()
       .set('page', page.toString())
@@ -53,7 +55,7 @@ export class PermissionService extends BaseService<Permission> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }  
 
-  // Metodo para obtener permisos para PermissionDropdownResponse
+  // Metodo para obtener permisos para PermissionDropdownResponse en Role-form
   getPermissionsForDropdown(): Observable<PermissionDropdownResponse[]> {
     return this.http.get<ApiResponse<PermissionDropdownResponse[]>>(`${this.apiUrl}/dropdown`)
     .pipe(

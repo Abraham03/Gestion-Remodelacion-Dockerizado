@@ -12,13 +12,16 @@ import { MatInputModule } from '@angular/material/input';
 import { Sort, MatSortModule } from '@angular/material/sort';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { EmpleadoService } from '../../services/empleado.service';
 import { Empleado } from '../../models/empleado.model';
 import { EmpleadoFormComponent } from '../empleado-form/empleado-form.component';
 import { ExportService } from '../../../../core/services/export.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
+import { EmpleadosQuery } from '../../state/empleados.query';
+import { AsyncPipe } from '@angular/common';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-empleado-list',
@@ -26,7 +29,7 @@ import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
   imports: [
     CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule,
     MatPaginatorModule, MatFormFieldModule, MatInputModule, PhonePipe,
-    MatSortModule, TranslateModule,
+    MatSortModule, TranslateModule, AsyncPipe, MatProgressBarModule
   ],
   providers: [DatePipe],
   templateUrl: './empleado-list.component.html',
@@ -39,9 +42,18 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
   canCreate = false;
   canEdit = false;
   canDelete = false;
+ 
   displayedColumns: string[] = ['nombreCompleto', 'rolCargo', 'telefonoContacto', 'modeloDePago', 'costoPorHora', 'activo', 'fechaContratacion', 'notas', 'acciones'];
-  dataSource = new MatTableDataSource<Empleado>([]);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  // Se inyecta el Query de Empleados
+  private empleadosQuery = inject(EmpleadosQuery);
+
+  // Se define Observables para los datos y el estado de carga
+  empleados$: Observable<Empleado[]> = this.empleadosQuery.selectAll();
+  loading$: Observable<boolean> = this.empleadosQuery.selectLoading();
+
   totalElements: number = 0;
   pageSize: number = 5;
   currentPage: number = 0;
@@ -79,21 +91,7 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
   loadEmpleados(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
     this.empleadoService.getEmpleados(this.currentPage, this.pageSize, this.filterValue, sortParam)
-      .subscribe({
-        next: (response) => {
-          this.dataSource.data = response.content;
-          this.totalElements = response.totalElements;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error('Error al cargar empleados:', error);
-          this.snackBar.open(
-            this.translate.instant('EMPLOYEES.ERROR_LOADING'),
-            this.translate.instant('GLOBAL.CLOSE'),
-            { duration: 5000 }
-          );
-        },
-      });
+      .subscribe();
   }
 
   applyFilter(filterValue: string): void {
@@ -119,7 +117,7 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  deleteEmpleado(id: number | undefined): void {
+  deleteEmpleado(id: number): void {
     const closeAction = this.translate.instant('GLOBAL.CLOSE');
     if (!id) {
       this.snackBar.open(this.translate.instant('EMPLOYEES.ERROR_INVALID_ID_FOR_DELETE'), closeAction, { duration: 3000 });
@@ -127,10 +125,9 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
     }
 
     if (confirm(this.translate.instant('GLOBAL.CONFIRM_DEACTIVATE'))) {
-      this.empleadoService.deactivateEmpleado(id).subscribe({
+      this.empleadoService.deactivateEmpleado(id, false).subscribe({
         next: () => {
           this.snackBar.open(this.translate.instant('EMPLOYEES.SUCCESSFULLY_DEACTIVATED'), closeAction, { duration: 3000 });
-          this.loadEmpleados();
         },
         error: (err: HttpErrorResponse) => {
           console.error('Error al desactivar empleado:', err);

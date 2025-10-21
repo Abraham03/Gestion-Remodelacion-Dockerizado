@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { HorasTrabajadas } from '../../models/horas-trabajadas';
 import { HorasTrabajadasService } from '../../services/horas-trabajadas.service';
@@ -20,13 +21,17 @@ import { HorasTrabajadasFormComponent } from '../horas-trabajadas-form/horas-tra
 import { AuthService } from '../../../../core/services/auth.service';
 import { ExportService } from '../../../../core/services/export.service';
 
+import { HorasTrabajadasQuery } from '../../state/horas-trabajadas.query';
+import { AsyncPipe } from '@angular/common';
+import { Observable } from 'rxjs';
+
 @Component({
   selector: 'app-horas-trabajadas-list',
   standalone: true,
   imports: [
     CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule,
     MatPaginatorModule, MatFormFieldModule, MatInputModule, MatDialogModule,
-    DatePipe, MatSortModule, TranslateModule
+    DatePipe, MatSortModule, TranslateModule, MatProgressBarModule, AsyncPipe
   ],
   providers: [DatePipe],
   templateUrl: './horas-trabajadas-list.component.html',
@@ -42,7 +47,7 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
 
   // Propiedades de la tabla y paginación
   displayedColumns: string[] = ['fecha', 'nombreEmpleado', 'nombreProyecto', 'horas', 'montoTotal', 'actividadRealizada', 'acciones'];
-  dataSource = new MatTableDataSource<HorasTrabajadas>([]);
+
   totalElements = 0;
   pageSize = 5;
   currentPage = 0;
@@ -52,6 +57,13 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+
+  // Se inyecta el Query de horas trabajadas
+  private horasTrabajadasQuery = inject(HorasTrabajadasQuery);
+  
+  // Se define Observables para los datos y el estado de carga
+  horasTrabajadas$: Observable<HorasTrabajadas[]> = this.horasTrabajadasQuery.selectAll();
+  loading$: Observable<boolean> = this.horasTrabajadasQuery.selectLoading();
 
   private destroy$ = new Subject<void>();
 
@@ -69,12 +81,6 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
   }
 
   ngAfterViewInit() {
-    this.dataSource.sort = this.sort;
-    this.paginator.page.pipe(takeUntil(this.destroy$)).subscribe((event: PageEvent) => {
-      this.currentPage = event.pageIndex;
-      this.pageSize = event.pageSize;
-      this.loadHorasTrabajadas();
-    });
     this.loadHorasTrabajadas();
   }
 
@@ -96,17 +102,7 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
   loadHorasTrabajadas(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
     this.horasTrabajadasService.getHorasTrabajadasPaginated(this.currentPage, this.pageSize, this.filterValue, sortParam)
-      .subscribe({
-        next: (response) => {
-          this.dataSource.data = response.content;
-          this.totalElements = response.totalElements;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error('Error al cargar horas trabajadas:', error);
-          this.snackBar.open(this.translate.instant('WORK_HOURS.ERROR_LOADING'), this.translate.instant('GLOBAL.CLOSE'), { duration: 5000 });
-        },
-      });
+      .subscribe();
   }
 
   applyFilter(filterValue: string): void {

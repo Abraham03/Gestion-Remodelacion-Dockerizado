@@ -1,7 +1,7 @@
 import { DatePipe } from "@angular/common";
 
 export interface Proyecto {
-  id: number | null; // Changed to number | null for id, as it's auto-generated on creation
+  id: number; // Changed to number | null for id, as it's auto-generated on creation
   idCliente: number;
   nombreCliente: string | null; // Added, can be null if not explicitly loaded in the response
   nombreProyecto: string;

@@ -1,6 +1,6 @@
 export interface HorasTrabajadas {
 
-  id: number | null;
+  id: number;
   idEmpleado: number;
   nombreEmpleado: string | null; // Para mostrar en el frontend, si el backend lo proporciona
   idProyecto: number;

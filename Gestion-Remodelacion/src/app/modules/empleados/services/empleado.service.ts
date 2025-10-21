@@ -2,20 +2,27 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { Empleado } from '../models/empleado.model'; // Assuming Empleado model exists
 import { environment } from '../../../../environments/environment';
 import { Page } from '../../../core/models/page.model'; // Assuming Page model exists
 import { ApiResponse } from '../../../core/models/ApiResponse';
 import { BaseService } from '../../../core/services/base.service';
 import { dropdownItemModeloHorastrabajadas } from '../../../core/models/dropdown-item-modelo-horastrabajadas';
+// imports de akita
+import { EmpleadosStore } from '../state/empleados.store';
+import { EmpleadosQuery } from '../state/empleados.query';
 
 @Injectable({
   providedIn: 'root',
 })
 export class EmpleadoService extends BaseService<Empleado> {
 
-  constructor(http: HttpClient) {
+  constructor(
+    http: HttpClient,
+    private empleadosStore: EmpleadosStore,
+    private empleadosQuery: EmpleadosQuery
+  ) {
     super(http, `${environment.apiUrl}/empleados`);
   }
 
@@ -29,6 +36,9 @@ export class EmpleadoService extends BaseService<Empleado> {
     filter: string = '',
     sort: string = 'nombreCompleto,asc'
   ): Observable<Page<Empleado>> {
+    // Actualizar el estado de carga
+    this.empleadosStore.setLoading(true);
+
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
@@ -37,7 +47,13 @@ export class EmpleadoService extends BaseService<Empleado> {
       params = params.set('filter', filter);
     }
     return this.http.get<ApiResponse<Page<Empleado>>>(this.apiUrl, { params }).pipe(
-      map(response => this.extractPageData(response))
+      map(response => this.extractPageData(response)),
+      tap(response => {
+        // En lugar de retornar los datos, se guardan en el store de Akita
+        this.empleadosStore.set(response.content);
+        // Se desactiva el estado de carga
+        this.empleadosStore.setLoading(false);
+      })
     );
   }
 
@@ -57,23 +73,65 @@ export class EmpleadoService extends BaseService<Empleado> {
   }
 
   getEmpleado(id: number): Observable<Empleado> {
-    return this.http.get<Empleado>(`${this.apiUrl}/${id}`);
+    // 1. Informa al store que estamos cargando (para la entidad activa)
+    this.empleadosStore.setLoading(true);
+
+    return this.http.get<Empleado>(`${this.apiUrl}/${id}`).pipe(
+      tap(empleadoEncontrado => {
+        /**
+         * BUENA PRÁCTICA: Usamos upsert()
+         * - Si el empleado ya existe en el store, lo actualiza.
+         * - Si no existe, lo añade.         
+         * Esto mantiene la "caché" del store fresca.
+         */
+        this.empleadosStore.upsert(empleadoEncontrado.id, empleadoEncontrado);
+        
+        // 2. Marcamos este empleado como "activo" en el store.
+        // Un componente (ej. el form) puede suscribirse a 'empleadosQuery.selectActive()'
+        this.empleadosStore.setActive(empleadoEncontrado.id);
+        
+        // 3. Dejamos de cargar
+        this.empleadosStore.setLoading(false);
+      })
+    );
   }
 
   createEmpleado(empleado: Empleado): Observable<Empleado> {
-    // Es buena práctica eliminar id si el backend lo autogenera
-    const empleadoToSend = { ...empleado };
-    delete empleadoToSend.id;
-    return this.http.post<Empleado>(this.apiUrl, empleado);
+    return this.http.post<Empleado>(this.apiUrl, empleado).pipe(
+      tap(nuevoEmpleado => {
+        // Añadimos la nueva entidad al store
+        this.empleadosStore.add(nuevoEmpleado);
+      })
+    );
   }
 
-  updateEmpleado(id: number, empleado: Empleado): Observable<Empleado> {
-    return this.http.put<Empleado>(`${this.apiUrl}/${id}`, empleado);
+  updateEmpleado(empleado: Empleado): Observable<Empleado> {
+    return this.http.put<Empleado>(`${this.apiUrl}/${empleado.id}`, empleado).pipe(
+      tap(empleadoActualizado => {
+        // Actualizamos la entidad en el store
+        this.empleadosStore.update(empleado.id, empleadoActualizado);
+      })
+    )
   }
 
-  deactivateEmpleado(id: number): Observable<any> {
-    return this.http.patch<any>(`${this.apiUrl}/${id}/status`, null, {
-      params: new HttpParams().set('activo', 'false'),
-    });
+  deleteEmpleado(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
+      tap(() => {
+        // Eliminamos la entidad del store
+        this.empleadosStore.remove(id);
+      })
+    )
+  }
+
+  deactivateEmpleado(id: number, activo: boolean): Observable<any> {
+    // Prepara los parametros para la API
+    const params = new HttpParams().set('activo', activo.toString());
+    // Realiza la llamada PATCH
+    return this.http.patch<any>(`${this.apiUrl}/${id}/status`, { params }).pipe(
+      tap(() => {
+        // Actualizamos la entidad en el store
+        this.empleadosStore.update(id, { activo: activo });
+      })
+    )
   }
 }

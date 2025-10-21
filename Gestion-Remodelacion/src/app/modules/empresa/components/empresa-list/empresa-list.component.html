@@ -16,8 +16,15 @@
   </div>
 
   <div class="table-card">
+
+    <mat-progress-bar 
+      *ngIf="loading$ | async" 
+      mode="indeterminate" 
+      class="table-loading-bar">
+    </mat-progress-bar>
+
     <div class="table-container">
-      <table mat-table [dataSource]="dataSource" class="responsive-table" matSort (matSortChange)="onSortChange($event)">
+      <table mat-table [dataSource]="(empresas$ | async) || []" (matSortChange)="onSortChange($event)" class="responsive-table" matSort (matSortChange)="onSortChange($event)">
 
         <ng-container matColumnDef="nombreEmpresa">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPRESAS.NAME' | translate }}</th>
