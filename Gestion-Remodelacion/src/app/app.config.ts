@@ -6,7 +6,6 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { responseInterceptor } from './core/interceptors/response.interceptor';
-import { cachingInterceptor } from './core/interceptors/caching.interceptor';
 
 // --- Importaciones para ngx-translate ---
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
@@ -26,8 +25,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([
       jwtInterceptor,
-      responseInterceptor,
-      cachingInterceptor
+      responseInterceptor    
     ])),
 
     // --- Configuración de ngx-translate y Akita DevTools ---

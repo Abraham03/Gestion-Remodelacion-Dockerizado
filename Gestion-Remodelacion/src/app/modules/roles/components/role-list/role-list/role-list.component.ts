@@ -23,7 +23,7 @@ import { PermissionDialogComponent } from '../../dialogs/permission-dialog/permi
 
 import { RoleQuery } from '../../../state/roles.query';
 import { AsyncPipe } from '@angular/common';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 
 @Component({
   selector: 'app-role-list',
@@ -74,7 +74,15 @@ export class RoleListComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    this.loadRoles();
+    this.roleQuery.selectHasCache().pipe(
+      take(1) // Solo se necesita verificar una vez al cargar
+    ).subscribe(
+      hasCache => {
+        if (!hasCache) {
+          this.loadRoles();
+        }
+      }
+    )
 
     // Suscribirse a los cambios del store para mantener sincronizado el paginador
     this.paginatorSubscription = this.roleQuery.selectPagination().subscribe(pagination => {

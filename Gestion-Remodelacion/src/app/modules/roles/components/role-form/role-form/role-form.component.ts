@@ -14,7 +14,6 @@ import { PermissionService } from '../../../../permissions/services/permission.s
 import { Role, RoleRequest } from '../../../../../core/models/role.model';
 import { Permission, PermissionDropdownResponse } from '../../../../../core/models/permission.model';
 import { RoleService } from '../../../services/role.service';
-import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-role-form',
@@ -40,7 +39,6 @@ export class RoleFormComponent implements OnInit {
     private roleService: RoleService,
     private permissionService: PermissionService,
     private snackBar: MatSnackBar,
-    private notificationService: NotificationService
   ) {
     this.isEditMode = !!data;
     this.roleForm = this.fb.group({
@@ -113,7 +111,6 @@ export class RoleFormComponent implements OnInit {
     serviceCall.subscribe({
       next: () => {
         this.snackBar.open(this.translate.instant(successKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
-        this.notificationService.notifyDataChange();
         this.dialogRef.close(true);
       },
       error: (err: HttpErrorResponse) => {

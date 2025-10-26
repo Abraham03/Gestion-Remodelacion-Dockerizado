@@ -12,7 +12,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { Cliente } from '../../models/cliente.model';
 import { ClienteService } from '../../services/cliente.service';
-import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-cliente-form',
@@ -35,7 +34,6 @@ export class ClienteFormComponent implements OnInit {
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ClienteFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: Cliente | null,
-    private notificationService: NotificationService
   ) {
     this.form = this.fb.group({
       id: [data?.id || null],
@@ -60,11 +58,10 @@ export class ClienteFormComponent implements OnInit {
 
       serviceCall.subscribe({
         next: () => {
-          this.notificationService.notifyDataChange();
           this.snackBar.open(this.translate.instant(successMessageKey), closeAction, { duration: 3000 });
           this.dialogRef.close(true);
         },
-        // 👇===== LÓGICA DE ERROR CORREGIDA =====👇
+
         error: (err: HttpErrorResponse) => {
           // 1. Obtenemos la clave de error del backend. Si no existe, usamos una por defecto.
           const errorKey = err.error?.message || 'error.unexpected';
@@ -75,7 +72,6 @@ export class ClienteFormComponent implements OnInit {
           // 3. Mostramos el mensaje ya traducido al usuario.
           this.snackBar.open(translatedMessage, closeAction, { duration: 7000 });
         }
-        // 👆===== FIN DE LA CORRECCIÓN =====👆
       });
     } else {
       this.form.markAllAsTouched();

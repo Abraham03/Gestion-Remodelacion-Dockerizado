@@ -8,7 +8,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { Permission, PermissionRequest } from '../../../../core/models/permission.model';
 import { PermissionService } from '../../services/permission.service';
-import { NotificationService } from '../../../../core/services/notification.service'; 
 
 // Angular Material Imports
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -39,7 +38,6 @@ export class PermissionFormComponent implements OnInit {
   
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: Permission | undefined,
-    private notificationService: NotificationService
   ) {
     this.isEditMode = !!data;
     this.permissionForm = this.fb.group({
@@ -73,7 +71,6 @@ export class PermissionFormComponent implements OnInit {
     serviceCall.subscribe({
       next: () => {
         this.snackBar.open(this.translate.instant(successKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
-        this.notificationService.notifyDataChange();
         this.dialogRef.close(true);
       },
       error: (err: HttpErrorResponse) => {

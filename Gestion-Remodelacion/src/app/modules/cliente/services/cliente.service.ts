@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, delay } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { Page } from '../../../core/models/page.model';
 import { Cliente, ClienteDropdownResponse } from '../models/cliente.model'; // Assuming Cliente model exists
@@ -43,6 +43,8 @@ export class ClienteService extends BaseService<Cliente> {
     }
     return this.http.get<ApiResponse<Page<Cliente>>>(this.apiUrl, { params }).pipe(
       map(response => this.extractPageData(response)),
+      // Se agrega un delay(0) antes de actualizar el store y loading = false
+      delay(0),
       tap(pageResponse => {
         // En lugar de retornar los datos, se guardan en el store de Akita
         this.clientesStore.set(pageResponse.content);

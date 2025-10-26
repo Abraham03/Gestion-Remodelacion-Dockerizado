@@ -21,8 +21,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { Chart, registerables } from 'chart.js';
 import { DashboardService } from '../../services/dashboard.service';
 import { DropdownItem } from '../../../../core/models/dropdown-item.model';
-import { NotificationService } from '../../../../core/services/notification.service';
-// 👉 1. Importa TranslateModule y TranslateService
+//Importa TranslateModule y TranslateService
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 Chart.register(...registerables);
@@ -34,7 +33,7 @@ Chart.register(...registerables);
     CommonModule, HttpClientModule, MatSnackBarModule, FormsModule, MatCardModule,
     MatGridListModule, MatIconModule, MatTableModule, MatPaginatorModule,
     MatSortModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule,
-    MatSelectModule, TranslateModule, // 👈 2. Agrega TranslateModule a los imports
+    MatSelectModule, TranslateModule, 
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -61,29 +60,22 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   public clientesSelectedYear: number = new Date().getFullYear();
   public clientesSelectedMonth: number | null = null;
 
-  // 👉 3. Declara 'availableMonths' sin inicializarlo
+  // 3. Declara 'availableMonths' sin inicializarlo
   public availableMonths: { value: number | null, viewValue: string }[] = [];
 
-  // 👉 4. Inyecta TranslateService
+  // 4. Inyecta TranslateService
   private dashboardService = inject(DashboardService);
   private snackBar = inject(MatSnackBar);
   private breakpointObserver = inject(BreakpointObserver);
-  private notificationService = inject(NotificationService);
   private translate = inject(TranslateService);
 
   ngOnInit(): void {
     this.setupTranslations(); // Configura las traducciones primero
     this.setupResponsiveCols();
     this.loadInitialData();
-
-    this.notificationService.dataChanges$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.loadInitialData();
-      });
   }
 
-  // 👉 5. Nuevo método para manejar traducciones y cambios de idioma
+  // 5. Nuevo método para manejar traducciones y cambios de idioma
   private setupTranslations(): void {
     this.generateMonthList(); // Genera la lista de meses inicial
 
@@ -96,7 +88,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
-  // 👉 6. Nuevo método para generar la lista de meses traducida
+  // 6. Nuevo método para generar la lista de meses traducida
   private generateMonthList(): void {
     const monthKeys = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
     this.availableMonths = [

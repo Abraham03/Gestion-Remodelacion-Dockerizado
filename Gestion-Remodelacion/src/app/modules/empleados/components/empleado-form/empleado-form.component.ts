@@ -15,7 +15,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { EmpleadoService } from '../../services/empleado.service';
 import { Empleado } from '../../models/empleado.model';
-import { NotificationService } from '../../../../core/services/notification.service';
 import { NumberFormatDirective } from '../../../../shared/directives/number-format.directive';
 
 @Component({
@@ -44,7 +43,6 @@ export class EmpleadoFormComponent implements OnInit {
     public dialogRef: MatDialogRef<EmpleadoFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: Empleado,
     private snackBar: MatSnackBar,
-    private notificationService: NotificationService
   ) {
     this.empleadoForm = this.fb.group({
       id: [null],
@@ -119,10 +117,8 @@ export class EmpleadoFormComponent implements OnInit {
       serviceCall.subscribe({
         next: () => {
           this.snackBar.open(this.translate.instant(successKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
-          this.notificationService.notifyDataChange();
           this.dialogRef.close(true);
         },
-        // 👇===== LÓGICA DE ERROR CORREGIDA =====👇
         error: (err: HttpErrorResponse) => {
           console.error(`Error al ${this.isEditMode ? 'actualizar' : 'crear'} empleado:`, err);
           // 1. Obtenemos la clave de error del backend.

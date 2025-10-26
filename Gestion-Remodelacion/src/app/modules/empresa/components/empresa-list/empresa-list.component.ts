@@ -23,7 +23,7 @@ import { EmpresaFormComponent } from '../empresa-form/empresa-form.component';
 import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
 import { EmpresaQuery } from '../../state/empresas.query';
 import { AsyncPipe } from '@angular/common';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 
 @Component({
   selector: 'app-empresa-list',
@@ -81,7 +81,15 @@ export class EmpresaListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.loadEmpresas();
+    this.empresaQuery.selectHasCache().pipe(
+      take(1) // Solo se necesita verificar una vez al cargar
+    ).subscribe(
+      hasCache => {
+        if (!hasCache) {
+          this.loadEmpresas();
+        }
+      }
+    );
 
     // Suscribirse a los cambios del store para mantener sincronizado el paginador
     this.paginatorSubscription = this.empresaQuery.selectPagination().subscribe(pagination => {

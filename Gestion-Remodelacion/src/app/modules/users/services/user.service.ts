@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { map, Observable, tap } from 'rxjs';
+import { delay, map, Observable, tap } from 'rxjs';
 import { Page } from '../../../core/models/page.model';
 import { User, UserRequest } from '../../../core/models/user.model';
 import { BaseService } from '../../../core/services/base.service';
@@ -46,6 +46,8 @@ export class UserService extends BaseService<User> {
 
     return this.http.get<ApiResponse<Page<User>>>(this.apiUrl, { params }).pipe(
       map(response => this.extractPageData(response)),
+      // Se agrega un delay(0) antes de actualizar el store y loading = false
+      delay(0),
       tap(pageResponse => {
         // En lugar de retornar los datos, se guardan en el store de Akita
         this.userStore.set(pageResponse.content);

@@ -13,7 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ProyectosService } from '../../services/proyecto.service';
@@ -21,7 +21,6 @@ import { Proyecto } from '../../models/proyecto.model';
 import { ProyectosFormComponent } from '../proyecto-form/proyectos-form.component';
 import { ExportService } from '../../../../core/services/export.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { NotificationService } from '../../../../core/services/notification.service';
 import { Observable, Subscription } from 'rxjs';
 import { ProyectosQuery } from '../../state/proyecto.query';
 import { AsyncPipe } from '@angular/common';
@@ -54,7 +53,6 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   private snackBar = inject(MatSnackBar);
   private exportService = inject(ExportService);
   private authService = inject(AuthService);
-  private notificationService = inject(NotificationService);
   private translate = inject(TranslateService);
 
   // Se inyecta el Query de Proyectos
@@ -86,7 +84,15 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   ngAfterViewInit(): void {
-    this.loadProyectos();
+    this.proyectosQuery.selectHasCache().pipe(
+      take(1) // Solo se necesita verificar una vez al cargar
+    ).subscribe(
+      hasCache => {
+        if (!hasCache) {
+          this.loadProyectos();
+        }
+      }
+    );
 
     // Suscribirse a los cambios del store para mantener sincronizado el paginador
     this.paginatorSubscription = this.proyectosQuery.selectPagination().subscribe(pagination => {

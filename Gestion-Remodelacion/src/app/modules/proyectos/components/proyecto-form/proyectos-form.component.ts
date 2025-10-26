@@ -18,7 +18,6 @@ import { ProyectosService } from '../../services/proyecto.service';
 import { ClienteService } from '../../../cliente/services/cliente.service';
 import { EmpleadoService } from '../../../empleados/services/empleado.service';
 import { Proyecto } from '../../models/proyecto.model';
-import { NotificationService } from '../../../../core/services/notification.service';
 import { DropdownItem } from '../../../../core/models/dropdown-item.model';
 import { NumberFormatDirective } from '../../../../shared/directives/number-format.directive';
 
@@ -52,7 +51,6 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
     private empleadoService: EmpleadoService,
     public dialogRef: MatDialogRef<ProyectosFormComponent>,
     private snackBar: MatSnackBar,
-    private notificationService: NotificationService,
     @Inject(MAT_DIALOG_DATA) public data: Proyecto | null
   ) {}
 
@@ -163,7 +161,6 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
     serviceCall.subscribe({
       next: () => {
         this.snackBar.open(this.translate.instant(successKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
-        this.notificationService.notifyDataChange();
         this.dialogRef.close(true);
       },
       error: (err: HttpErrorResponse) => {

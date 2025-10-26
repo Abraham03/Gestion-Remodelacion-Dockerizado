@@ -11,7 +11,7 @@ export interface PermissionState extends EntityState<Permission, number> {
       totalPages: number;
       currentPage: number; // Basado en el 'number' del Page (índice 0)
       pageSize: number;
-    } | null
+    } | null; // inicialmente null
 }
 
 // Define el estado inicial

@@ -18,8 +18,6 @@ import { HorasTrabajadas } from '../../models/horas-trabajadas';
 import { HorasTrabajadasService } from '../../services/horas-trabajadas.service';
 import { EmpleadoService } from '../../../empleados/services/empleado.service';
 import { ProyectosService } from '../../../proyectos/services/proyecto.service';
-import { DropdownItem } from '../../../../core/models/dropdown-item.model';
-import { NotificationService } from '../../../../core/services/notification.service';
 import { dropdownItemModeloHorastrabajadas } from '../../../../core/models/dropdown-item-modelo-horastrabajadas';
 import { ProyectoDropdown } from '../../../proyectos/models/proyecto.model';
 
@@ -51,7 +49,6 @@ export class HorasTrabajadasFormComponent implements OnInit {
     private proyectosService: ProyectosService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<HorasTrabajadasFormComponent>,
-    private notificationService: NotificationService,
     @Inject(MAT_DIALOG_DATA) public data: HorasTrabajadas
   ) {
     // 1. Definición del formulario: Se mantiene igual, es correcto.
@@ -176,7 +173,7 @@ loadDropdownData(): void {
       horas: horasParaEnviar,
     };
 
-    // 👇===== CORRECCIÓN PRINCIPAL AQUÍ =====👇
+
     // 7. La llamada al servicio se unifica. Ahora, para actualizar, pasamos
     //    el objeto completo `horasTrabajadasData`, que ya contiene el ID,
     //    cumpliendo con lo que espera el método de tu servicio (1 solo argumento).
@@ -189,7 +186,6 @@ loadDropdownData(): void {
     serviceCall.subscribe({
       next: () => {
         this.snackBar.open(this.translate.instant(successKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
-        this.notificationService.notifyDataChange();
         this.dialogRef.close(true);
       },
       error: (err: HttpErrorResponse) => {

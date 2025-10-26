@@ -23,7 +23,7 @@ import { InviteUserDialogComponent } from '../../invite-user-dialog/invite-user-
 
 import { UserQuery } from '../../../state/users.query';
 import { AsyncPipe } from '@angular/common';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 
 @Component({
   selector: 'app-user-list',
@@ -85,7 +85,15 @@ export class UserListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.loadUsers();
+    this.userQuery.selectHasCache().pipe(
+      take(1) // Solo se necesita verificar una vez al cargar
+    ).subscribe(
+      hasCache => {
+        if (!hasCache) {
+          this.loadUsers();
+        }
+      }
+    );
 
     // Suscribirse a los cambios del store para mantener sincronizado el paginador
     this.paginatorSubscription = this.userQuery.selectPagination().subscribe(pagination => {

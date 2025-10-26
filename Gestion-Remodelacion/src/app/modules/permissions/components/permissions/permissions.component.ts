@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef, inject, AfterViewInit, OnDestroy } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -17,7 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PermissionQuery } from '../../state/permission.query';
 import { AsyncPipe } from '@angular/common';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 
 @Component({
   selector: 'app-permissions',
@@ -30,7 +30,7 @@ import { Observable, Subscription } from 'rxjs';
   templateUrl: './permissions.component.html',
   styleUrls: ['./permissions.component.scss']
 })
-export class PermissionsComponent implements OnInit {
+export class PermissionsComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = ['name', 'description', 'scope', 'actions']; // <-- Añadir 'actions'
   totalElements = 0;
   pageSizeLocal = 5;
@@ -56,6 +56,9 @@ export class PermissionsComponent implements OnInit {
   pageSize$: Observable<number> = this.permissionQuery.selectPageSize();
   currentPage$: Observable<number> = this.permissionQuery.selectCurrentPage();
 
+  // Suscripcion para mantener sincronizado el paginador
+  private paginatorSubscription: Subscription | null = null;
+
   private permissionService = inject(PermissionService);
   private snackBar = inject(MatSnackBar);
   private translate = inject(TranslateService);
@@ -65,7 +68,33 @@ export class PermissionsComponent implements OnInit {
 
   ngOnInit(): void {
     this.setPermissions();
-    this.loadPermissions();
+  }
+
+  ngAfterViewInit(): void {
+    this.permissionQuery.selectHasCache().pipe(
+      take(1) // Solo se necesita verificar una vez al cargar
+    ).subscribe(
+      hasCache => {
+        if (!hasCache) {
+          this.loadPermissions();
+        }
+      }
+    );
+
+    // Suscibirse a los cambios del store para mantener sincronizado el paginador
+    this.paginatorSubscription = this.permissionQuery.selectPagination().subscribe(pagination => {
+      if (pagination && this.paginator) {
+        // Actualiza el estado visual del paginador
+        this.paginator.length = pagination.totalElements;
+        this.paginator.pageIndex = pagination.currentPage;
+        this.paginator.pageSize = pagination.pageSize;
+      }
+    })
+
+  }
+
+  ngOnDestroy(): void {
+    this.paginatorSubscription?.unsubscribe();
   }
 
   private setPermissions(): void {

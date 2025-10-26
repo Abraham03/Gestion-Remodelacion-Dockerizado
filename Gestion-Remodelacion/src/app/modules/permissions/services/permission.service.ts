@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Permission, PermissionDropdownResponse, PermissionRequest } from '../../../core/models/permission.model';
-import { map, tap } from 'rxjs/operators';
+import { delay, map, tap } from 'rxjs/operators';
 import { BaseService } from '../../../core/services/base.service';
 import { Page } from '../../../core/models/page.model';
 import { ApiResponse } from '../../../core/models/ApiResponse';
@@ -36,6 +36,8 @@ export class PermissionService extends BaseService<Permission> {
       .set('size', size.toString());
     return this.http.get<ApiResponse<Page<Permission>>>(this.apiUrl, { params }).pipe(
       map(response => this.extractPageData(response)),
+      // Se agrega un delay(0) antes de actualizar el store y loading = false
+      delay(0),
       tap(PageResponse => {
         // En lugar de retornar los datos, se guardan en el store de Akita
         this.permissionStore.set(PageResponse.content);

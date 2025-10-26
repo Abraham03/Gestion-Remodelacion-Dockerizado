@@ -1,7 +1,7 @@
 // src/app/modules/proyectos/services/proyectos.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { map, Observable, tap } from 'rxjs';
+import { delay, map, Observable, tap } from 'rxjs';
 import { Proyecto, ProyectoDropdown } from '../models/proyecto.model';
 import { environment } from '../../../../environments/environment';
 import { Page } from '../../../core/models/page.model';
@@ -48,6 +48,8 @@ export class ProyectosService extends BaseService<Proyecto> {
     }
     return this.http.get<ApiResponse<Page<Proyecto>>>(this.apiUrl, { params }).pipe(
       map(response => this.extractPageData(response)),
+      // Se agrega un delay(0) antes de actualizar el store y loading = false
+      delay(0),
       tap(response => {
         // En lugar de retornar los datos, se guardan en el store de Akita
         this.proyectosStore.set(response.content);

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { map, Observable, tap } from 'rxjs';
+import { delay, map, Observable, tap } from 'rxjs';
 import { Page } from '../../../core/models/page.model';
 import { Role, RoleDropdownResponse, RoleRequest } from '../../../core/models/role.model';
 import { ApiResponse } from '../../../core/models/ApiResponse';
@@ -48,6 +48,8 @@ export class RoleService extends BaseService<Role>{
 
     return this.http.get<ApiResponse<Page<Role>>>(this.apiUrl, { params }).pipe(
       map((response => this.extractPageData(response))),
+      // Se agrega un delay(0) antes de actualizar el store y loading = false
+      delay(0),
       tap(pageResponse => {
         // En lugar de retornar los datos, se guardan en el store de Akita
         this.roleStore.set(pageResponse.content);

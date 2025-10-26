@@ -21,7 +21,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
 import { EmpleadosQuery } from '../../state/empleados.query';
 import { AsyncPipe } from '@angular/common';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 
 @Component({
   selector: 'app-empleado-list',
@@ -82,7 +82,16 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.loadEmpleados();
+  this.empleadosQuery.selectHasCache().pipe(
+    take(1) // Solo se necesita verificar una vez al cargar
+  ).subscribe(
+    hasCache => {
+      if (!hasCache) {
+        this.loadEmpleados();
+      }
+    }
+  );
+  
     
   // Suscribirse a los cambios del store para mantener sincronizado el paginador
     this.paginatorSubscription = this.empleadosQuery.selectPagination().subscribe(pagination => {

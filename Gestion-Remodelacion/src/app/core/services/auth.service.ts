@@ -7,7 +7,6 @@ import { User, UserRequest } from '../models/user.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthResponse } from '../../modules/auth/models/auth-response.model';
 import { Role } from '../models/role.model';
-import { CacheService } from './cache.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService implements OnDestroy {
@@ -40,7 +39,6 @@ export class AuthService implements OnDestroy {
     private authApi: AuthApiService,
     private router: Router,
     private snackBar: MatSnackBar,
-    private cacheService: CacheService
   ) {
     this.loadUserFromStorage();
     this.startTokenValidation();
@@ -96,9 +94,7 @@ export class AuthService implements OnDestroy {
     // 1. Limpia el estado de autenticación (localStorage y signal).
     this.clearAuthState();
     
-    // 2. ✅ ¡MEJORA CRÍTICA! Invalida todo el caché.
-    // Esto fuerza a que el próximo usuario que inicie sesión tenga que pedir datos frescos al backend.
-    this.cacheService.invalidateAll();
+
     
     // 3. Redirige al login.
     this.router.navigate(['/login']);

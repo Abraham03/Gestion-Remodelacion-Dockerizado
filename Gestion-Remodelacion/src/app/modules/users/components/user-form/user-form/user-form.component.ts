@@ -15,7 +15,6 @@ import { Role, RoleDropdownResponse } from '../../../../../core/models/role.mode
 import { User, UserRequest } from '../../../../../core/models/user.model';
 import { RoleService } from '../../../../roles/services/role.service';
 import { UserService } from '../../../services/user.service';
-import { NotificationService } from '../../../../../core/services/notification.service';
 import { EmpresaService } from '../../../../empresa/service/empresa.service';
 import { EmpresaDropdown } from '../../../../empresa/model/Empresa';
 import { AuthService } from '../../../../../core/services/auth.service';
@@ -49,7 +48,6 @@ export class UserFormComponent implements OnInit {
     private userService: UserService,
     private roleService: RoleService,
     private snackBar: MatSnackBar,
-    private notificationService: NotificationService,
     private authService: AuthService,
     private empresaService: EmpresaService
   ) {
@@ -158,7 +156,6 @@ export class UserFormComponent implements OnInit {
     serviceCall.subscribe({
       next: () => {
         this.snackBar.open(this.translate.instant(successKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
-        this.notificationService.notifyDataChange();
         this.dialogRef.close(true);
       },
       error: (err: HttpErrorResponse) => {

@@ -24,7 +24,7 @@ import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ClientesQuery } from '../../state/cliente.query';
 import { AsyncPipe } from '@angular/common';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 @Component({
   selector: 'app-cliente-list',
   standalone: true,
@@ -82,7 +82,15 @@ export class ClienteListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.loadClientes();
+    this.clientesQuery.selectHasCache().pipe(
+      take(1) // Solo se necesita verificar una vez al cargar
+    ).subscribe(
+      hasCache => {
+        if (!hasCache) {
+          this.loadClientes();
+        }
+      }
+    );
 
     // Suscibirse a los cambios del store para mantener sincronizado el paginador
     this.paginatorSubscription = this.clientesQuery.selectPagination().subscribe(pagination => {
