@@ -23,7 +23,7 @@ import { ExportService } from '../../../../core/services/export.service';
 
 import { HorasTrabajadasQuery } from '../../state/horas-trabajadas.query';
 import { AsyncPipe } from '@angular/common';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-horas-trabajadas-list',
@@ -48,24 +48,8 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
   // Propiedades de la tabla y paginación
   displayedColumns: string[] = ['fecha', 'nombreEmpleado', 'nombreProyecto', 'horas', 'montoTotal', 'actividadRealizada', 'acciones'];
 
-  totalElements = 0;
-  pageSize = 5;
-  currentPage = 0;
-  filterValue = '';
-  currentSort = 'fecha';
-  sortDirection = 'desc';
-
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-
-  // Se inyecta el Query de horas trabajadas
-  private horasTrabajadasQuery = inject(HorasTrabajadasQuery);
-  
-  // Se define Observables para los datos y el estado de carga
-  horasTrabajadas$: Observable<HorasTrabajadas[]> = this.horasTrabajadasQuery.selectAll();
-  loading$: Observable<boolean> = this.horasTrabajadasQuery.selectLoading();
-
-  private destroy$ = new Subject<void>();
 
   // Inyección de servicios
   private horasTrabajadasService = inject(HorasTrabajadasService);
@@ -76,12 +60,46 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
   private authService = inject(AuthService);
   private translate = inject(TranslateService);
 
+  // Se inyecta el Query de horas trabajadas
+  private horasTrabajadasQuery = inject(HorasTrabajadasQuery);
+  
+  // Se define Observables para los datos y el estado de carga
+  horasTrabajadas$: Observable<HorasTrabajadas[]> = this.horasTrabajadasQuery.selectAll();
+  loading$: Observable<boolean> = this.horasTrabajadasQuery.selectLoading();
+
+  // Observables para la paginación (directos al HTML con async pipe)
+  totalElements$: Observable<number> = this.horasTrabajadasQuery.selectTotalElements();
+  pageSize$: Observable<number> = this.horasTrabajadasQuery.selectPageSize();
+  currentPage$: Observable<number> = this.horasTrabajadasQuery.selectCurrentPage();
+
+  private destroy$ = new Subject<void>();
+
+  pageSizeLocal = 5;
+  currentPageLocal = 0;
+  filterValue = '';
+  currentSort = 'fecha';
+  sortDirection = 'desc';
+
+  // Suscripcion para actualizar paginator
+  private paginatorSubscription: Subscription | null = null;
+
   ngOnInit(): void {
     this.setPermissions();
   }
 
   ngAfterViewInit() {
     this.loadHorasTrabajadas();
+
+    // Suscribirse a los cambios del store para mantener sincronizado el paginador
+    this.paginatorSubscription = this.horasTrabajadasQuery.selectPagination().subscribe(pagination => {
+      if (pagination && this.paginator) {
+        // Actualiza el estado visual del paginador
+        this.paginator.length = pagination.totalElements;
+        this.paginator.pageIndex = pagination.currentPage;
+        this.paginator.pageSize = pagination.pageSize;
+      }
+    })
+
   }
 
   ngOnDestroy(): void {
@@ -101,13 +119,13 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
 
   loadHorasTrabajadas(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    this.horasTrabajadasService.getHorasTrabajadasPaginated(this.currentPage, this.pageSize, this.filterValue, sortParam)
+    this.horasTrabajadasService.getHorasTrabajadasPaginated(this.currentPageLocal, this.pageSizeLocal, this.filterValue, sortParam)
       .subscribe();
   }
 
   applyFilter(filterValue: string): void {
     this.filterValue = filterValue.trim().toLowerCase();
-    this.currentPage = 0;
+    this.currentPageLocal = 0;
     this.paginator.pageIndex = 0;
     this.loadHorasTrabajadas();
   }
@@ -145,8 +163,8 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
   }
 
   onPageChange(event: PageEvent): void {
-    this.currentPage = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.currentPageLocal = event.pageIndex;
+    this.pageSizeLocal = event.pageSize;
     this.loadHorasTrabajadas();
   }
   

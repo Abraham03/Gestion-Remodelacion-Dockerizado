@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionremodelacion.gestion.dto.request.RoleRequest;
+import com.gestionremodelacion.gestion.dto.response.RoleDropdownResponse;
 import com.gestionremodelacion.gestion.dto.response.RoleResponse;
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
@@ -182,15 +183,38 @@ public class RoleService {
         return roleMapper.toRoleResponse(updatedRole);
     }
 
+    // MÉTODO PARA POBLAR LOS DROPDOWNS EN LOS FORMULARIOS DEL SUPERADMIN
     @Transactional(readOnly = true)
-    public List<RoleResponse> findAllForForm(Long empresaId) {
-        if (!isSuperAdmin(userService.getCurrentUser())) {
-            // Un no-superadmin no debería poder pedir roles de cualquier empresa
-            throw new BusinessRuleException("Acceso denegado.");
+    public List<RoleDropdownResponse> findAllForDropdown(Long empresaId) {
+        User currentUser = userService.getCurrentUser();
+        List<Role> roles;
+
+        if (isSuperAdmin(currentUser)) {
+            // Si es Super Admin Y se proporciono un ID de empresa, filtra por esa empresa
+            if (empresaId != null) {
+                roles = roleRepository.findAllByEmpresaId(empresaId);
+            } else {
+                roles = roleRepository.findAll();
+            }
+        } else {
+            // Si no es Super Admin, solo puede ver los roles de su propia empresa
+            if (currentUser.getEmpresa() == null)
+                return List.of();
+            Long userEmpresaId = currentUser.getEmpresa().getId();
+            roles = roleRepository.findAllByEmpresaId(userEmpresaId);
         }
-        return roleRepository.findAllByEmpresaId(empresaId).stream()
-                .map(roleMapper::toRoleResponse)
+
+        // Se asegura de que Super Admin nunca se envie a un ADMIN normal
+        if (!isSuperAdmin(currentUser)) {
+            roles = roles.stream()
+                    .filter(role -> !"ROLE_SUPER_ADMIN".equals(role.getName()))
+                    .collect(Collectors.toList());
+        }
+
+        return roles.stream()
+                .map(role -> new RoleDropdownResponse(role.getId(), role.getName()))
                 .collect(Collectors.toList());
+
     }
 
     @Transactional
@@ -231,33 +255,6 @@ public class RoleService {
 
         // Finalmente, elimina el rol.
         roleRepository.deleteById(id);
-    }
-
-    // MÉTODO PARA POBLAR LOS DROPDOWNS EN LOS FORMULARIOS
-    @Transactional(readOnly = true)
-    public List<RoleResponse> findAllForForm() {
-        User currentUser = userService.getCurrentUser();
-        List<Role> roles;
-
-        if (isSuperAdmin(currentUser)) {
-            roles = roleRepository.findAll();
-        } else {
-            if (currentUser.getEmpresa() == null)
-                return List.of();
-            Long empresaId = currentUser.getEmpresa().getId();
-            roles = roleRepository.findAllByEmpresaId(empresaId);
-        }
-
-        // Asegurarse de que SUPER_ADMIN nunca se envíe a un ADMIN normal
-        if (!isSuperAdmin(currentUser)) {
-            roles = roles.stream()
-                    .filter(role -> !"ROLE_SUPER_ADMIN".equals(role.getName()))
-                    .collect(Collectors.toList());
-        }
-
-        return roles.stream()
-                .map(roleMapper::toRoleResponse)
-                .collect(Collectors.toList());
     }
 
     /**

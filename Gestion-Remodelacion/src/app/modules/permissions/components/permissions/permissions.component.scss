@@ -1,6 +1,7 @@
 @use '../../../../../styles/components/tables';
 @use '../../../../../styles/abstracts/variables' as vars;
-
+@use '../../../../../styles/abstracts/mixins' as mixins;
+@use '../../../../../styles/base/base';
 .mat-column-name {
   font-weight: 500;
   color: vars.$color-primary;

@@ -30,6 +30,7 @@ import com.gestionremodelacion.gestion.proyecto.dto.request.ProyectoRequest;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoExcelDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoPdfDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoResponse;
+import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoDropdownResponse;
 import com.gestionremodelacion.gestion.proyecto.service.ProyectoService;
 import com.gestionremodelacion.gestion.security.annotations.RequiresPlan;
 import com.gestionremodelacion.gestion.service.user.UserService;
@@ -60,6 +61,13 @@ public class ProyectoController {
         Page<ProyectoResponse> proyectosPage = proyectoService.getAllProyectos(pageable, filter);
         return ResponseEntity
                 .ok(new ApiResponse<>(HttpStatus.OK.value(), "Proyectos obtenidos con éxito", proyectosPage));
+    }
+
+    @GetMapping("/dropdown")
+    @PreAuthorize("hasAuthority('PROYECTO_DROPDOWN')")
+    public ResponseEntity<ApiResponse<List<ProyectoDropdownResponse>>> findProyectosDropdown() {
+        List<ProyectoDropdownResponse> proyectos = proyectoService.findProyectosDropdown();
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Proyectos obtenidos con éxito", proyectos));
     }
 
     @GetMapping("/{id}")

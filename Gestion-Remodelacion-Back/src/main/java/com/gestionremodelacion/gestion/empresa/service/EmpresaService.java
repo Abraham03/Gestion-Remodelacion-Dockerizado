@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.gestionremodelacion.gestion.empresa.dto.EmpresaRequest;
 import com.gestionremodelacion.gestion.empresa.dto.EmpresaResponse;
+import com.gestionremodelacion.gestion.empresa.dto.EmpresaSimpleResponse;
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.empresa.repository.EmpresaRepository;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
@@ -136,9 +137,13 @@ public class EmpresaService {
         empresaRepository.save(empresa);
     }
 
-    public List<EmpresaResponse> findAllForDropdown() {
-        return empresaRepository.findAll().stream()
-                .map(empresaMapper::toDto) // Necesitarás crear este DTO y el mapeo
+    public List<EmpresaSimpleResponse> findAllForDropdown() {
+        List<Empresa> empresas = empresaRepository.findAll();
+        return empresas.stream()
+                .map(empresa -> new EmpresaSimpleResponse(empresa.getId(), empresa.getNombreEmpresa())) // Necesitarás
+                                                                                                        // crear este
+                                                                                                        // DTO y el
+                                                                                                        // mapeo
                 .collect(Collectors.toList());
     }
 

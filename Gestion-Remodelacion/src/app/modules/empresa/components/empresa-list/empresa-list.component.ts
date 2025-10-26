@@ -1,6 +1,6 @@
 // src/app/modules/empresas/components/empresa-list/empresa-list.component.ts
 
-import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit, inject } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -23,7 +23,7 @@ import { EmpresaFormComponent } from '../empresa-form/empresa-form.component';
 import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
 import { EmpresaQuery } from '../../state/empresas.query';
 import { AsyncPipe } from '@angular/common';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-empresa-list',
@@ -37,27 +37,13 @@ import { Observable } from 'rxjs';
   templateUrl: './empresa-list.component.html',
   styleUrls: ['./empresa-list.component.scss']
 })
-export class EmpresaListComponent implements OnInit, AfterViewInit {
+export class EmpresaListComponent implements OnInit, AfterViewInit, OnDestroy {
   // Permisos (solo SUPER_USUARIO podrá ver esto)
   canCreate = false;
   canEdit = false;
   canChangeStatus = false;
 
   displayedColumns: string[] = ['nombreEmpresa', 'plan', 'estadoSuscripcion', 'activo', 'fechaFinSuscripcion','telefono', 'acciones'];
-
-  // Se inyecta el Query de empresas
-  private empresaQuery = inject(EmpresaQuery);
-
-  // Se define Observable para los datos y el estado de carga
-  empresas$: Observable<Empresa[]> = this.empresaQuery.selectAll();
-  loading$: Observable<boolean> = this.empresaQuery.selectLoading();
-
-  totalElements = 0;
-  pageSize = 10;
-  currentPage = 0;
-  filterValue = '';
-  currentSort = 'nombreEmpresa';
-  sortDirection = 'asc';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -69,12 +55,48 @@ export class EmpresaListComponent implements OnInit, AfterViewInit {
   private authService = inject(AuthService);
   private translate = inject(TranslateService);
 
+  // Se inyecta el Query de empresas
+  private empresaQuery = inject(EmpresaQuery);
+
+  // Se define Observable para los datos y el estado de carga
+  empresas$: Observable<Empresa[]> = this.empresaQuery.selectAll();
+  loading$: Observable<boolean> = this.empresaQuery.selectLoading();
+
+  // Observables para la paginacion (directos al HTML con async pipe)
+  totalElements$: Observable<number> = this.empresaQuery.selectTotalElements();
+  pageSize$: Observable<number> = this.empresaQuery.selectPageSize();
+  currentPage$: Observable<number> = this.empresaQuery.selectCurrentPage();
+
+  pageSizeLocal = 5;
+  currentPageLocal = 0;
+  filterValue = '';
+  currentSort = 'nombreEmpresa';
+  sortDirection = 'asc';
+
+  // Subscripcion a la paginacion
+  private paginatorSubscription: Subscription | null = null;
+  
   ngOnInit(): void {
     this.setPermissions();
   }
 
   ngAfterViewInit(): void {
     this.loadEmpresas();
+
+    // Suscribirse a los cambios del store para mantener sincronizado el paginador
+    this.paginatorSubscription = this.empresaQuery.selectPagination().subscribe(pagination => {
+      if (pagination && this.paginator) {
+        // Actualiza el estado visual del paginador
+        this.paginator.length = pagination.totalElements;
+        this.paginator.pageIndex = pagination.currentPage;
+        this.paginator.pageSize = pagination.pageSize;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+      this.paginatorSubscription?.unsubscribe();
+    
   }
 
   private setPermissions(): void {
@@ -86,14 +108,14 @@ export class EmpresaListComponent implements OnInit, AfterViewInit {
 
   loadEmpresas(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    this.empresaService.getEmpresas(this.currentPage, this.pageSize, this.filterValue, sortParam)
+    this.empresaService.getEmpresas(this.currentPageLocal, this.pageSizeLocal, this.filterValue, sortParam)
       .subscribe();
   }
 
   applyFilter(filterValue: string): void {
     this.filterValue = filterValue.trim().toLowerCase();
     this.paginator.pageIndex = 0;
-    this.currentPage = 0;
+    this.currentPageLocal = 0;
     this.loadEmpresas();
   }
 
@@ -128,8 +150,8 @@ export class EmpresaListComponent implements OnInit, AfterViewInit {
   }
 
   onPageChange(event: PageEvent): void {
-    this.currentPage = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.currentPageLocal = event.pageIndex;
+    this.pageSizeLocal = event.pageSize;
     this.loadEmpresas();
   }
 

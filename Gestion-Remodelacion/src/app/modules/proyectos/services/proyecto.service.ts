@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
-import { Proyecto } from '../models/proyecto.model';
+import { Proyecto, ProyectoDropdown } from '../models/proyecto.model';
 import { environment } from '../../../../environments/environment';
 import { Page } from '../../../core/models/page.model';
 import { DropdownItem } from '../../../core/models/dropdown-item.model';
@@ -51,6 +51,17 @@ export class ProyectosService extends BaseService<Proyecto> {
       tap(response => {
         // En lugar de retornar los datos, se guardan en el store de Akita
         this.proyectosStore.set(response.content);
+
+        // Actualiza la informacion de paginacion en el store
+        this.proyectosStore.update({
+          pagination: {
+            totalElements: response.totalElements,
+            totalPages: response.totalPages,
+            currentPage: response.number, // El índice de la página actual (base 0)
+            pageSize: response.size,
+          },
+        });
+
         // Se desactiva el estado de carga
         this.proyectosStore.setLoading(false);
       })
@@ -58,20 +69,9 @@ export class ProyectosService extends BaseService<Proyecto> {
   }
 
   // Nuevo método para obtener una lista simplificada de proyectos para dropdowns
-  getProyectosForDropdown(): Observable<DropdownItem[]> {
-    const params = new HttpParams()
-      .set('size', '1000')
-      .set('sort', 'nombreProyecto,asc'); // Pide un tamaño grande y ordena
-
-    return this.http
-      .get<Page<Proyecto>>(`${this.apiUrl}`, { params })
-      .pipe(
-        map((page: Page<Proyecto>) =>
-          page.content.map((proj: Proyecto) => ({
-            id: proj.id!,
-            nombre: proj.nombreProyecto,
-          }))
-        )
+  getProyectosForDropdown(): Observable<ProyectoDropdown[]> {
+    return this.http.get<ApiResponse<ProyectoDropdown[]>>(`${this.apiUrl}/dropdown`).pipe(
+        map(response => this.extractSingleData(response))
       );
   }
 
@@ -79,7 +79,8 @@ export class ProyectosService extends BaseService<Proyecto> {
     // 1. Informa al store que estamos cargando (para la entidad activa)
     this.proyectosStore.setLoading(true);
 
-    return this.http.get<Proyecto>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.get<ApiResponse<Proyecto>>(`${this.apiUrl}/${id}`).pipe(
+      map(response => this.extractSingleData(response)),
       tap(proyectoEncontrado => {
         /**
          * BUENA PRÁCTICA: Usamos upsert()
@@ -100,7 +101,8 @@ export class ProyectosService extends BaseService<Proyecto> {
   }
 
   addProyecto(proyecto: Proyecto): Observable<Proyecto> {
-    return this.http.post<Proyecto>(this.apiUrl, proyecto).pipe(
+    return this.http.post<ApiResponse<Proyecto>>(this.apiUrl, proyecto).pipe(
+      map(response => this.extractSingleData(response)),
       tap(nuevoProyecto => {
         // Añadimos la nueva entidad al store
         this.proyectosStore.add(nuevoProyecto);
@@ -109,7 +111,8 @@ export class ProyectosService extends BaseService<Proyecto> {
   }
 
   updateProyecto(proyecto: Proyecto): Observable<Proyecto> {
-    return this.http.put<Proyecto>(`${this.apiUrl}/${proyecto.id}`, proyecto).pipe(
+    return this.http.put<ApiResponse<Proyecto>>(`${this.apiUrl}/${proyecto.id}`, proyecto).pipe(
+      map(response => this.extractSingleData(response)),
       tap(proyectoActualizado => {
         // Actualizamos la entidad en el store
         this.proyectosStore.update(proyecto.id, proyectoActualizado);

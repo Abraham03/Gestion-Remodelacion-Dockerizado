@@ -1,6 +1,6 @@
 // src/app/modules/clientes/components/cliente-list/cliente-list.component.ts
 
-import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit, inject } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit, inject, OnDestroy } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -24,7 +24,7 @@ import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ClientesQuery } from '../../state/cliente.query';
 import { AsyncPipe } from '@angular/common';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 @Component({
   selector: 'app-cliente-list',
   standalone: true,
@@ -37,7 +37,7 @@ import { Observable } from 'rxjs';
   templateUrl: './cliente-list.component.html',
   styleUrls: ['./cliente-list.component.scss'],
 })
-export class ClienteListComponent implements OnInit, AfterViewInit {
+export class ClienteListComponent implements OnInit, AfterViewInit, OnDestroy {
   canExportExcel = false;
   canExportPdf = false;
   canCreate = false;
@@ -53,14 +53,20 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
   loading$: Observable<boolean> = this.clientesQuery.selectLoading();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  totalElements = 0;
-  pageSize = 5;
-  pageNumber = 0;
+
+  // Observables para la paginacion (directos al HTML con async pipe)
+  totalElements$: Observable<number> = this.clientesQuery.selectTotalElements();
+  pageSize$: Observable<number> = this.clientesQuery.selectPageSize();
+  currentPage$: Observable<number> = this.clientesQuery.selectCurrentPage();
+
+  pageSizeLocal = 5;
+  currentPageLocal = 0;
   filterValue = '';
   currentSort = 'nombreCliente';
   sortDirection = 'asc';
   
-
+  // Suscripcion para mantener sincronizado el paginador
+  private paginatorSubscription: Subscription | null = null;
 
   
   private clienteService = inject(ClienteService);
@@ -77,6 +83,20 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.loadClientes();
+
+    // Suscibirse a los cambios del store para mantener sincronizado el paginador
+    this.paginatorSubscription = this.clientesQuery.selectPagination().subscribe(pagination => {
+      if (pagination && this.paginator) {
+        // Actualiza el estado visual del paginador
+        this.paginator.length = pagination.totalElements;
+        this.paginator.pageIndex = pagination.currentPage;
+        this.paginator.pageSize = pagination.pageSize;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.paginatorSubscription?.unsubscribe();
   }
 
   private setPermissions(): void {
@@ -94,14 +114,14 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
 
   loadClientes(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    this.clienteService.getClientes(this.pageNumber, this.pageSize, this.filterValue, sortParam)
+    this.clienteService.getClientes(this.currentPageLocal, this.pageSizeLocal, this.filterValue, sortParam)
       .subscribe();
   }
 
   applyFilter(filterValue: string): void {
     this.filterValue = filterValue.trim().toLowerCase();
     this.paginator.pageIndex = 0;
-    this.pageNumber = 0;
+    this.currentPageLocal = 0;
     this.loadClientes();
   }
 
@@ -152,8 +172,8 @@ export class ClienteListComponent implements OnInit, AfterViewInit {
   }
 
   onPageChange(event: PageEvent): void {
-    this.pageNumber = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.currentPageLocal = event.pageIndex;
+    this.pageSizeLocal = event.pageSize;
     this.loadClientes();
   }
 

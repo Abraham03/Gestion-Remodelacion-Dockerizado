@@ -17,7 +17,7 @@
       <mat-label>{{ 'WORK_HOURS.PROJECT' | translate }}</mat-label>
       <mat-select formControlName="idProyecto" required>
         <mat-option *ngFor="let proyecto of proyectos$ | async" [value]="proyecto.id">
-          {{ proyecto.nombre }}
+          {{ proyecto.nombreProyecto }}
         </mat-option>
       </mat-select>
       <mat-error *ngIf="form.get('idProyecto')?.hasError('required')">{{ 'WORK_HOURS.PROJECT_REQUIRED' | translate }}</mat-error>

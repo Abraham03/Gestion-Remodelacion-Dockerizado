@@ -3,6 +3,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Permission } from '../../../../core/models/permission.model';
@@ -14,6 +15,9 @@ import { PermissionFormComponent } from '../permission-form-component/permission
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { PermissionQuery } from '../../state/permission.query';
+import { AsyncPipe } from '@angular/common';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-permissions',
@@ -21,24 +25,36 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   imports: [
     CommonModule, MatTableModule, MatPaginatorModule, MatSortModule,
     MatSnackBarModule, TranslateModule, MatDialogModule, MatButtonModule,
-    MatIconModule, MatTooltipModule,
+    MatIconModule, MatTooltipModule, AsyncPipe, MatProgressBarModule
   ],
   templateUrl: './permissions.component.html',
   styleUrls: ['./permissions.component.scss']
 })
 export class PermissionsComponent implements OnInit {
   displayedColumns: string[] = ['name', 'description', 'scope', 'actions']; // <-- Añadir 'actions'
-  dataSource = new MatTableDataSource<Permission>();
   totalElements = 0;
-  pageSize = 10;
-  currentPage = 0;
+  pageSizeLocal = 5;
+  currentPageLocal = 0;
+  sortColumn = 'name';
 
   canCreate = false;
   canEdit = false;
   canDelete = false;
 
+  // Se inyecta el Query de permissions
+  private permissionQuery = inject(PermissionQuery);
+
+  // Se define Observables para los datos y el estado de carga
+  permissions$: Observable<Permission[]> = this.permissionQuery.selectAll();
+  loading$: Observable<boolean> = this.permissionQuery.selectLoading();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+
+  // Observables para la paginacion (directos al HTML con async pipe)
+  totalElements$: Observable<number> = this.permissionQuery.selectTotalElements();
+  pageSize$: Observable<number> = this.permissionQuery.selectPageSize();
+  currentPage$: Observable<number> = this.permissionQuery.selectCurrentPage();
 
   private permissionService = inject(PermissionService);
   private snackBar = inject(MatSnackBar);
@@ -59,20 +75,7 @@ export class PermissionsComponent implements OnInit {
   }
 
   loadPermissions(): void {
-    this.permissionService.getPaginated(this.currentPage, this.pageSize).subscribe({
-      next: (response) => {
-        this.dataSource.data = response.content;
-        this.totalElements = response.totalElements;
-        if (this.paginator) {
-          this.paginator.length = response.totalElements;
-        }
-        this.cdr.detectChanges();
-      },
-      error: (error: HttpErrorResponse) => {
-        console.error('Error al cargar permisos:', error);
-        this.snackBar.open(this.translate.instant('PERMISSIONS.ERROR_LOADING'), this.translate.instant('GLOBAL.CLOSE'), { duration: 5000 });
-      }
-    });
+    this.permissionService.getPaginated(this.currentPageLocal, this.pageSizeLocal).subscribe();
   }
 
   openPermissionForm(permission?: Permission): void {
@@ -106,8 +109,8 @@ export class PermissionsComponent implements OnInit {
   }
 
   onPageChange(event: PageEvent): void {
-    this.currentPage = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.currentPageLocal = event.pageIndex;
+    this.pageSizeLocal = event.pageSize;
     this.loadPermissions();
   }
 }

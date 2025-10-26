@@ -20,6 +20,8 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
 
         Optional<Proyecto> findByIdAndEmpresaId(Long proyectoId, Long empresaId);
 
+        List<Proyecto> findByEmpresaId(Long empresaId);
+
         boolean existsByIdAndEmpresaId(Long id, Long empresaId);
 
         @Query("SELECT new com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoResponse("

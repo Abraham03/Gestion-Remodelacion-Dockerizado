@@ -13,7 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { EmpresaDropdown } from '../../../empresa/model/Empresa';
 import { AuthService } from '../../../../core/services/auth.service';
 import { EmpresaService } from '../../../empresa/service/empresa.service';
-import { Role } from '../../../../core/models/role.model';
+import { Role, RoleDropdownResponse } from '../../../../core/models/role.model';
 import { RoleService } from '../../../roles/services/role.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -34,7 +34,7 @@ export class InviteUserDialogComponent implements OnInit {
   isLoading = false;
   isSuperAdmin = false;
   empresas: EmpresaDropdown[] = [];
-  rolesDeEmpresa: Role[] = [];
+  rolesDeEmpresa: RoleDropdownResponse[] = [];
 
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<InviteUserDialogComponent>);
@@ -84,7 +84,7 @@ export class InviteUserDialogComponent implements OnInit {
   }
 
   loadRolesForEmpresa(empresaId: number): void {
-    this.roleService.getAllRolesForForm(empresaId).subscribe({
+    this.roleService.getDropdownRoles(empresaId).subscribe({
       next: (roles) => this.rolesDeEmpresa = roles,
       error: () => this.snackBar.open(this.translate.instant('USERS.ERROR_LOADING_ROLES'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 })
     });

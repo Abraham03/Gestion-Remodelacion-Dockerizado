@@ -37,7 +37,7 @@ public class PermissionController {
     @GetMapping
     @PreAuthorize("hasAuthority('PERMISSION_READ')") // Nuevo permiso
     public ResponseEntity<ApiResponse<Page<PermissionResponse>>> getAllPermissions(
-            @PageableDefault(size = 100, page = 0, sort = "id") Pageable pageable) {
+            @PageableDefault(size = 100, page = 0, sort = "name") Pageable pageable) {
         Page<PermissionResponse> permissions = permissionService.findAll(pageable);
         return ResponseEntity.ok(ApiResponse.success(permissions));
     }

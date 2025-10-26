@@ -1,10 +1,11 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, inject, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, inject, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,18 +21,22 @@ import { AuthService } from '../../../../../core/services/auth.service';
 import { UserFormComponent } from '../../user-form/user-form/user-form.component';
 import { InviteUserDialogComponent } from '../../invite-user-dialog/invite-user-dialog.component';
 
+import { UserQuery } from '../../../state/users.query';
+import { AsyncPipe } from '@angular/common';
+import { Observable, Subscription } from 'rxjs';
+
 @Component({
   selector: 'app-user-list',
   standalone: true,
   imports: [
     CommonModule, MatTableModule, MatPaginatorModule, MatSortModule, MatDialogModule,
     MatInputModule, MatFormFieldModule, MatIconModule, MatTooltipModule,
-    MatButtonModule, MatSnackBarModule, FormsModule, TranslateModule
+    MatButtonModule, MatSnackBarModule, FormsModule, TranslateModule, AsyncPipe, MatProgressBarModule
   ],
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss']
 })
-export class UserListComponent implements OnInit, AfterViewInit {
+export class UserListComponent implements OnInit, AfterViewInit, OnDestroy {
   canCreate = false;
   canEdit = false;
   canDelete = false;
@@ -39,10 +44,21 @@ export class UserListComponent implements OnInit, AfterViewInit {
   isSuperAdmin = false;
 
   displayedColumns: string[] = ['username', 'enabled', 'roles', 'actions'];
-  dataSource = new MatTableDataSource<User>();
-  totalElements = 0;
-  pageSize = 5;
-  currentPage = 0;
+
+  // Se inyecta el Query de users
+  private userQuery = inject(UserQuery);
+
+  // Se define Observables para los datos y el estado de carga
+  users$: Observable<User[]> = this.userQuery.selectAll();
+  loading$: Observable<boolean> = this.userQuery.selectLoading();
+
+  // Observables para la paginacion (directos al HTML con async pipe)
+  totalElements$: Observable<number> = this.userQuery.selectTotalElements();
+  pageSize$: Observable<number> = this.userQuery.selectPageSize();
+  currentPage$: Observable<number> = this.userQuery.selectCurrentPage();
+
+  pageSizeLocal = 5;
+  currentPageLocal = 0;
   filterValue = '';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -55,6 +71,9 @@ export class UserListComponent implements OnInit, AfterViewInit {
   private authService = inject(AuthService);
   private translate = inject(TranslateService);
 
+  // Subscripcion para actualizar paginacion
+  private paginatorSubscription: Subscription | null = null;
+
   ngOnInit(): void {
     this.setPermissions();
     // SE VERIFICA EL ROL Y SE AJUSTAN LAS COLUMNAS
@@ -66,12 +85,21 @@ export class UserListComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.paginator.page.subscribe((event: PageEvent) => {
-      this.currentPage = event.pageIndex;
-      this.pageSize = event.pageSize;
-      this.loadUsers();
-    });
     this.loadUsers();
+
+    // Suscribirse a los cambios del store para mantener sincronizado el paginador
+    this.paginatorSubscription = this.userQuery.selectPagination().subscribe(pagination => {
+      if (pagination && this.paginator) {
+        // Actualiza el estado visual del paginador
+        this.paginator.length = pagination.totalElements;
+        this.paginator.pageIndex = pagination.currentPage;
+        this.paginator.pageSize = pagination.pageSize;
+      }
+    })
+  }
+
+  ngOnDestroy() {
+      this.paginatorSubscription?.unsubscribe();
   }
 
   private setPermissions(): void {
@@ -81,22 +109,8 @@ export class UserListComponent implements OnInit, AfterViewInit {
   }
 
   loadUsers(): void {
-    this.userService.getUsers(this.currentPage, this.pageSize, this.filterValue)
-      .subscribe({
-        next: (response) => {
-          this.dataSource.data = response.content;
-          this.totalElements = response.totalElements;
-          if (this.paginator) {
-            this.paginator.length = response.totalElements;
-            this.paginator.pageIndex = response.number;
-          }
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error('Error al cargar usuarios:', error);
-          this.snackBar.open(this.translate.instant('USERS.ERROR_LOADING'), this.translate.instant('GLOBAL.CLOSE'), { duration: 5000 });
-        },
-      });
+    this.userService.getUsers(this.currentPageLocal, this.pageSizeLocal, this.filterValue)
+      .subscribe();
   }
 
   // Agrega el nuevo método para abrir el diálogo de invitación
@@ -129,7 +143,7 @@ openInviteDialog(): void {
   applyFilter(filterValue: string): void {
     this.filterValue = filterValue.trim().toLowerCase();
     this.paginator.pageIndex = 0;
-    this.currentPage = 0;
+    this.currentPageLocal = 0;
     this.loadUsers();
   }
 

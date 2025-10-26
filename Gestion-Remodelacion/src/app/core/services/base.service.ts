@@ -15,14 +15,14 @@ export class BaseService<T> {
     if (apiData && 'content' in apiData && 'page' in apiData) {
       const pageData = apiData.page;
       return {
-        content: response.content,
+        content: apiData.content,
         totalElements: pageData.totalElements,
         totalPages: pageData.totalPages,
         size: pageData.size,
         number: pageData.number,
         first: pageData.number === 0, // Debes calcular esto o pedirlo al backend
         last: pageData.number === pageData.totalPages - 1, // Debes calcular esto o pedirlo al backend
-        empty: response.content.length === 0,
+        empty: apiData.content.length === 0,
       } as Page<T>;
     }
     
@@ -31,9 +31,13 @@ export class BaseService<T> {
   }
 
   protected extractSingleData<U>(response: ApiResponse<U>): U {
-    if (response && 'data' in response && response.data) {
+// Esta lógica es "segura" contra interceptors.
+    // Si 'response' ya es la data (ej. un array), no tendrá '.data' y lo devolverá.
+    // Si 'response' es el ApiResponse, entrará al if y devolverá 'response.data'.
+    if (response && typeof response === 'object' && 'data' in response && response.data) {
       return response.data;
     }
+    // Si no, asumimos que ya es la data.
     return response as U;
   }
 }

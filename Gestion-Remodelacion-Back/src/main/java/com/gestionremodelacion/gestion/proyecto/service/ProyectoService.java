@@ -23,6 +23,7 @@ import com.gestionremodelacion.gestion.proyecto.dto.request.ProyectoRequest;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoExcelDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoPdfDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoResponse;
+import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoDropdownResponse;
 import com.gestionremodelacion.gestion.proyecto.model.Proyecto;
 import com.gestionremodelacion.gestion.proyecto.repository.ProyectoRepository;
 import com.gestionremodelacion.gestion.service.user.UserService;
@@ -149,6 +150,18 @@ public class ProyectoService {
 
         // 7. Si no hay dependencias, proceder a eliminar
         proyectoRepository.deleteById(id);
+    }
+
+    @Transactional
+    public List<ProyectoDropdownResponse> findProyectosDropdown() {
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        List<Proyecto> proyectos = proyectoRepository.findByEmpresaId(empresaId);
+
+        return proyectos.stream()
+                .map(proyecto -> new ProyectoDropdownResponse(proyecto.getId(), proyecto.getNombreProyecto()))
+                .collect(Collectors.toList());
     }
 
     @Transactional

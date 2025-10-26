@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.gestionremodelacion.gestion.empresa.dto.EmpresaRequest;
 import com.gestionremodelacion.gestion.empresa.dto.EmpresaResponse;
+import com.gestionremodelacion.gestion.empresa.dto.EmpresaSimpleResponse;
 import com.gestionremodelacion.gestion.empresa.service.EmpresaService;
 
 import jakarta.validation.Valid;
@@ -80,10 +81,10 @@ public class EmpresaController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/all")
+    @GetMapping("/dropdown")
     @PreAuthorize("hasAuthority('EMPRESA_DROPDOWN')")
-    public ResponseEntity<List<EmpresaResponse>> getAllEmpresasForDropdown() {
-        List<EmpresaResponse> empresas = empresaService.findAllForDropdown();
+    public ResponseEntity<List<EmpresaSimpleResponse>> getAllEmpresasForDropdown() {
+        List<EmpresaSimpleResponse> empresas = empresaService.findAllForDropdown();
         return ResponseEntity.ok(empresas);
     }
 

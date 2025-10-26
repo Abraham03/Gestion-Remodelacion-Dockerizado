@@ -21,6 +21,7 @@ import { ProyectosService } from '../../../proyectos/services/proyecto.service';
 import { DropdownItem } from '../../../../core/models/dropdown-item.model';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { dropdownItemModeloHorastrabajadas } from '../../../../core/models/dropdown-item-modelo-horastrabajadas';
+import { ProyectoDropdown } from '../../../proyectos/models/proyecto.model';
 
 @Component({
   selector: 'app-horas-trabajadas-form',
@@ -37,7 +38,7 @@ import { dropdownItemModeloHorastrabajadas } from '../../../../core/models/dropd
 export class HorasTrabajadasFormComponent implements OnInit {
   form: FormGroup;
   empleados: dropdownItemModeloHorastrabajadas[] = [];
-  proyectos$!: Observable<DropdownItem[]>;
+  proyectos$!: Observable<ProyectoDropdown[]>;
   unidadDeEntrada: 'horas' | 'dias' = 'horas';
   etiquetaDeEntrada: string = '';
 
@@ -51,7 +52,7 @@ export class HorasTrabajadasFormComponent implements OnInit {
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<HorasTrabajadasFormComponent>,
     private notificationService: NotificationService,
-    @Inject(MAT_DIALOG_DATA) public data: HorasTrabajadas | null
+    @Inject(MAT_DIALOG_DATA) public data: HorasTrabajadas
   ) {
     // 1. Definición del formulario: Se mantiene igual, es correcto.
     this.form = this.fb.group({
@@ -125,10 +126,26 @@ export class HorasTrabajadasFormComponent implements OnInit {
       }
   }
 
-  loadDropdownData(): void {
-    this.empleadoService.getEmpleadosForDropdown().subscribe(data => {
-      this.empleados = data;
+loadDropdownData(): void {
+    this.empleadoService.getEmpleadosForDropdown().subscribe({
+      next: data => {
+        // Esto ahora sí funcionará
+        this.empleados = data;
+        
+        // Si estás en modo edición, necesitas re-validar el label
+        // después de que los empleados hayan cargado.
+        if (this.data) {
+          const empleadoSeleccionado = this.empleados.find(e => e.id === this.data.idEmpleado);
+          this.updateInputLabel(empleadoSeleccionado?.modeloDePago);
+        }
+      },
+      error: err => {
+        // Si hubieras tenido esto, habrías visto el error en la consola.
+        console.error('Error al cargar empleados dropdown:', err);
+        this.snackBar.open('Error al cargar empleados', 'Cerrar', { duration: 3000 });
+      }
     });
+
     this.proyectos$ = (this.proyectosService as any).getProyectosForDropdown();
   }
 

@@ -11,3 +11,5 @@ export interface Empleado {
   notas?: string;
   fechaRegistro?: Date;
 }
+
+// Interface para el dropdown de empleados

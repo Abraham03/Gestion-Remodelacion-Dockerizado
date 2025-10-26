@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { Page } from '../../../core/models/page.model';
-import { Cliente } from '../models/cliente.model'; // Assuming Cliente model exists
+import { Cliente, ClienteDropdownResponse } from '../models/cliente.model'; // Assuming Cliente model exists
 import { ApiResponse } from '../../../core/models/ApiResponse';
 import { BaseService } from '../../../core/services/base.service';
 import { ClientesStore } from '../state/cliente.store';
@@ -43,42 +43,61 @@ export class ClienteService extends BaseService<Cliente> {
     }
     return this.http.get<ApiResponse<Page<Cliente>>>(this.apiUrl, { params }).pipe(
       map(response => this.extractPageData(response)),
-      tap(response => {
-        this.clientesStore.set(response.content);
+      tap(pageResponse => {
+        // En lugar de retornar los datos, se guardan en el store de Akita
+        this.clientesStore.set(pageResponse.content);
+
+        // Actualiza la informacion de paginacion en el store
+        this.clientesStore.update({
+          pagination: {
+            totalElements: pageResponse.totalElements,
+            totalPages: pageResponse.totalPages,
+            currentPage: pageResponse.number, // El índice de la página actual (base 0)
+            pageSize: pageResponse.size,
+          },
+        });
+
         this.clientesStore.setLoading(false);
       })
     );
   }
 
   // Method to get all clients for a dropdown (only ID and name)
-  getClientesForDropdown(): Observable<{ id: number; nombre: string }[]> {
-    const params = new HttpParams().set('size', '1000'); // Request a large number of items
+  getClientesForDropdown(): Observable<ClienteDropdownResponse[]> {
     return this.http
-      .get<Page<Cliente>>(`${this.apiUrl}`, { params })
-      .pipe(
-        // <-- Type as Page<Cliente> here
-        map((response: Page<Cliente>) =>
-          response.content.map((cliente: Cliente) => ({
-            id: cliente.id!,
-            nombre: cliente.nombreCliente,
-          }))
-        )
+    .get<ApiResponse<ClienteDropdownResponse[]>>(`${this.apiUrl}/dropdown`)
+    .pipe(
+      // Usamos 'extractSingleData' que maneja de forma segura
+      // si la respuesta ya fue desenvuelta por el interceptor o no.
+      map(response => this.extractSingleData(response))
       );
   }
 
   getCliente(id: number): Observable<Cliente> {
     this.clientesStore.setLoading(true);
-    return this.http.get<Cliente>(`${this.apiUrl}/${id}`).pipe(
+    // 1. Informa al store que estamos cargando (para la entidad activa)
+    this.clientesStore.setLoading(true);
+
+    return this.http.get<ApiResponse<Cliente>>(`${this.apiUrl}/${id}`).pipe(
+      map(response => this.extractSingleData(response)),
       tap(clienteEncontrado => {
-        this.clientesStore.upsert(clienteEncontrado.id!, clienteEncontrado);
-        this.clientesStore.setActive(clienteEncontrado.id!);
+        // Buena práctica: Usamos upsert()
+        // - Si el cliente ya existe en el store, lo actualiza.
+        // - Si no existe, loañade.
+        // Esto mantiene la "caché" del store fresca.
+        this.clientesStore.upsert(clienteEncontrado.id, clienteEncontrado);
+        // 2. Marcamos este cliente como "activo" en el store.
+        // Un componente (ej. el form) puede suscribirse a 'clientesQuery.selectActive()'
+        this.clientesStore.setActive(clienteEncontrado.id);
+        // 3. Dejamos de cargar
         this.clientesStore.setLoading(false);
       })
     )
   }
 
   createCliente(cliente: Cliente): Observable<Cliente> {
-    return this.http.post<Cliente>(this.apiUrl, cliente).pipe(
+    return this.http.post<ApiResponse<Cliente>>(this.apiUrl, cliente).pipe(
+      map(response => this.extractSingleData(response)),
       tap(nuevoCliente => {
         // Añade la nueva entidad al store
         this.clientesStore.add(nuevoCliente);
@@ -87,7 +106,8 @@ export class ClienteService extends BaseService<Cliente> {
   }
 
   updateCliente(id: number, cliente: Cliente): Observable<Cliente> {
-    return this.http.put<Cliente>(`${this.apiUrl}/${cliente.id}`, cliente).pipe(
+    return this.http.put<ApiResponse<Cliente>>(`${this.apiUrl}/${cliente.id}`, cliente).pipe(
+      map(response => this.extractSingleData(response)),
       tap(clienteActualizado => {
         // Actualiza la entidad en el store
         this.clientesStore.update(clienteActualizado.id!, clienteActualizado);

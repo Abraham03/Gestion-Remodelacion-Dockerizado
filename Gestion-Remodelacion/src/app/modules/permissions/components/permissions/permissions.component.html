@@ -9,8 +9,15 @@
   </div>
 
   <div class="table-card">
+
+    <mat-progress-bar 
+      *ngIf="loading$ | async" 
+      mode="indeterminate" 
+      class="table-loading-bar">
+    </mat-progress-bar>
+
     <div class="table-container">
-      <table mat-table [dataSource]="dataSource" matSort>
+      <table mat-table [dataSource]="(permissions$ | async) || []" matSort class="responsive-table">
         
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'PERMISSIONS.NAME' | translate }}</th>
@@ -53,8 +60,12 @@
         </tr>
       </table>
     </div>
-    <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50]"
-                   [pageIndex]="currentPage" (page)="onPageChange($event)" showFirstLastButtons>
-    </mat-paginator>
+    <mat-paginator 
+    [length]="totalElements$ | async" 
+    [pageSize]="pageSize$ | async" 
+    [pageSizeOptions]="[5, 10, 20]"
+    [pageIndex]="currentPage$ | async" 
+    (page)="onPageChange($event)" showFirstLastButtons>
+    class="table-paginator"></mat-paginator>
   </div>
 </div>

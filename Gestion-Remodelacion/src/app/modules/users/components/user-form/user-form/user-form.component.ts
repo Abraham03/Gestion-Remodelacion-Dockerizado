@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatInputModule } from '@angular/material/input';
@@ -11,7 +11,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { Role } from '../../../../../core/models/role.model';
+import { Role, RoleDropdownResponse } from '../../../../../core/models/role.model';
 import { User, UserRequest } from '../../../../../core/models/user.model';
 import { RoleService } from '../../../../roles/services/role.service';
 import { UserService } from '../../../services/user.service';
@@ -19,6 +19,8 @@ import { NotificationService } from '../../../../../core/services/notification.s
 import { EmpresaService } from '../../../../empresa/service/empresa.service';
 import { EmpresaDropdown } from '../../../../empresa/model/Empresa';
 import { AuthService } from '../../../../../core/services/auth.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { distinct, distinctUntilChanged, filter, tap } from 'rxjs';
 
 @Component({
   selector: 'app-user-form',
@@ -33,11 +35,11 @@ import { AuthService } from '../../../../../core/services/auth.service';
 export class UserFormComponent implements OnInit {
   userForm: FormGroup;
   isEditMode: boolean;
-  roles: Role[] = [];
+  roles: RoleDropdownResponse[] = [];
 
   empresas: EmpresaDropdown[] = [];
   isSuperAdmin = false;
-
+  private destroyRef = inject(DestroyRef); // Necesario para takeUntilDestroyed
   private translate = inject(TranslateService);
 
   constructor(
@@ -66,11 +68,34 @@ export class UserFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadRoles();
     if (this.isSuperAdmin){
-      this.loadEmpresas();
-      this.userForm.get('empresaId')?.setValidators(Validators.required);
+      this.setupSuperAdminForm();
+    }else{
+      this.loadRolesForCurrentUser();
     }
+  }
+
+  private setupSuperAdminForm(): void {
+    this.loadEmpresas();
+    this.userForm.get('empresaId')?.setValidators(Validators.required);
+    this.userForm.get('rolAAsignar')?.clearValidators(); // Roles no es requerido hasta seleccionar empresa
+    this.userForm.get('rolAAsignar')?.updateValueAndValidity();
+
+    // Escucha cambios en la seleccion de empresa
+    this.userForm.get('empresaId')?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef), // Usa el destroyRef inyectado
+      distinctUntilChanged(),// Evita recargar si se selecciona la misma empresa
+      tap(() => {// Limpia roles al cambiar empresa
+        this.roles = [];
+        this.userForm.get('rolAAsignar')?.reset();
+        this.userForm.get('rolAAsignar')?.clearValidators();
+        this.userForm.get('rolAAsignar')?.updateValueAndValidity();
+      }),
+      filter(empresaId => !!empresaId) // Solo carga si hay un ID de empresa seleccionado
+    ).subscribe(empresaId => {
+      this.loadRolesForSpecificEmpresa(empresaId);
+    });
+
   }
 
    loadEmpresas(): void {
@@ -86,11 +111,28 @@ export class UserFormComponent implements OnInit {
     });
   } 
 
-  loadRoles(): void {
-    this.roleService.findAllForForm().subscribe({
+  // Metodo para Admin normal (usa /all)
+  loadRolesForCurrentUser(): void {
+    this.roleService.getDropdownRoles().subscribe({
       next: (roles) => {
         this.roles = roles;
         console.log(this.roles);
+      },
+      error: (err) => {
+        console.error('Error loading roles:', err);
+        this.snackBar.open(this.translate.instant('USERS.ERROR_LOADING_ROLES'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
+      },
+    });
+  }
+
+  // Metodo para Super Admin (usa /dropdown)
+  loadRolesForSpecificEmpresa(empresaId: number): void {
+    this.roleService.getDropdownRoles(empresaId).subscribe({
+      next: (roles) => {
+        this.roles = roles;
+        // Ahora que hay roles, marca el control como requerido
+        this.userForm.get('rolAAsignar')?.setValidators(Validators.required);
+        this.userForm.get('rolAAsignar')?.updateValueAndValidity();
       },
       error: (err) => {
         console.error('Error loading roles:', err);

@@ -48,27 +48,33 @@ export class EmpleadoService extends BaseService<Empleado> {
     }
     return this.http.get<ApiResponse<Page<Empleado>>>(this.apiUrl, { params }).pipe(
       map(response => this.extractPageData(response)),
-      tap(response => {
+      tap(pageResponse => {
         // En lugar de retornar los datos, se guardan en el store de Akita
-        this.empleadosStore.set(response.content);
+        this.empleadosStore.set(pageResponse.content);
+
+        // Actualiza la informacion de paginacion en el store
+        this.empleadosStore.update({
+          pagination: {
+            totalElements: pageResponse.totalElements,
+            totalPages: pageResponse.totalPages,
+            currentPage: pageResponse.number, // El índice de la página actual (base 0)
+            pageSize: pageResponse.size,
+          }
+        });
+
         // Se desactiva el estado de carga
         this.empleadosStore.setLoading(false);
       })
     );
   }
 
-  getEmpleadosForDropdown(): Observable<dropdownItemModeloHorastrabajadas[]> {
-
+getEmpleadosForDropdown(): Observable<dropdownItemModeloHorastrabajadas[]> {
+    
     return this.http
-      .get<Page<Empleado>>(`${this.apiUrl}`)
-      .pipe(
-        map((response: Page<Empleado>) =>
-          response.content.map((emp: Empleado) => ({
-            id: emp.id!,
-            nombre: emp.nombreCompleto,
-            modeloDePago: emp.modeloDePago
-          }))
-        )
+      .get<ApiResponse<dropdownItemModeloHorastrabajadas[]>>(`${this.apiUrl}/dropdown`).pipe(
+        // Usamos 'extractSingleData' que maneja de forma segura
+        // si la respuesta ya fue desenvuelta por el interceptor o no.
+        map(response => this.extractSingleData(response))
       );
   }
 
@@ -76,7 +82,8 @@ export class EmpleadoService extends BaseService<Empleado> {
     // 1. Informa al store que estamos cargando (para la entidad activa)
     this.empleadosStore.setLoading(true);
 
-    return this.http.get<Empleado>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.get<ApiResponse<Empleado>>(`${this.apiUrl}/${id}`).pipe(
+      map(response => this.extractSingleData(response)),
       tap(empleadoEncontrado => {
         /**
          * BUENA PRÁCTICA: Usamos upsert()
@@ -97,7 +104,8 @@ export class EmpleadoService extends BaseService<Empleado> {
   }
 
   createEmpleado(empleado: Empleado): Observable<Empleado> {
-    return this.http.post<Empleado>(this.apiUrl, empleado).pipe(
+    return this.http.post<ApiResponse<Empleado>>(this.apiUrl, empleado).pipe(
+      map(response => this.extractSingleData(response)),
       tap(nuevoEmpleado => {
         // Añadimos la nueva entidad al store
         this.empleadosStore.add(nuevoEmpleado);
@@ -106,7 +114,8 @@ export class EmpleadoService extends BaseService<Empleado> {
   }
 
   updateEmpleado(empleado: Empleado): Observable<Empleado> {
-    return this.http.put<Empleado>(`${this.apiUrl}/${empleado.id}`, empleado).pipe(
+    return this.http.put<ApiResponse<Empleado>>(`${this.apiUrl}/${empleado.id}`, empleado).pipe(
+      map(response => this.extractSingleData(response)),
       tap(empleadoActualizado => {
         // Actualizamos la entidad en el store
         this.empleadosStore.update(empleado.id, empleadoActualizado);
@@ -114,8 +123,9 @@ export class EmpleadoService extends BaseService<Empleado> {
     )
   }
 
+
   deleteEmpleado(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       tap(() => {
         // Eliminamos la entidad del store
         this.empleadosStore.remove(id);

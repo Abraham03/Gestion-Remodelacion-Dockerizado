@@ -1,15 +1,15 @@
 import { QueryEntity } from '@datorama/akita';
-import { ClientesStore, ClientesState } from './cliente.store';
+import { UserStore, UserState } from './users.store';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
-export class ClientesQuery extends QueryEntity<ClientesState> {
-  constructor(protected override store: ClientesStore) {
+export class UserQuery extends QueryEntity<UserState> {
+  constructor(protected override store: UserStore) {
     super(store);
   }
-  
-  selectPagination(): Observable<ClientesState['pagination']> {
+
+  selectPagination(): Observable<UserState['pagination']> {
     return this.select(state => state.pagination);
   }
 
@@ -21,9 +21,8 @@ export class ClientesQuery extends QueryEntity<ClientesState> {
   selectCurrentPage(): Observable<number> {
     return this.selectPagination().pipe(map(p => p?.currentPage ?? 0));
   }
-
   selectPageSize(): Observable<number> {
     return this.selectPagination().pipe(map(p => p?.pageSize ?? 5)); // Valor por defecto
-  }
-
+  }  
+  
 }

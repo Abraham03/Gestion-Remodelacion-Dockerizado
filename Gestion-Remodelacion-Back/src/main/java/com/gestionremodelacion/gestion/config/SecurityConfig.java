@@ -87,7 +87,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("USER_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("USER_DELETE")
                         // Roles: cada operación requiere un permiso específico
-                        .requestMatchers(HttpMethod.GET, "/api/roles/dropdown").hasAuthority("ROLE_DROPDOWN")
+                        .requestMatchers(HttpMethod.GET, "/api/roles/dropdown-by-empresa").hasAuthority("ROLE_DROPDOWN")
                         .requestMatchers(HttpMethod.GET, "/api/roles/**").hasAuthority("ROLE_READ")
                         .requestMatchers(HttpMethod.POST, "/api/roles/**").hasAuthority("ROLE_CREATE")
                         .requestMatchers(HttpMethod.PUT, "/api/roles/**").hasAuthority("ROLE_UPDATE")
@@ -104,6 +104,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/proyectos/**").hasAuthority("PROYECTO_CREATE")
                         .requestMatchers(HttpMethod.PUT, "/api/proyectos/**").hasAuthority("PROYECTO_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/proyectos/**").hasAuthority("PROYECTO_DELETE")
+                        .requestMatchers(HttpMethod.GET, "/api/proyectos/dropdown")
+                        .hasAuthority("PROYECTO_DROPDOWN")
                         // Clientes: cada operación requiere un permiso específico
                         .requestMatchers(HttpMethod.GET, "/api/clientes/**").hasAuthority("CLIENTE_READ")
                         .requestMatchers(HttpMethod.POST, "/api/clientes/**").hasAuthority("CLIENTE_CREATE")
@@ -115,6 +117,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/empleados/**").hasAuthority("EMPLEADO_UPDATE")
                         .requestMatchers(HttpMethod.PATCH, "/api/empleados/{id}/status").hasAuthority("EMPLEADO_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/empleados/**").hasAuthority("EMPLEADO_DELETE")
+                        .requestMatchers(HttpMethod.GET, "/api/empleados/dropdown").hasAuthority("EMPLEADO_DROPDOWN")
                         // Horas Trabajadas: cada operación requiere un permiso específico
                         .requestMatchers(HttpMethod.GET, "/api/horas-trabajadas/**")
                         .hasAuthority("HORASTRABAJADAS_READ")

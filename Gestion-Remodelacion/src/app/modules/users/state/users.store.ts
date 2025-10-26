@@ -1,9 +1,9 @@
 import { EntityState, EntityStore, StoreConfig } from '@datorama/akita';
-import { Empleado } from '../models/empleado.model';
+import { User } from '../../../core/models/user.model';
 import { Injectable } from '@angular/core';
 
 // Define la estructura del estado, incluyendo el tipo de entidad
-export interface EmpleadosState extends EntityState<Empleado, number> {
+export interface UserState extends EntityState<User, number> {
     // Aquí puedes añadir otras propiedades de estado si las necesitas
     // Se añade Paginacion para la tabla
     pagination: {
@@ -15,7 +15,7 @@ export interface EmpleadosState extends EntityState<Empleado, number> {
 }
 
 // Define el estado inicial
-export function createInitialState(): EmpleadosState {
+export function createInitialState(): UserState {
   return {
     pagination: null,
   };
@@ -23,7 +23,7 @@ export function createInitialState(): EmpleadosState {
 
 @Injectable({ providedIn: 'root' })
 @StoreConfig({ name: 'proyectos' }) // El nombre que verás en las DevTools
-export class EmpleadosStore extends EntityStore<EmpleadosState> {
+export class UserStore extends EntityStore<UserState> {
   constructor() {
     super(createInitialState()); // Inicializa el store
   }

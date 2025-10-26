@@ -62,10 +62,10 @@ export class PermissionFormComponent implements OnInit {
       return;
     }
 
-    const permissionRequest: PermissionRequest = this.permissionForm.getRawValue();
+    const permissionRequest: Permission = this.permissionForm.getRawValue();
 
     const serviceCall = this.isEditMode
-      ? this.permissionService.updatePermission(this.data!.id!, permissionRequest)
+      ? this.permissionService.updatePermission(permissionRequest)
       : this.permissionService.createPermission(permissionRequest);
     
     const successKey = this.isEditMode ? 'PERMISSIONS.SUCCESSFULLY_UPDATED' : 'PERMISSIONS.SUCCESSFULLY_CREATED';

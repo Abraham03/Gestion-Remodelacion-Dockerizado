@@ -5,13 +5,26 @@ import { Injectable } from '@angular/core';
 // Define la estructura del estado, incluyendo el tipo de entidad
 export interface PermissionState extends EntityState<Permission, number> {
     // Aquí puedes añadir otras propiedades de estado si las necesitas
-    // Por ejemplo: filtroActivo: string;
+    // Se añade Paginacion para la tabla
+    pagination: {
+      totalElements: number;
+      totalPages: number;
+      currentPage: number; // Basado en el 'number' del Page (índice 0)
+      pageSize: number;
+    } | null
+}
+
+// Define el estado inicial
+export function createInitialState(): PermissionState {
+  return {
+    pagination: null,
+  };
 }
 
 @Injectable({ providedIn: 'root' })
 @StoreConfig({ name: 'proyectos' }) // El nombre que verás en las DevTools
 export class PermissionStore extends EntityStore<PermissionState> {
   constructor() {
-    super(); // Inicializa el store
+    super(createInitialState()); // Inicializa el store
   }
 }

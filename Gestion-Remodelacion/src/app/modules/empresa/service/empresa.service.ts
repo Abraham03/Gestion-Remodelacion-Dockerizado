@@ -50,9 +50,20 @@ export class EmpresaService extends BaseService<Empresa> {
 
     return this.http.get<ApiResponse<Page<Empresa>>>(this.apiUrl, { params }).pipe(
       map(response => this.extractPageData(response)),
-      tap(response => {
+      tap(PageResponse => {
         // En lugar de retornar los datos, se guardan en el store de Akita
-        this.empresaStore.set(response.content);
+        this.empresaStore.set(PageResponse.content);
+
+        // Actualiza la informacion de paginacion en el store
+        this.empresaStore.update({
+          pagination: {
+            totalElements: PageResponse.totalElements,
+            totalPages: PageResponse.totalPages,
+            currentPage: PageResponse.number, // El índice de la página actual (base 0)
+            pageSize: PageResponse.size,
+          },
+        });
+
         // Se desactiva el estado de carga
         this.empresaStore.setLoading(false);
       })
@@ -63,7 +74,8 @@ export class EmpresaService extends BaseService<Empresa> {
     // 1. Informa al store que estamos cargando (para la entidad activa)
     this.empresaStore.setLoading(true);
 
-    return this.http.get<Empresa>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.get<ApiResponse<Empresa>>(`${this.apiUrl}/${id}`).pipe(
+      map(response => this.extractSingleData(response)),
       tap(empresaEncontrada => {
         // BUENA PRÁCTICA: Usamos upsert()
         // - Si la empresa ya existe en el store, la actualiza.
@@ -80,7 +92,8 @@ export class EmpresaService extends BaseService<Empresa> {
   }
 
   public createEmpresa(empresa: Empresa): Observable<Empresa> {
-    return this.http.post<Empresa>(this.apiUrl, empresa).pipe(
+    return this.http.post<ApiResponse<Empresa>>(this.apiUrl, empresa).pipe(
+      map(response => this.extractSingleData(response)),
       tap(nuevaEmpresa => {
         // Añadimos la nueva entidad al store
         this.empresaStore.add(nuevaEmpresa);
@@ -89,7 +102,8 @@ export class EmpresaService extends BaseService<Empresa> {
   }
 
   public updateEmpresa(id: number, empresa: Empresa): Observable<Empresa> {
-    return this.http.put<Empresa>(`${this.apiUrl}/${id}`, empresa).pipe(
+    return this.http.put<ApiResponse<Empresa>>(`${this.apiUrl}/${id}`, empresa).pipe(
+      map(response => this.extractSingleData(response)),
       tap(empresaActualizada => {
         // Actualizamos la entidad en el store
         this.empresaStore.update(id, empresaActualizada);
@@ -129,19 +143,11 @@ export class EmpresaService extends BaseService<Empresa> {
   }  
 
   getAllEmpresasForForm(): Observable<EmpresaDropdown[]> {
-    const params = new HttpParams()
-      .set('page', '0')
-      .set('size', '1000'); // Pedimos hasta 1000 empresas
-
-    return this.http.get<ApiResponse<Page<Empresa>>>(this.apiUrl, { params }).pipe(
-      map(response => {
-        const page = this.extractPageData(response);
-        // Mapeamos el contenido para que coincida con el modelo EmpresaDropdown
-        return page.content.map(empresa => ({
-          id: empresa.id!,
-          nombreEmpresa: empresa.nombreEmpresa
-        }));
-      })
+    return this.http
+    .get<ApiResponse<EmpresaDropdown[]>>(`${this.apiUrl}/dropdown`).pipe(
+      // Usamos 'extractSingleData' que maneja de forma segura
+      // si la respuesta ya fue desenvuelta por el interceptor o no.
+      map(response => this.extractSingleData(response))
     );
   }
 }

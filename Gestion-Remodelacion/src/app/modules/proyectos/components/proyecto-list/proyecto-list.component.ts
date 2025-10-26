@@ -22,7 +22,7 @@ import { ProyectosFormComponent } from '../proyecto-form/proyectos-form.componen
 import { ExportService } from '../../../../core/services/export.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { ProyectosQuery } from '../../state/proyecto.query';
 import { AsyncPipe } from '@angular/common';
 
@@ -44,25 +44,10 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   canCreate = false;
   canEdit = false;
   canDelete = false;
+
   private destroy$ = new Subject<void>();
   //dataSource = new MatTableDataSource<Proyecto>([]);
   displayedColumns: string[] = ['nombreProyecto', 'nombreCliente', 'nombreEmpleadoResponsable', 'estado', 'progresoPorcentaje', 'fechaInicio', 'fechaFinEstimada', 'acciones'];
-
-  // Se inyecta el Query de Proyectos
-  private proyectosQuery = inject(ProyectosQuery);
-  
-  // Se define Observables para los datos y el estado de carga
-  proyectos$: Observable<Proyecto[]> = this.proyectosQuery.selectAll();
-  loading$: Observable<boolean> = this.proyectosQuery.selectLoading();
-
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  
-  totalElements = 0;
-  pageSize = 5;
-  currentPage = 0;
-  currentSort = 'nombreProyecto';
-  sortDirection = 'asc';
-  filterValue = '';
 
   private proyectosService = inject(ProyectosService);
   private dialog = inject(MatDialog);
@@ -72,20 +57,51 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   private notificationService = inject(NotificationService);
   private translate = inject(TranslateService);
 
+  // Se inyecta el Query de Proyectos
+  private proyectosQuery = inject(ProyectosQuery);
+  
+  // Se define Observables para los datos y el estado de carga
+  proyectos$: Observable<Proyecto[]> = this.proyectosQuery.selectAll();
+  loading$: Observable<boolean> = this.proyectosQuery.selectLoading();
+
+  // Se define Observables para los datos y el estado de carga
+  totalElements$: Observable<number> = this.proyectosQuery.selectTotalElements();
+  currentPage$: Observable<number> = this.proyectosQuery.selectCurrentPage();
+  pageSize$: Observable<number> = this.proyectosQuery.selectPageSize();
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  
+  pageSizeLocal = 5;
+  currentPageLocal = 0;
+  currentSort = 'fechaInicio';
+  sortDirection = 'asc';
+  filterValue = '';
+
+  // Suscripcion para el observable
+  private paginatorSubscription: Subscription | null = null;
+
+
   ngOnInit(): void {
     this.setPermissions();
-    this.notificationService.dataChanges$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.loadProyectos());
   }
 
   ngAfterViewInit(): void {
     this.loadProyectos();
+
+    // Suscribirse a los cambios del store para mantener sincronizado el paginador
+    this.paginatorSubscription = this.proyectosQuery.selectPagination().subscribe(pagination => {
+      if (pagination && this.paginator) {
+        // Actualiza el estado visual del paginador
+        this.paginator.length = pagination.totalElements;
+        this.paginator.pageIndex = pagination.currentPage;
+        this.paginator.pageSize = pagination.pageSize;
+      }
+    });
+
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    this.paginatorSubscription?.unsubscribe();
   }
 
   private setPermissions(): void {
@@ -103,12 +119,25 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   loadProyectos(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
     this.proyectosService.getProyectosPaginated(
-      this.currentPage, 
-      this.pageSize, 
+      this.currentPageLocal, 
+      this.pageSizeLocal, 
       this.filterValue, 
       sortParam)
       .subscribe();
   }
+
+  applyFilter(filterValue: string): void {
+    this.filterValue = filterValue.trim().toLowerCase();
+    this.paginator.pageIndex = 0;
+    this.currentPageLocal = 0;
+    this.loadProyectos();
+  }
+
+  applyFilterIfEmpty(filterValue: string): void {
+    if (filterValue === '') {
+      this.applyFilter('');
+    }
+  }  
 
   openForm(proyecto?: Proyecto): void {
     const dialogRef = this.dialog.open(ProyectosFormComponent, {
@@ -139,19 +168,6 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
     }
   }
 
-  applyFilter(filterValue: string): void {
-    this.filterValue = filterValue.trim().toLowerCase();
-    this.paginator.pageIndex = 0;
-    this.currentPage = 0;
-    this.loadProyectos();
-  }
-
-  applyFilterIfEmpty(filterValue: string): void {
-    if (filterValue === '') {
-      this.applyFilter('');
-    }
-  }
-
   getEstadoColor(estado: string): 'primary' | 'accent' | 'warn' | 'basic' {
     switch (estado) {
       case 'PENDING': return 'basic';
@@ -163,8 +179,8 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   onPageChange(event: PageEvent): void {
-    this.currentPage = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.currentPageLocal = event.pageIndex;
+    this.pageSizeLocal = event.pageSize;
     this.loadProyectos();
   }
 
@@ -177,7 +193,6 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   exportTo(format: 'excel' | 'pdf'): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
     const apiUrl = `${this.proyectosService.getApiUrl()}/export/${format}`;
-
     const exportCall = format === 'excel'
         ? this.exportService.exportToExcel(apiUrl, this.filterValue, sortParam)
         : this.exportService.exportToPdf(apiUrl, this.filterValue, sortParam);

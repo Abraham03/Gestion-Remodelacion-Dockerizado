@@ -48,9 +48,20 @@ export class HorasTrabajadasService  extends BaseService<HorasTrabajadas> {
     }
     return this.http.get<ApiResponse<Page<HorasTrabajadas>>>(this.apiUrl, { params }).pipe(
       map(response => this.extractPageData(response)),
-      tap(response => {
+      tap(PageResponse => {
         // En lugar de retornar los datos, se guardan en el store de Akita
-        this.horasTrabajadasStore.set(response.content);
+        this.horasTrabajadasStore.set(PageResponse.content);
+
+        // Actualiza la informacion de paginacion en el store
+        this.horasTrabajadasStore.update({
+          pagination: {
+            totalElements: PageResponse.totalElements,
+            totalPages: PageResponse.totalPages,
+            currentPage: PageResponse.number, // El índice de la página actual (base 0)
+            pageSize: PageResponse.size,
+          },
+        });
+
         // Se desactiva el estado de carga
         this.horasTrabajadasStore.setLoading(false);  
       })
@@ -64,7 +75,8 @@ export class HorasTrabajadasService  extends BaseService<HorasTrabajadas> {
     // 1. Informa al store que estamos cargando (para la entidad activa)
     this.horasTrabajadasStore.setLoading(true);
 
-    return this.http.get<HorasTrabajadas>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.get<ApiResponse<HorasTrabajadas>>(`${this.apiUrl}/${id}`).pipe(
+      map(response => this.extractSingleData(response)),
       tap(horasTrabajadasEncontrada => {
         // BUENA PRÁCTICA: Usamos upsert()
         // - Si la horas trabajadas ya existe en el store, la actualiza.
@@ -84,7 +96,8 @@ export class HorasTrabajadasService  extends BaseService<HorasTrabajadas> {
    * Crea un nuevo registro de horas trabajadas.
    */
   addHorasTrabajadas(horasTrabajadas: HorasTrabajadas): Observable<HorasTrabajadas> {
-    return this.http.post<HorasTrabajadas>(this.apiUrl, horasTrabajadas).pipe(
+    return this.http.post<ApiResponse<HorasTrabajadas>>(this.apiUrl, horasTrabajadas).pipe(
+      map(response => this.extractSingleData(response)),
       tap(nuevoHorasTrabajadas => {
         // Añadimos el nuevo registro al store
         this.horasTrabajadasStore.add(nuevoHorasTrabajadas);
@@ -96,7 +109,8 @@ export class HorasTrabajadasService  extends BaseService<HorasTrabajadas> {
    * Actualiza un registro de horas trabajadas existente.
    */
   updateHorasTrabajadas(horasTrabajadas: HorasTrabajadas): Observable<HorasTrabajadas> {
-    return this.http.put<HorasTrabajadas>(`${this.apiUrl}/${horasTrabajadas.id}`,horasTrabajadas).pipe(
+    return this.http.put<ApiResponse<HorasTrabajadas>>(`${this.apiUrl}/${horasTrabajadas.id}`,horasTrabajadas).pipe(
+      map(response => this.extractSingleData(response)),
       tap(actualizadoHorasTrabajadas => {
         // Actualizamos el registro en el store
         this.horasTrabajadasStore.update(actualizadoHorasTrabajadas.id, actualizadoHorasTrabajadas);

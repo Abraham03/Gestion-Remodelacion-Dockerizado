@@ -1,4 +1,4 @@
-import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit, inject } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, OnInit, inject, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -21,7 +21,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
 import { EmpleadosQuery } from '../../state/empleados.query';
 import { AsyncPipe } from '@angular/common';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-empleado-list',
@@ -35,7 +35,7 @@ import { Observable } from 'rxjs';
   templateUrl: './empleado-list.component.html',
   styleUrls: ['./empleado-list.component.scss'],
 })
-export class EmpleadoListComponent implements OnInit, AfterViewInit {
+export class EmpleadoListComponent implements OnInit, AfterViewInit, OnDestroy {
   // Propiedades
   canExportExcel = false;
   canExportPdf = false;
@@ -54,12 +54,19 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
   empleados$: Observable<Empleado[]> = this.empleadosQuery.selectAll();
   loading$: Observable<boolean> = this.empleadosQuery.selectLoading();
 
-  totalElements: number = 0;
-  pageSize: number = 5;
-  currentPage: number = 0;
+  // Observables para la paginación (directos al HTML con async pipe)
+  totalElements$: Observable<number> = this.empleadosQuery.selectTotalElements();
+  pageSize$: Observable<number> = this.empleadosQuery.selectPageSize();
+  currentPage$: Observable<number> = this.empleadosQuery.selectCurrentPage();
+
+  currentPageLocal: number = 0;
+  pageSizeLocal: number = 5;
   filterValue: string = '';
   currentSort: string = 'nombreCompleto';
   sortDirection: string = 'asc';
+
+  // Suscripcion para actualizar paginator
+  private paginatorSubscription: Subscription | null = null;
 
   // Inyección de servicios
   private empleadoService = inject(EmpleadoService);
@@ -76,6 +83,21 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.loadEmpleados();
+    
+  // Suscribirse a los cambios del store para mantener sincronizado el paginador
+    this.paginatorSubscription = this.empleadosQuery.selectPagination().subscribe(pagination => {
+        if (pagination && this.paginator) {
+            // Actualiza el estado visual del paginador
+            this.paginator.length = pagination.totalElements;
+            this.paginator.pageIndex = pagination.currentPage;
+            this.paginator.pageSize = pagination.pageSize;
+        }
+    });
+
+  }
+
+  ngOnDestroy(): void {
+      this.paginatorSubscription?.unsubscribe();
   }
 
   private setPermissions(): void {
@@ -90,14 +112,14 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
 
   loadEmpleados(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    this.empleadoService.getEmpleados(this.currentPage, this.pageSize, this.filterValue, sortParam)
+    this.empleadoService.getEmpleados(this.currentPageLocal, this.pageSizeLocal, this.filterValue, sortParam)
       .subscribe();
   }
 
   applyFilter(filterValue: string): void {
     this.filterValue = filterValue.trim().toLowerCase();
     this.paginator.pageIndex = 0;
-    this.currentPage = 0;
+    this.currentPageLocal = 0;
     this.loadEmpleados();
   }
 
@@ -141,14 +163,15 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit {
   }
 
   onPageChange(event: PageEvent): void {
-    this.currentPage = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.currentPageLocal = event.pageIndex;
+    this.pageSizeLocal = event.pageSize;
     this.loadEmpleados();
   }
 
   onSortChange(sort: Sort) {
     this.currentSort = sort.direction ? sort.active : 'nombreCompleto';
     this.sortDirection = sort.direction || 'asc';
+    this.currentPageLocal = 0;
     this.loadEmpleados();
   }
 

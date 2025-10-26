@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionremodelacion.gestion.dto.request.RoleRequest;
 import com.gestionremodelacion.gestion.dto.response.ApiResponse;
+import com.gestionremodelacion.gestion.dto.response.RoleDropdownResponse;
 import com.gestionremodelacion.gestion.dto.response.RoleResponse;
 import com.gestionremodelacion.gestion.service.role.RoleService;
 
@@ -38,25 +38,18 @@ public class RoleController {
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_READ')")
     public ResponseEntity<ApiResponse<Page<RoleResponse>>> getAllRoles(
-            @PageableDefault(size = 10, page = 0, sort = "id") Pageable pageable,
-            @RequestParam(required = false) String searchTerm) {
+            Pageable pageable,
+            @RequestParam(name = "searchTerm", required = false) String searchTerm) {
 
         Page<RoleResponse> rolesResponse = roleService.findAll(pageable, searchTerm);
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Roles obtenidos con éxito", rolesResponse));
     }
 
-    @GetMapping("/all")
-    @PreAuthorize("hasAuthority('USER_CREATE') or hasAuthority('USER_UPDATE')") // Permiso para crear/editar usuarios
-    public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRolesForForm() {
-        List<RoleResponse> roles = roleService.findAllForForm();
-        return ResponseEntity
-                .ok(new ApiResponse<>(HttpStatus.OK.value(), "Roles para formulario obtenidos con éxito", roles));
-    }
-
-    @GetMapping("/dropdown")
-    @PreAuthorize("hasAuthority('ROLE_DROPDOWN')")
-    public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRolesForFormByEmpresa(@RequestParam Long empresaId) {
-        List<RoleResponse> roles = roleService.findAllForForm(empresaId);
+    @GetMapping("/dropdown-by-empresa")
+    @PreAuthorize("hasAuthority('ROLE_DROPDOWN')") // Permiso para crear/editar usuarios
+    public ResponseEntity<ApiResponse<List<RoleDropdownResponse>>> getAllRolesForDropdownByEmpresa(
+            @RequestParam(required = false) Long empresaId) {
+        List<RoleDropdownResponse> roles = roleService.findAllForDropdown(empresaId);
         return ResponseEntity
                 .ok(new ApiResponse<>(HttpStatus.OK.value(), "Roles para formulario obtenidos con éxito", roles));
     }

@@ -101,11 +101,11 @@ export class RoleFormComponent implements OnInit {
       return;
     }
 
-    const roleRequest: RoleRequest = this.roleForm.value;
+    const roleRequest: Role = this.roleForm.value;
     
-    // La llamada a `updateRole` debe recibir el ID y el objeto por separado.
+    // La llamada a `updateRole` debe recibir el bjeto.
     const serviceCall = this.isEditMode && this.data
-      ? this.roleService.updateRole(this.data.id!, roleRequest)
+      ? this.roleService.updateRole(roleRequest)
       : this.roleService.createRole(roleRequest);
 
     const successKey = this.isEditMode ? 'ROLES.SUCCESSFULLY_UPDATED' : 'ROLES.SUCCESSFULLY_CREATED';

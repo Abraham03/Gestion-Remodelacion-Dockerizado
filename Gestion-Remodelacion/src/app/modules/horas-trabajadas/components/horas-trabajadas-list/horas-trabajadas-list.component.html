@@ -89,9 +89,9 @@
       </table>
     </div>
     <mat-paginator 
-      [length]="totalElements" 
-      [pageSize]="pageSize"
-      [pageIndex]="currentPage"
+      [length]="totalElements$ | async" 
+      [pageSize]="pageSize$ | async"
+      [pageIndex]="currentPage$ | async"
       [pageSizeOptions]="[5, 10, 20]" 
       showFirstLastButtons 
       class="table-paginator"></mat-paginator>

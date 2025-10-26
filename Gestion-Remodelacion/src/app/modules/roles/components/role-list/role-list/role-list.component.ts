@@ -1,10 +1,11 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, signal, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, signal, ViewChild, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,29 +21,45 @@ import { RoleService } from '../../../services/role.service';
 import { RoleFormComponent } from '../../role-form/role-form/role-form.component';
 import { PermissionDialogComponent } from '../../dialogs/permission-dialog/permission-dialog.component';
 
+import { RoleQuery } from '../../../state/roles.query';
+import { AsyncPipe } from '@angular/common';
+import { Observable, Subscription } from 'rxjs';
+
 @Component({
   selector: 'app-role-list',
   standalone: true,
   imports: [
     CommonModule, MatTableModule, MatPaginatorModule, MatSortModule, MatDialogModule,
     MatInputModule, MatFormFieldModule, MatIconModule, MatButtonModule,
-    MatSnackBarModule, FormsModule, TranslateModule, MatTooltipModule
+    MatSnackBarModule, FormsModule, TranslateModule, MatTooltipModule, AsyncPipe, MatProgressBarModule
   ],
   templateUrl: './role-list.component.html',
   styleUrls: ['./role-list.component.scss'],
 })
-export class RoleListComponent implements OnInit, AfterViewInit {
+export class RoleListComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = ['name', 'description', 'permissions', 'actions'];
-  dataSource = new MatTableDataSource<Role>();
-  totalElements = signal(0);
-  pageSize = signal(5);
-  pageIndex = signal(0);
-  sortColumn = signal('name');
-  sortDirection = signal('asc');
-  searchTerm = signal('');
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+
+  // Se inyecta el Query de roles
+  private roleQuery = inject(RoleQuery);
+
+  // Se define Observables para para los datos y el estado de carga
+  roles$: Observable<Role[]> = this.roleQuery.selectAll();
+  loading$: Observable<boolean> = this.roleQuery.selectLoading();
+
+  // Observables para la paginacion (directos al HTML con async pipe)
+  totalElements$: Observable<number> = this.roleQuery.selectTotalElements();
+  pageSize$: Observable<number> = this.roleQuery.selectPageSize();
+  currentPage$: Observable<number> = this.roleQuery.selectCurrentPage();
+
+
+  currentPageLocal = signal(0);
+  pageSizeLocal = signal(5);
+  sortColumn = signal('name');
+  sortDirection = signal('asc');
+  searchTerm = signal('');
 
   private roleService = inject(RoleService);
   private dialog = inject(MatDialog);
@@ -51,11 +68,27 @@ export class RoleListComponent implements OnInit, AfterViewInit {
   private translate = inject(TranslateService);
   private cdr = inject(ChangeDetectorRef);
 
+  // Subscripcion para actualizar paginator
+  private paginatorSubscription: Subscription | null = null;
+
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    this.dataSource.sort = this.sort;
     this.loadRoles();
+
+    // Suscribirse a los cambios del store para mantener sincronizado el paginador
+    this.paginatorSubscription = this.roleQuery.selectPagination().subscribe(pagination => {
+      if (pagination && this.paginator) {
+        // Actualiza el estado visual del paginador
+        this.paginator.length = pagination.totalElements;
+        this.paginator.pageIndex = pagination.currentPage;
+        this.paginator.pageSize = pagination.pageSize;
+      }
+    })
+  }
+
+  ngOnDestroy(): void {
+      this.paginatorSubscription?.unsubscribe();
   }
 
   hasPermission(permission: string): boolean {
@@ -63,30 +96,13 @@ export class RoleListComponent implements OnInit, AfterViewInit {
   }
 
   loadRoles(): void {
-    this.roleService.getRoles(this.pageIndex(), this.pageSize(), this.sortColumn(), this.sortDirection(), this.searchTerm())
-      .subscribe({
-        next: (data) => {
-          this.dataSource.data = data.content;
-          this.totalElements.set(data.totalElements);
-          this.pageIndex.set(data.number);
-          this.pageSize.set(data.size);
-          
-          if (this.paginator) {
-            this.paginator.length = data.totalElements;
-            this.paginator.pageIndex = data.number;
-          }
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error loading roles:', err);
-          this.snackBar.open(this.translate.instant('ROLES.ERROR_LOADING'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
-        },
-      });
+    this.roleService.getRoles(this.currentPageLocal(), this.pageSizeLocal(), this.sortColumn(), this.sortDirection(), this.searchTerm())
+      .subscribe();
   }
 
   onPageChange(event: PageEvent): void {
-    this.pageIndex.set(event.pageIndex);
-    this.pageSize.set(event.pageSize);
+    this.currentPageLocal.set(event.pageIndex);
+    this.pageSizeLocal.set(event.pageSize);
     this.loadRoles();
   }
 
@@ -97,7 +113,7 @@ export class RoleListComponent implements OnInit, AfterViewInit {
   }
 
   applyFilter(): void {
-    this.pageIndex.set(0);
+    this.currentPageLocal.set(0);
     this.loadRoles();
   }
   

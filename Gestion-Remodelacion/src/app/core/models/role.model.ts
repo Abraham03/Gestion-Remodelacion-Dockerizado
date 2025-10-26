@@ -14,3 +14,8 @@ export interface RoleRequest {
   description: string;
   permissions: number[]; // Enviamos IDs de permisos al backend
 }
+
+export interface RoleDropdownResponse {
+  id: number;
+  name: string;
+}

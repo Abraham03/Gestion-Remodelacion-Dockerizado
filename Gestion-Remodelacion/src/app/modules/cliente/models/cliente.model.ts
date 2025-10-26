@@ -6,3 +6,8 @@ export interface Cliente {
   notas?: string;
   fechaRegistro?: string; // Opcional
 }
+
+export interface ClienteDropdownResponse {
+  id: number;
+  nombre: string;
+}
