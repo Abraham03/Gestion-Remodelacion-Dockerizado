@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject, take, takeUntil } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -14,7 +14,7 @@ import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-
+import { NotificationService } from '../../../../core/services/notification.service';
 import { HorasTrabajadas } from '../../models/horas-trabajadas';
 import { HorasTrabajadasService } from '../../services/horas-trabajadas.service';
 import { HorasTrabajadasFormComponent } from '../horas-trabajadas-form/horas-trabajadas-form.component';
@@ -22,8 +22,21 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { ExportService } from '../../../../core/services/export.service';
 
 import { HorasTrabajadasQuery } from '../../state/horas-trabajadas.query';
+import { Empleado } from '../../../empleados/models/empleado.model';
+import { EmpleadosQuery } from '../../../empleados/state/empleados.query';
+import { EmpleadoService } from '../../../empleados/services/empleado.service';
+import { Proyecto } from '../../../proyectos/models/proyecto.model';
+import { ProyectosQuery } from '../../../proyectos/state/proyecto.query';
+import { ProyectosService } from '../../../proyectos/services/proyecto.service';
 import { AsyncPipe } from '@angular/common';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, combineLatest, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+
+// Interfaz para el viewModel combinando que usara la tabla
+  interface HorasTrabajadasViewModel {
+    nombreEmpleadoActualizado: string;
+    nombreProyectoActualizado: string;
+  }
 
 @Component({
   selector: 'app-horas-trabajadas-list',
@@ -45,6 +58,8 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
   canEdit = false;
   canDelete = false;
 
+
+
   // Propiedades de la tabla y paginación
   displayedColumns: string[] = ['fecha', 'nombreEmpleado', 'nombreProyecto', 'horas', 'montoTotal', 'actividadRealizada', 'acciones'];
 
@@ -56,21 +71,54 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private exportService = inject(ExportService);
-  private cdr = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
   private translate = inject(TranslateService);
+  private notificationService = inject(NotificationService);
 
-  // Se inyecta el Query de horas trabajadas
+  // Se inyecta las querys y servicios pra EMpleados y Proyectos
   private horasTrabajadasQuery = inject(HorasTrabajadasQuery);
+  private empleadosQuery = inject(EmpleadosQuery);
+  private empleadosService = inject(EmpleadoService);
+  private proyectosQuery = inject(ProyectosQuery);
+  private proyectosService = inject(ProyectosService);
   
   // Se define Observables para los datos y el estado de carga
   horasTrabajadas$: Observable<HorasTrabajadas[]> = this.horasTrabajadasQuery.selectAll();
   loading$: Observable<boolean> = this.horasTrabajadasQuery.selectLoading();
-
   // Observables para la paginación (directos al HTML con async pipe)
   totalElements$: Observable<number> = this.horasTrabajadasQuery.selectTotalElements();
   pageSize$: Observable<number> = this.horasTrabajadasQuery.selectPageSize();
   currentPage$: Observable<number> = this.horasTrabajadasQuery.selectCurrentPage();
+
+  // Observable que combina HorasTrabajadas con Empleados y Proyectos actualizados
+  horasTrabajadasViewModel$: Observable<HorasTrabajadasViewModel[]> = combineLatest([
+    this.horasTrabajadasQuery.selectAll(), // Stream 1: HorasTrabajadas (contiene ids de empleados y proyectos)
+    this.empleadosQuery.selectAll({ asObject: true }), // Stream 2: Objeto de empleados
+    this.proyectosQuery.selectAll({ asObject: true }) // Stream 3: Objeto de proyectos
+  ]).pipe(
+    map(([horasArray, empleadosMap, proyectosMap]) => {
+      // Si alguno de los mapas esta vacio (aun no cargado), se retorna un array vacio
+      // Para evitar errores y mostrar "No hay registros" temporalmente.
+      if (Object.keys(empleadosMap).length === 0 || Object.keys(proyectosMap).length === 0) {
+          // Podrias devolver horasArray aqui si prefieres mostrar los nombres viejos temporalmente
+          // return horasArray; // Opcional: Mostrar datos viejos mientras carga los nuevos
+          return [];
+      }
+
+      // Por cada hora trabajada, busca el empleado y proyecto mas recientes en sus respectivos mapas
+      return horasArray.map(ht => {
+        const empleadoActual = empleadosMap[ht.idEmpleado];
+        const proyectoActual = proyectosMap[ht.idProyecto];
+        return {
+          ...ht,// copia todas las propiedades originales de HorasTrabajadas
+          // Añade / Sobreescribe los nombres actualizados de los stores correspondientes
+          nombreEmpleadoActualizado: empleadoActual?.nombreCompleto ?? ht.nombreEmpleado ?? 'Empleado no encontrado',
+          nombreProyectoActualizado: proyectoActual?.nombreProyecto ?? ht.nombreProyecto ?? 'Proyecto no encontrado'
+        };
+
+      });
+    })
+  );
 
   private destroy$ = new Subject<void>();
 
@@ -85,11 +133,19 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
 
   ngOnInit(): void {
     this.setPermissions();
+
+  this.notificationService.dataChanges$.pipe(
+        takeUntil(this.destroy$) // Desuscribirse automáticamente
+      ).subscribe(() => {
+        console.log('HorasTrabajadasList: Received data change notification, reloading...');
+        // Llama a tu método de carga para refrescar la lista desde la API
+        this.loadHorasTrabajadas();
+      });
+
   }
 
   ngAfterViewInit() {
-    this.horasTrabajadasQuery.selectHasCache().pipe(
-      take(1) // Solo se necesita verificar una vez al cargar
+    this.horasTrabajadasQuery.selectHasCache().pipe(take(1) // Solo se necesita verificar una vez al cargar
     ).subscribe(
       hasCache => {
         if (!hasCache) {
@@ -97,6 +153,26 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
         }
       }
     );
+
+
+    // Carga Empleados si es necesario (para tener los nombres actualizados en la tabla)
+    this.empleadosQuery.selectHasCache().pipe(take(1)
+    ).subscribe(hasCache => {
+      if (!hasCache) {
+        console.log('Horas Trabajadas List: Cargando Empleados para nombres actualizados');
+        this.empleadosService.getEmpleados().subscribe();
+      }
+    });
+
+    // Carga Proyectos si es necesario (para tener los nombres actualiSzados en la tabla)
+    this.proyectosQuery.selectHasCache().pipe(take(1)
+    ).subscribe(hasCache => {
+      if (!hasCache) {
+        console.log('Horas Trabajadas List: Cargando Proyectos para nombres actualizados');
+        this.proyectosService.getProyectosPaginated().subscribe();
+      }
+    });
+
 
     // Suscribirse a los cambios del store para mantener sincronizado el paginador
     this.paginatorSubscription = this.horasTrabajadasQuery.selectPagination().subscribe(pagination => {
@@ -113,6 +189,7 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.paginatorSubscription?.unsubscribe();
   }
 
   private setPermissions(): void {
@@ -127,7 +204,11 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
 
   loadHorasTrabajadas(): void {
     const sortParam = `${this.currentSort},${this.sortDirection}`;
-    this.horasTrabajadasService.getHorasTrabajadasPaginated(this.currentPageLocal, this.pageSizeLocal, this.filterValue, sortParam)
+    this.horasTrabajadasService.getHorasTrabajadasPaginated(
+      this.currentPageLocal, 
+      this.pageSizeLocal, 
+      this.filterValue, 
+      sortParam)
       .subscribe();
   }
 
@@ -159,6 +240,7 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
       this.horasTrabajadasService.deleteHorasTrabajadas(id).subscribe({
         next: () => {
           this.snackBar.open(this.translate.instant('WORK_HOURS.SUCCESSFULLY_DELETED'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
+          this.notificationService.notifyDataChange();
           this.loadHorasTrabajadas();
         },
         error: (err: HttpErrorResponse) => {

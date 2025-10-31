@@ -22,7 +22,10 @@ export function createInitialState(): UserState {
 }
 
 @Injectable({ providedIn: 'root' })
-@StoreConfig({ name: 'proyectos' }) // El nombre que verás en las DevTools
+@StoreConfig({ 
+  name: 'users',
+  resettable: true, 
+}) // El nombre que verás en las DevTools y resettable = true permite limpiar el store
 export class UserStore extends EntityStore<UserState> {
   constructor() {
     super(createInitialState()); // Inicializa el store

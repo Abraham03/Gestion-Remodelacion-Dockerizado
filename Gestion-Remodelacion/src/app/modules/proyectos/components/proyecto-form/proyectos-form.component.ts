@@ -13,7 +13,7 @@ import { Observable, Subject, takeUntil } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-
+import { NotificationService } from '../../../../core/services/notification.service';
 import { ProyectosService } from '../../services/proyecto.service';
 import { ClienteService } from '../../../cliente/services/cliente.service';
 import { EmpleadoService } from '../../../empleados/services/empleado.service';
@@ -40,17 +40,19 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
   clientes$!: Observable<DropdownItem[]>;
   empleados$!: Observable<DropdownItem[]>;
 
+  //    Inyección de dependencias
   private translate = inject(TranslateService);
+  private notificationService = inject(NotificationService);
+  private proyectosService = inject(ProyectosService);
+  private clientesService = inject(ClienteService);
+  private empleadoService = inject(EmpleadoService);
+  private snackBar = inject(MatSnackBar);
 
   //    Se unifica toda la inyección de dependencias en el constructor
   //    para evitar conflictos y asegurar que 'data' siempre esté inicializado.
   constructor(
     private fb: FormBuilder,
-    private proyectosService: ProyectosService,
-    private clientesService: ClienteService,
-    private empleadoService: EmpleadoService,
     public dialogRef: MatDialogRef<ProyectosFormComponent>,
-    private snackBar: MatSnackBar,
     @Inject(MAT_DIALOG_DATA) public data: Proyecto | null
   ) {}
 
@@ -161,6 +163,7 @@ export class ProyectosFormComponent implements OnInit, OnDestroy {
     serviceCall.subscribe({
       next: () => {
         this.snackBar.open(this.translate.instant(successKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
+        this.notificationService.notifyDataChange();
         this.dialogRef.close(true);
       },
       error: (err: HttpErrorResponse) => {

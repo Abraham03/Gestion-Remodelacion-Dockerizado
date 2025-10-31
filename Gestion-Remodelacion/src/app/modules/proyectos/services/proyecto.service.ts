@@ -32,7 +32,7 @@ export class ProyectosService extends BaseService<Proyecto> {
   getProyectosPaginated(
     page: number = 0,
     size: number = 5,
-    filter: string,
+    filter: string = '',
     sort: string = 'nombreProyecto,asc'
   ): Observable<Page<Proyecto>> {
     // Actualizar el estado de carga
@@ -41,8 +41,7 @@ export class ProyectosService extends BaseService<Proyecto> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
-      .set('sort', sort); // Usar el nuevo parámetro
-
+      .set('sort', sort);
     if (filter) {
       params = params.set('filter', filter);
     }

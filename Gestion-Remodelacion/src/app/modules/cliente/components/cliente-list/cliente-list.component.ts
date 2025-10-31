@@ -20,6 +20,7 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../../core/services/auth.service';
 import { PhonePipe } from '../../../../shared/pipes/phone.pipe';
+import { NotificationService } from '../../../../core/services/notification.service';
 // Importa TranslateModule y TranslateService
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ClientesQuery } from '../../state/cliente.query';
@@ -76,6 +77,7 @@ export class ClienteListComponent implements OnInit, AfterViewInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
   private translate = inject(TranslateService);
+  private notificationService = inject(NotificationService);
 
   ngOnInit(): void {
     this.setPermissions();
@@ -157,6 +159,7 @@ export class ClienteListComponent implements OnInit, AfterViewInit, OnDestroy {
     if (confirm(confirmMessage)) {
       this.clienteService.deleteCliente(id).subscribe({
         next: () => {
+          this.notificationService.notifyDataChange();
           this.loadClientes();
           // Traduce el mensaje de éxito
           this.snackBar.open(
@@ -166,7 +169,6 @@ export class ClienteListComponent implements OnInit, AfterViewInit, OnDestroy {
           );
         },
         error: (err: HttpErrorResponse) => {
-          // Lógica corregida: la respuesta del backend siempre es una clave de error.
           const errorKey = err.error?.message || 'error.unexpected';
           const translatedMessage = this.translate.instant(errorKey);
 

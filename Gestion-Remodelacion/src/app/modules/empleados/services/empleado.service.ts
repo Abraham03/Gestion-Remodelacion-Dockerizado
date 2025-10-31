@@ -139,7 +139,7 @@ getEmpleadosForDropdown(): Observable<dropdownItemModeloHorastrabajadas[]> {
     // Prepara los parametros para la API
     const params = new HttpParams().set('activo', activo.toString());
     // Realiza la llamada PATCH
-    return this.http.patch<any>(`${this.apiUrl}/${id}/status`, { params }).pipe(
+    return this.http.patch<any>(`${this.apiUrl}/${id}/status`, null, { params }).pipe(
       tap(() => {
         // Actualizamos la entidad en el store
         this.empleadosStore.update(id, { activo: activo });

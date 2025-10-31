@@ -7,6 +7,7 @@ import { User, UserRequest } from '../models/user.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthResponse } from '../../modules/auth/models/auth-response.model';
 import { Role } from '../models/role.model';
+import { resetStores } from '@datorama/akita';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService implements OnDestroy {
@@ -93,9 +94,8 @@ export class AuthService implements OnDestroy {
 
     // 1. Limpia el estado de autenticación (localStorage y signal).
     this.clearAuthState();
-    
+    console.log('AuthService: Clearing auth state and resetting stores...');
 
-    
     // 3. Redirige al login.
     this.router.navigate(['/login']);
   }
@@ -190,6 +190,7 @@ export class AuthService implements OnDestroy {
     localStorage.removeItem('user_data');
     this._currentUser.set(null);
     this.sessionWarningShown = false;
+    resetStores();
   }
   
   // El resto del código de validación de token y manejo de errores se mantiene igual...

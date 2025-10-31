@@ -158,14 +158,20 @@ export class EmpleadoListComponent implements OnInit, AfterViewInit, OnDestroy {
     if (confirm(this.translate.instant('GLOBAL.CONFIRM_DEACTIVATE'))) {
       this.empleadoService.deactivateEmpleado(id, false).subscribe({
         next: () => {
-          this.snackBar.open(this.translate.instant('EMPLOYEES.SUCCESSFULLY_DEACTIVATED'), closeAction, { duration: 3000 });
+          this.snackBar.open(
+            this.translate.instant('EMPLOYEES.SUCCESSFULLY_DEACTIVATED'), 
+            this.translate.instant('GLOBAL.CLOSE'), 
+            { duration: 3000 }
+          );
         },
         error: (err: HttpErrorResponse) => {
-          console.error('Error al desactivar empleado:', err);
           const errorKey = err.error?.message || 'error.unexpected';
           const translatedMessage = this.translate.instant(errorKey);
           
-          this.snackBar.open(translatedMessage, closeAction, { duration: 5000 });
+          this.snackBar.open(translatedMessage, this.translate.instant('GLOBAL.CLOSE'), {
+            duration: 7000,
+            panelClass: ['error-snackbar']
+          });
         }
       });
     }

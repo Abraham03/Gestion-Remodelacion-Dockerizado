@@ -22,7 +22,10 @@ export function createInitialState(): PermissionState {
 }
 
 @Injectable({ providedIn: 'root' })
-@StoreConfig({ name: 'proyectos' }) // El nombre que verás en las DevTools
+@StoreConfig({ 
+  name: 'permissions',
+  resettable: true, 
+}) // El nombre que verás en las DevTools y resettable = true para poder limpiar el store
 export class PermissionStore extends EntityStore<PermissionState> {
   constructor() {
     super(createInitialState()); // Inicializa el store

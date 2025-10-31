@@ -22,7 +22,10 @@ export function createInitialState(): EmpresaState {
 }
 
 @Injectable({ providedIn: 'root' })
-@StoreConfig({ name: 'proyectos' }) // El nombre que verás en las DevTools
+@StoreConfig({ 
+  name: 'empresas',
+  resettable: true,
+ }) // El nombre que verás en las DevTools y resettable: true para que puedas restablecer el estado
 export class EmpresaStore extends EntityStore<EmpresaState> {
   constructor() {
     super(createInitialState()); // Inicializa el store

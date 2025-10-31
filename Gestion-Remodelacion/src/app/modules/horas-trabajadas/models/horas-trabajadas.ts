@@ -2,9 +2,9 @@ export interface HorasTrabajadas {
 
   id: number;
   idEmpleado: number;
-  nombreEmpleado: string | null; // Para mostrar en el frontend, si el backend lo proporciona
+  nombreEmpleado: string; // Para mostrar en el frontend, si el backend lo proporciona
   idProyecto: number;
-  nombreProyecto: string | null; // Para mostrar en el frontend, si el backend lo proporciona
+  nombreProyecto: string; // Para mostrar en el frontend, si el backend lo proporciona
   fecha: string | Date | null; // Formato YYYY-MM-DD para backend, Date para frontend
   horas: number;
   cantidad: String;

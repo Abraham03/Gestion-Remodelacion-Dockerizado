@@ -79,7 +79,10 @@ export class RoleListComponent implements OnInit, AfterViewInit, OnDestroy {
     ).subscribe(
       hasCache => {
         if (!hasCache) {
+          console.log("RoleListComponent: Cache vacía, llamando a loadRoles()"); // Añade log para confirmar
           this.loadRoles();
+        } else{
+          console.log("RoleListComponent: Cache encontrada, NO se llama a loadRoles()"); // Log opcional
         }
       }
     )

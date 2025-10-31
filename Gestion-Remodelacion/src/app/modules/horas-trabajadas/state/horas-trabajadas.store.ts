@@ -22,7 +22,10 @@ export function createInitialState(): HorasTrabajadasState {
 }
 
 @Injectable({ providedIn: 'root' })
-@StoreConfig({ name: 'proyectos' }) // El nombre que verás en las DevTools
+@StoreConfig({ 
+  name: 'horas-trabajadas',
+  resettable: true, 
+}) // El nombre que verás en las DevTools y resetable para reiniciar el store
 export class HorasTrabajadasStore extends EntityStore<HorasTrabajadasState> {
   constructor() {
     super(createInitialState()); // Inicializa el store

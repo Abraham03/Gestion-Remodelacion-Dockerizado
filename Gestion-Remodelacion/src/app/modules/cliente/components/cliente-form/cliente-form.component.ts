@@ -9,7 +9,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-
+import { NotificationService } from '../../../../core/services/notification.service';
 import { Cliente } from '../../models/cliente.model';
 import { ClienteService } from '../../services/cliente.service';
 
@@ -27,11 +27,13 @@ import { ClienteService } from '../../services/cliente.service';
 export class ClienteFormComponent implements OnInit {
   form: FormGroup;
   private translate = inject(TranslateService);
+  private notificationService = inject(NotificationService);
+  private snackBar = inject(MatSnackBar);
+  private clienteService = inject(ClienteService);
+
 
   constructor(
     private fb: FormBuilder,
-    private clienteService: ClienteService,
-    private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ClienteFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: Cliente | null,
   ) {
@@ -59,6 +61,7 @@ export class ClienteFormComponent implements OnInit {
       serviceCall.subscribe({
         next: () => {
           this.snackBar.open(this.translate.instant(successMessageKey), closeAction, { duration: 3000 });
+          this.notificationService.notifyDataChange();
           this.dialogRef.close(true);
         },
 

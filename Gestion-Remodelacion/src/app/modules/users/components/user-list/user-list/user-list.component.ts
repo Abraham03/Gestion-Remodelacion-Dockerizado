@@ -90,8 +90,11 @@ export class UserListComponent implements OnInit, AfterViewInit, OnDestroy {
     ).subscribe(
       hasCache => {
         if (!hasCache) {
+          console.log("UserListComponent: Cache vacía, llamando a loadUsers()"); // Añade log para confirmar
           this.loadUsers();
-        }
+        } else{
+          console.log("UserListComponent: Cache encontrada, NO se llama a loadUsers()"); // Log opcional
+         }
       }
     );
 

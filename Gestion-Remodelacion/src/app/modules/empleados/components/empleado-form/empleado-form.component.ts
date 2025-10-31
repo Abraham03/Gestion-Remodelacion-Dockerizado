@@ -12,7 +12,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HttpErrorResponse } from '@angular/common/http';
-
+import { NotificationService } from '../../../../core/services/notification.service';
 import { EmpleadoService } from '../../services/empleado.service';
 import { Empleado } from '../../models/empleado.model';
 import { NumberFormatDirective } from '../../../../shared/directives/number-format.directive';
@@ -36,13 +36,14 @@ export class EmpleadoFormComponent implements OnInit {
   modelosDePago: { value: string, viewValue: string }[] = [];
   
   private translate = inject(TranslateService);
+  private notificationService = inject(NotificationService);
+  private empleadoService = inject(EmpleadoService);
+  private snackBar = inject(MatSnackBar);
 
   constructor(
     private fb: FormBuilder,
-    private empleadoService: EmpleadoService,
     public dialogRef: MatDialogRef<EmpleadoFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: Empleado,
-    private snackBar: MatSnackBar,
   ) {
     this.empleadoForm = this.fb.group({
       id: [null],
@@ -117,6 +118,7 @@ export class EmpleadoFormComponent implements OnInit {
       serviceCall.subscribe({
         next: () => {
           this.snackBar.open(this.translate.instant(successKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
+          this.notificationService.notifyDataChange();
           this.dialogRef.close(true);
         },
         error: (err: HttpErrorResponse) => {

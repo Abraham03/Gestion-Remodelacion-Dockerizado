@@ -13,7 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Subject, take, takeUntil } from 'rxjs';
+import { combineLatest, map, Subject, take, takeUntil } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ProyectosService } from '../../services/proyecto.service';
@@ -24,6 +24,20 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { Observable, Subscription } from 'rxjs';
 import { ProyectosQuery } from '../../state/proyecto.query';
 import { AsyncPipe } from '@angular/common';
+
+import { EmpleadosQuery } from '../../../empleados/state/empleados.query';
+import { EmpleadoService } from '../../../empleados/services/empleado.service';
+import { Empleado } from '../../../empleados/models/empleado.model';
+import { ClientesQuery } from '../../../cliente/state/cliente.query';
+import { ClienteService } from '../../../cliente/services/cliente.service';
+import { Cliente } from '../../../cliente/models/cliente.model';
+import { NotificationService } from '../../../../core/services/notification.service';
+
+// Interfaz para el viewModel combinando que usara la tabla
+interface ProyectosViewModel {
+  nombreClienteActualizado: string;
+  nombreEmpleadoResponsableActualizado: string;
+}
 
 @Component({
   selector: 'app-proyectos-list',
@@ -44,9 +58,10 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   canEdit = false;
   canDelete = false;
 
-  private destroy$ = new Subject<void>();
   //dataSource = new MatTableDataSource<Proyecto>([]);
   displayedColumns: string[] = ['nombreProyecto', 'nombreCliente', 'nombreEmpleadoResponsable', 'estado', 'progresoPorcentaje', 'fechaInicio', 'fechaFinEstimada', 'acciones'];
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   private proyectosService = inject(ProyectosService);
   private dialog = inject(MatDialog);
@@ -55,19 +70,52 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   private authService = inject(AuthService);
   private translate = inject(TranslateService);
 
+  private notificationService = inject(NotificationService);
+  private empleadosQuery = inject(EmpleadosQuery);
+  private empleadosService = inject(EmpleadoService);
+  private clientesQuery = inject(ClientesQuery);
+  private clientesService = inject(ClienteService);
+
   // Se inyecta el Query de Proyectos
   private proyectosQuery = inject(ProyectosQuery);
   
   // Se define Observables para los datos y el estado de carga
   proyectos$: Observable<Proyecto[]> = this.proyectosQuery.selectAll();
   loading$: Observable<boolean> = this.proyectosQuery.selectLoading();
-
   // Se define Observables para los datos y el estado de carga
   totalElements$: Observable<number> = this.proyectosQuery.selectTotalElements();
   currentPage$: Observable<number> = this.proyectosQuery.selectCurrentPage();
   pageSize$: Observable<number> = this.proyectosQuery.selectPageSize();
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  // Observable que combina Proyectos con Empleados y clientes
+  proyectosViewModel$: Observable<Proyecto[]> = combineLatest([
+    this.proyectosQuery.selectAll(), // Stream 1: Proyectos (contiene ids de empleados y clientes)
+    this.empleadosQuery.selectAll({ asObject: true }), // Stream 2: Objeto de empleados
+    this.clientesQuery.selectAll({ asObject: true }) // Stream 3: Objeto de clientes      
+  ]).pipe(
+    map(([proyectosArray, empleadosMap, clientesMap]) => {
+        // Si alguno de los mapas esta vacio (aun no cargado), se retorna un array vacio
+        // para evitar errores y mostrar "No hay registros" temporalmente
+        if (Object.keys(empleadosMap).length === 0 || Object.keys(clientesMap).length === 0) {
+          // Podria devolver ProyectoArray aqui si prefieres mostrar los nombres viejos temporalmente
+          // return proyectosArray; // Opcional: Mostrar datos viejos mientras carga
+          return [];
+    }
+    // Por cada proyecto, busca el empleado y cliente mas recientes en sus respectivos mapas
+    return proyectosArray.map(pct => {
+      const empleadoActual = empleadosMap[pct.idEmpleadoResponsable];
+      const clienteActual = clientesMap[pct.idCliente];
+
+      return {
+        ...pct, // copia todas las propiedades originales de Proyecto
+        // Añade / Sobreescribe los nombres actualizados de los stores correspondientes
+        nombreEmpleadoResponsableActualizado: empleadoActual?.nombreCompleto ?? pct.nombreEmpleadoResponsable ?? 'Empleado Desconocido',
+        nombreClienteActualizado: clienteActual?.nombreCliente ?? pct.nombreCliente ?? 'Cliente Desconocido'
+      }
+    });
+    })
+  );
+  private destroy$ = new Subject<void>();
   
   pageSizeLocal = 5;
   currentPageLocal = 0;
@@ -81,11 +129,19 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
 
   ngOnInit(): void {
     this.setPermissions();
+
+    this.notificationService.dataChanges$.pipe(
+      takeUntil(this.destroy$) // Desuscribirse automáticoamente
+    ).subscribe(() => {
+      console.log('ProyectosList: Received data change notification, reloading...');
+      // Llama a tu método de carga para refrescar la lista desde la API
+      this.loadProyectos();
+    })
+
   }
 
   ngAfterViewInit(): void {
-    this.proyectosQuery.selectHasCache().pipe(
-      take(1) // Solo se necesita verificar una vez al cargar
+    this.proyectosQuery.selectHasCache().pipe(take(1) // Solo se necesita verificar una vez al cargar
     ).subscribe(
       hasCache => {
         if (!hasCache) {
@@ -93,6 +149,24 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
         }
       }
     );
+
+    // carga empleados si es necesario (para tener los nombres actualizados en la tabla)
+    this.empleadosQuery.selectHasCache().pipe(take(1)
+    ).subscribe(hasCache => {
+      if (!hasCache) {
+        console.log('Proyectos List: Cargando Empleados para nombres actualizados');
+        this.empleadosService.getEmpleados().subscribe();
+      }
+    });
+
+    // carga clientes si es necesario (para tener los nombres actualizados en la tabla)
+    this.clientesQuery.selectHasCache().pipe(take(1)
+    ).subscribe(hasCache => {
+      if (!hasCache) {
+        console.log('Proyectos List: Cargando Clientes para nombres actualizados');
+        this.clientesService.getClientes().subscribe();
+      }
+    });
 
     // Suscribirse a los cambios del store para mantener sincronizado el paginador
     this.paginatorSubscription = this.proyectosQuery.selectPagination().subscribe(pagination => {
@@ -107,6 +181,8 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.paginatorSubscription?.unsubscribe();
   }
 
@@ -160,6 +236,7 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
       this.proyectosService.deleteProyecto(id).subscribe({
         next: () => {
           this.snackBar.open(this.translate.instant('PROJECTS.SUCCESSFULLY_DELETED'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
+          this.notificationService.notifyDataChange();
           this.loadProyectos();
         },
         error: (err: HttpErrorResponse) => {

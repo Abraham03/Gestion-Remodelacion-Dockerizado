@@ -13,7 +13,7 @@ import { Observable } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-
+import { NotificationService } from '../../../../core/services/notification.service';
 import { HorasTrabajadas } from '../../models/horas-trabajadas';
 import { HorasTrabajadasService } from '../../services/horas-trabajadas.service';
 import { EmpleadoService } from '../../../empleados/services/empleado.service';
@@ -41,12 +41,13 @@ export class HorasTrabajadasFormComponent implements OnInit {
   etiquetaDeEntrada: string = '';
 
   private translate = inject(TranslateService);
+  private notificationService = inject(NotificationService);
+  private horasTrabajadasService = inject(HorasTrabajadasService);
+  private proyectosService = inject(ProyectosService);
+  private empleadoService = inject(EmpleadoService);
 
   constructor(
     private fb: FormBuilder,
-    private horasTrabajadasService: HorasTrabajadasService,
-    private empleadoService: EmpleadoService,
-    private proyectosService: ProyectosService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<HorasTrabajadasFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: HorasTrabajadas
@@ -155,6 +156,7 @@ loadDropdownData(): void {
   }
 
   onSubmit(): void {
+    // Validamos el formulario antes de enviarlo 
     if (this.form.invalid) {
       this.snackBar.open(this.translate.instant('WORK_HOURS.VALIDATION_ERROR'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
       return;
@@ -186,6 +188,7 @@ loadDropdownData(): void {
     serviceCall.subscribe({
       next: () => {
         this.snackBar.open(this.translate.instant(successKey), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
+        this.notificationService.notifyDataChange();
         this.dialogRef.close(true);
       },
       error: (err: HttpErrorResponse) => {
