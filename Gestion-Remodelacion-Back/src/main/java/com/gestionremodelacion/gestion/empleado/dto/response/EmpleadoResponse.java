@@ -32,13 +32,12 @@ public class EmpleadoResponse {
         this.notas = notas;
         this.fechaRegistro = fechaRegistro;
 
-        // ✅ CAMBIO 2: Se añade la misma lógica de cálculo que en el DTO de exportación
-        if (modeloDePago == ModeloDePago.POR_DIA) {
-            // Si el pago es por día, se multiplica el costo por hora por 8 para mostrar el
-            // costo diario.
-            this.costoPorHora = costoPorHora.multiply(new BigDecimal("8"));
+        if (modeloDePago != null && costoPorHora != null) {
+            // Llama a la estrategia:
+            // - Si es POR_HORA, devuelve 100.
+            // - Si es POR_DIA, devuelve 100 * 8 = 800.
+            this.costoPorHora = modeloDePago.calcularMontoDisplay(costoPorHora);
         } else {
-            // Si es por hora, se mantiene el costo por hora.
             this.costoPorHora = costoPorHora;
         }
 

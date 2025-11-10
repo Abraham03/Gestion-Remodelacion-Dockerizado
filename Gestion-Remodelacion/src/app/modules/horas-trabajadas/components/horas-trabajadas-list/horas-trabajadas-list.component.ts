@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Subject, take, takeUntil } from 'rxjs';
+import { Subject, Subscription, take, takeUntil } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -22,21 +22,10 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { ExportService } from '../../../../core/services/export.service';
 
 import { HorasTrabajadasQuery } from '../../state/horas-trabajadas.query';
-import { Empleado } from '../../../empleados/models/empleado.model';
-import { EmpleadosQuery } from '../../../empleados/state/empleados.query';
-import { EmpleadoService } from '../../../empleados/services/empleado.service';
-import { Proyecto } from '../../../proyectos/models/proyecto.model';
-import { ProyectosQuery } from '../../../proyectos/state/proyecto.query';
-import { ProyectosService } from '../../../proyectos/services/proyecto.service';
 import { AsyncPipe } from '@angular/common';
-import { Observable, Subscription, combineLatest, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { Observable} from 'rxjs';
+import { map } from 'rxjs/operators';
 
-// Interfaz para el viewModel combinando que usara la tabla
-  interface HorasTrabajadasViewModel {
-    nombreEmpleadoActualizado: string;
-    nombreProyectoActualizado: string;
-  }
 
 @Component({
   selector: 'app-horas-trabajadas-list',
@@ -61,7 +50,7 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
 
 
   // Propiedades de la tabla y paginación
-  displayedColumns: string[] = ['fecha', 'nombreEmpleado', 'nombreProyecto', 'horas', 'montoTotal', 'actividadRealizada', 'acciones'];
+  displayedColumns: string[] = ['fecha', 'nombreEmpleado', 'nombreProyecto', 'unidad', 'montoTotal', 'actividadRealizada', 'acciones'];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -77,10 +66,7 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
 
   // Se inyecta las querys y servicios pra EMpleados y Proyectos
   private horasTrabajadasQuery = inject(HorasTrabajadasQuery);
-  private empleadosQuery = inject(EmpleadosQuery);
-  private empleadosService = inject(EmpleadoService);
-  private proyectosQuery = inject(ProyectosQuery);
-  private proyectosService = inject(ProyectosService);
+
   
   // Se define Observables para los datos y el estado de carga
   horasTrabajadas$: Observable<HorasTrabajadas[]> = this.horasTrabajadasQuery.selectAll();
@@ -89,36 +75,6 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
   totalElements$: Observable<number> = this.horasTrabajadasQuery.selectTotalElements();
   pageSize$: Observable<number> = this.horasTrabajadasQuery.selectPageSize();
   currentPage$: Observable<number> = this.horasTrabajadasQuery.selectCurrentPage();
-
-  // Observable que combina HorasTrabajadas con Empleados y Proyectos actualizados
-  horasTrabajadasViewModel$: Observable<HorasTrabajadasViewModel[]> = combineLatest([
-    this.horasTrabajadasQuery.selectAll(), // Stream 1: HorasTrabajadas (contiene ids de empleados y proyectos)
-    this.empleadosQuery.selectAll({ asObject: true }), // Stream 2: Objeto de empleados
-    this.proyectosQuery.selectAll({ asObject: true }) // Stream 3: Objeto de proyectos
-  ]).pipe(
-    map(([horasArray, empleadosMap, proyectosMap]) => {
-      // Si alguno de los mapas esta vacio (aun no cargado), se retorna un array vacio
-      // Para evitar errores y mostrar "No hay registros" temporalmente.
-      if (Object.keys(empleadosMap).length === 0 || Object.keys(proyectosMap).length === 0) {
-          // Podrias devolver horasArray aqui si prefieres mostrar los nombres viejos temporalmente
-          // return horasArray; // Opcional: Mostrar datos viejos mientras carga los nuevos
-          return [];
-      }
-
-      // Por cada hora trabajada, busca el empleado y proyecto mas recientes en sus respectivos mapas
-      return horasArray.map(ht => {
-        const empleadoActual = empleadosMap[ht.idEmpleado];
-        const proyectoActual = proyectosMap[ht.idProyecto];
-        return {
-          ...ht,// copia todas las propiedades originales de HorasTrabajadas
-          // Añade / Sobreescribe los nombres actualizados de los stores correspondientes
-          nombreEmpleadoActualizado: empleadoActual?.nombreCompleto ?? ht.nombreEmpleado ?? 'Empleado no encontrado',
-          nombreProyectoActualizado: proyectoActual?.nombreProyecto ?? ht.nombreProyecto ?? 'Proyecto no encontrado'
-        };
-
-      });
-    })
-  );
 
   private destroy$ = new Subject<void>();
 
@@ -137,7 +93,6 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
   this.notificationService.dataChanges$.pipe(
         takeUntil(this.destroy$) // Desuscribirse automáticamente
       ).subscribe(() => {
-        console.log('HorasTrabajadasList: Received data change notification, reloading...');
         // Llama a tu método de carga para refrescar la lista desde la API
         this.loadHorasTrabajadas();
       });
@@ -153,25 +108,6 @@ export class HorasTrabajadasListComponent implements OnInit, AfterViewInit, OnDe
         }
       }
     );
-
-
-    // Carga Empleados si es necesario (para tener los nombres actualizados en la tabla)
-    this.empleadosQuery.selectHasCache().pipe(take(1)
-    ).subscribe(hasCache => {
-      if (!hasCache) {
-        console.log('Horas Trabajadas List: Cargando Empleados para nombres actualizados');
-        this.empleadosService.getEmpleados().subscribe();
-      }
-    });
-
-    // Carga Proyectos si es necesario (para tener los nombres actualiSzados en la tabla)
-    this.proyectosQuery.selectHasCache().pipe(take(1)
-    ).subscribe(hasCache => {
-      if (!hasCache) {
-        console.log('Horas Trabajadas List: Cargando Proyectos para nombres actualizados');
-        this.proyectosService.getProyectosPaginated().subscribe();
-      }
-    });
 
 
     // Suscribirse a los cambios del store para mantener sincronizado el paginador

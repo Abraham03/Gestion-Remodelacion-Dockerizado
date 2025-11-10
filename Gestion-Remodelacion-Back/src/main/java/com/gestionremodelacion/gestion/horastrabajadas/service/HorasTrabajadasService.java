@@ -71,6 +71,7 @@ public class HorasTrabajadasService {
         User currentUser = userService.getCurrentUser();
         Long empresaId = currentUser.getEmpresa().getId();
 
+        // Validar entidades
         Empleado empleado = empleadoRepository.findByIdAndEmpresaId(horasTrabajadasRequest.getIdEmpleado(), empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
                         ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
@@ -79,11 +80,27 @@ public class HorasTrabajadasService {
                 .orElseThrow(() -> new BusinessRuleException(
                         ErrorCatalog.INVALID_PROJECT_FOR_COMPANY.getKey()));
 
+        // Inicio de la logica de calculo
+
+        // Convertir la entrada del request a la unidad base (HORAS)
+        BigDecimal horasReales = this.convertirUnidadAHoras(horasTrabajadasRequest.getCantidad(),
+                horasTrabajadasRequest.getUnidad());
+
+        // Mapear y guardar el Snapshot inmutable
+
         HorasTrabajadas horasTrabajadas = horasTrabajadasMapper.toHorasTrabajadas(horasTrabajadasRequest);
+
         horasTrabajadas.setEmpresa(currentUser.getEmpresa());
         horasTrabajadas.setEmpleado(empleado);
         horasTrabajadas.setProyecto(proyecto);
+
+        // Asignacion de valores calculados y de snapshot
+        horasTrabajadas.setHoras(horasReales);
         horasTrabajadas.setCostoPorHoraActual(empleado.getCostoPorHora());
+        horasTrabajadas.setCantidad(horasTrabajadasRequest.getCantidad());
+        horasTrabajadas.setUnidad(horasTrabajadasRequest.getUnidad());
+        horasTrabajadas.setNombreEmpleado(empleado.getNombreCompleto());
+        horasTrabajadas.setNombreProyecto(proyecto.getNombreProyecto());
 
         HorasTrabajadas savedHorasTrabajadas = horasTrabajadasRepository.save(horasTrabajadas);
 
@@ -113,10 +130,22 @@ public class HorasTrabajadasService {
                 .orElseThrow(() -> new BusinessRuleException(
                         ErrorCatalog.INVALID_PROJECT_FOR_COMPANY.getKey()));
 
+        // Logica de calculo de costo/hora
+        BigDecimal horasReales = this.convertirUnidadAHoras(horasTrabajadasRequest.getCantidad(),
+                horasTrabajadasRequest.getUnidad());
+
+        // Mapear campos del request a horas trabajadas
         horasTrabajadasMapper.updateHorasTrabajadasFromRequest(horasTrabajadasRequest, horasTrabajadas);
+
+        // Actualizar relaciones y Snapshot
         horasTrabajadas.setEmpleado(nuevoEmpleado);
         horasTrabajadas.setProyecto(nuevoProyecto);
+        horasTrabajadas.setHoras(horasReales);
         horasTrabajadas.setCostoPorHoraActual(nuevoEmpleado.getCostoPorHora());
+        horasTrabajadas.setCantidad(horasTrabajadasRequest.getCantidad());
+        horasTrabajadas.setUnidad(horasTrabajadasRequest.getUnidad());
+        horasTrabajadas.setNombreEmpleado(nuevoEmpleado.getNombreCompleto());
+        horasTrabajadas.setNombreProyecto(nuevoProyecto.getNombreProyecto());
 
         HorasTrabajadas updatedHorasTrabajadas = horasTrabajadasRepository.save(horasTrabajadas);
 
@@ -146,13 +175,12 @@ public class HorasTrabajadasService {
     }
 
     private void actualizarCostoManoDeObraProyecto(Proyecto proyecto) {
-        List<HorasTrabajadas> horasDelProyecto = horasTrabajadasRepository
-                .findByProyectoIdAndEmpresaId(proyecto.getId(), proyecto.getEmpresa().getId());
-        BigDecimal nuevoCostoTotal = horasDelProyecto.stream()
-                .map(h -> h.getHoras().multiply(h.getCostoPorHoraActual()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        // Llama a la consulta para calcular el costo total
+        BigDecimal nuevoCostoTotal = horasTrabajadasRepository
+                .sumCostoManoDeObraByProyectoId(proyecto.getId(), proyecto.getEmpresa().getId());
 
-        proyecto.setCostoManoDeObra(nuevoCostoTotal);
+        // Maneja el caso de que no haya registros (SUM puede devoler Null)
+        proyecto.setCostoManoDeObra(nuevoCostoTotal != null ? nuevoCostoTotal : BigDecimal.ZERO);
         proyectoRepository.save(proyecto);
     }
 
@@ -182,77 +210,24 @@ public class HorasTrabajadasService {
     }
 
     /**
-     * ✅ MÉTODO DE MIGRACIÓN 1: Corrige los registros históricos.
-     * Itera sobre todos los registros de horas trabajadas con 'costoPorHoraActual'
-     * nulo,
-     * asigna el costo por hora actual del empleado y guarda el registro.
-     * Nota: Este método solo debe ejecutarse una vez en el despliegue.
-     * 
-     * @Transactional
-     *                public void corregirCostosHorasHistoricas() {
-     *                System.out.println("Iniciando corrección de costos por hora en
-     *                registros históricos...");
-     * 
-     *                // Usamos una consulta personalizada para obtener solo los
-     *                registros que
-     *                // necesitan ser corregidos
-     *                List<HorasTrabajadas> registrosSinCosto =
-     *                horasTrabajadasRepository.findByCostoPorHoraActualIsNull();
-     * 
-     *                for (HorasTrabajadas registro : registrosSinCosto) {
-     *                // Se asume que la entidad Empleado ya está cargada debido a
-     *                las anotaciones de
-     *                // relación
-     *                Empleado empleado = registro.getEmpleado();
-     *                if (empleado != null && empleado.getCostoPorHora() != null) {
-     *                registro.setCostoPorHoraActual(empleado.getCostoPorHora());
-     *                horasTrabajadasRepository.save(registro);
-     *                }
-     *                }
-     *                System.out.println(
-     *                "Corrección de costos por hora completada. Registros
-     *                actualizados: " + registrosSinCosto.size());
-     *                }
-     * 
-     *                /**
-     *                ✅ MÉTODO DE MIGRACIÓN 2: Recalcula los gastos consolidados de
-     *                los proyectos.
-     *                Este método se ejecuta DESPUÉS de corregir los costos de
-     *                horas.
-     *                Recalcula el campo 'otrosGastosDirectosConsolidado' en cada
-     *                proyecto
-     *                sumando todos los costos de horas trabajadas asociados.
-     *                Nota: Este método solo debe ejecutarse una vez en el
-     *                despliegue.
+     * Método helper privado para centralizar la conversión de la ENTRADA
+     * (Request) a la unidad base (horas).
      */
-    @Transactional
-    public void recalcularGastosConsolidadosProyectos() {
-        System.out.println("Iniciando recálculo de gastos consolidados en proyectos...");
-
-        // 1. Obtener todos los proyectos
-        List<Proyecto> todosLosProyectos = proyectoRepository.findAll();
-
-        // 2. Reiniciar el campo de gastos en cada proyecto para evitar duplicados
-        for (Proyecto proyecto : todosLosProyectos) {
-            proyecto.setCostoManoDeObra(BigDecimal.ZERO);
-            proyecto.setOtrosGastosDirectosConsolidado(BigDecimal.ZERO);
-            proyectoRepository.save(proyecto);
+    private BigDecimal convertirUnidadAHoras(BigDecimal cantidad, String unidad) {
+        if ("dias".equalsIgnoreCase(unidad)) {
+            // Esta es tu fuente de verdad para la jornada laboral
+            return cantidad.multiply(new BigDecimal("8"));
         }
-
-        // 3. Obtener todos los registros de horas trabajadas (ya corregidos)
-        List<HorasTrabajadas> todasLasHoras = horasTrabajadasRepository.findAll();
-
-        // 4. Sumar los costos y actualizar cada proyecto
-        for (HorasTrabajadas registro : todasLasHoras) {
-            if (registro.getProyecto() != null && registro.getCostoPorHoraActual() != null) {
-                Proyecto proyecto = registro.getProyecto();
-                BigDecimal costoTotal = registro.getHoras().multiply(registro.getCostoPorHoraActual());
-
-                proyecto.setCostoManoDeObra(proyecto.getCostoManoDeObra().add(costoTotal));
-                proyectoRepository.save(proyecto);
-            }
+        if ("horas".equalsIgnoreCase(unidad)) {
+            return cantidad;
         }
-        System.out.println("Recálculo de gastos consolidados completado.");
+        // Así escalas si el frontend envía "semanas"
+        // if ("semanas".equalsIgnoreCase(unidad)) {
+        // return cantidad.multiply(new BigDecimal("40"));
+        // }
+
+        // Lanza una excepción si la unidad no se reconoce
+        throw new BusinessRuleException(ErrorCatalog.INVALID_INPUT_UNIT.getKey());
     }
 
 }

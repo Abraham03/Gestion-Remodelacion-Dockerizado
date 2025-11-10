@@ -1,39 +1,35 @@
 package com.gestionremodelacion.gestion.horastrabajadas.dto.response;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
-import com.gestionremodelacion.gestion.empleado.model.Empleado;
-import com.gestionremodelacion.gestion.empleado.model.ModeloDePago;
 
 public class HorasTrabajadasResponse {
 
     private Long id;
     private Long idEmpleado;
-    private String nombreEmpleado;
+    private String nombreEmpleado;//
     private Long idProyecto;
-    private String nombreProyecto;
+    private String nombreProyecto;//
     private LocalDate fecha;
     private BigDecimal horas;
-    private String cantidad;
-    private String unidad;
+    private String cantidad;//
+    private String unidad;//
     private BigDecimal costoPorHoraActual;
     private String actividadRealizada;
     private LocalDateTime fechaRegistro;
     private BigDecimal montoTotal;
 
-    public HorasTrabajadasResponse(Long id, Long idEmpleado, String nombreEmpleado, Empleado empleado, Long idProyecto,
+    public HorasTrabajadasResponse(Long id, Long idEmpleado, String nombreEmpleado, Long idProyecto,
             String nombreProyecto, LocalDate fecha, BigDecimal horas, BigDecimal costoPorHoraActual,
-            String actividadRealizada,
-            LocalDateTime fechaRegistro) { // Constructor con LocalDate y LocalDateTime
+            String actividadRealizada, LocalDateTime fechaRegistro, BigDecimal cantidad, String unidad) { // Constructor
+                                                                                                          // con
+                                                                                                          // LocalDate y
+                                                                                                          // LocalDateTime
         this.id = id;
         this.idEmpleado = idEmpleado;
-        this.nombreEmpleado = nombreEmpleado;
         this.idProyecto = idProyecto;
-        this.nombreProyecto = nombreProyecto;
         this.fecha = fecha;
         this.horas = horas;
         this.costoPorHoraActual = costoPorHoraActual;
@@ -46,15 +42,10 @@ public class HorasTrabajadasResponse {
         this.montoTotal = (horas != null && costoPorHoraActual != null) ? horas.multiply(costoPorHoraActual)
                 : BigDecimal.ZERO;
 
-        // LÓGICA PARA DETERMINAR CANTIDAD Y UNIDAD
-        if (empleado != null && empleado.getModeloDePago() == ModeloDePago.POR_DIA) {
-            this.unidad = "Días";
-            BigDecimal dias = horas.divide(new BigDecimal("8"), 2, RoundingMode.HALF_UP);
-            this.cantidad = df.format(dias); // <-- Se aplica el formato
-        } else {
-            this.unidad = "Horas";
-            this.cantidad = df.format(horas); // <-- Se aplica el formato
-        }
+        this.nombreEmpleado = nombreEmpleado;
+        this.nombreProyecto = nombreProyecto;
+        this.cantidad = df.format(cantidad);
+        this.unidad = unidad;
 
     }
 

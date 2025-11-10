@@ -2,17 +2,32 @@ export interface HorasTrabajadas {
 
   id: number;
   idEmpleado: number;
-  nombreEmpleado: string; // Para mostrar en el frontend, si el backend lo proporciona
   idProyecto: number;
-  nombreProyecto: string; // Para mostrar en el frontend, si el backend lo proporciona
-  fecha: string | Date | null; // Formato YYYY-MM-DD para backend, Date para frontend
+  fecha: string | Date | null; 
   horas: number;
-  cantidad: String;
-  unidad: String;
-  montoTotal?: number;
+  costoPorHoraActual: number; // Calculado por el backend  
+  montoTotal: number;
   actividadRealizada: string | null;
-  fechaRegistro: string | Date | null; // Campo generado por el backend
 
+  cantidad: number;
+  unidad: string;
+  nombreEmpleado: string; 
+  nombreProyecto: string; 
+  fechaRegistro: string | Date | null; 
+
+}
+
+// (Lo que el formulario envía al backend)
+export interface HorasTrabajadasRequest {
+  id?: number; // Opcional, solo para actualizar
+  idEmpleado: number;
+  idProyecto: number;
+  fecha: string | null; // Formato YYYY-MM-DD
+  actividadRealizada: string | null;
+  
+  // --- DATOS "TONTOS" ---
+  cantidad: number; // El valor del input (ej: 1)
+  unidad: string; // "dias" o "horas"
 }
 
 

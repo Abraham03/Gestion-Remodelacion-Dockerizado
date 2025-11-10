@@ -259,7 +259,7 @@
     "DATE": "Date",
     "EMPLOYEE": "Employee",
     "PROJECT": "Project",
-    "HOURS": "Hours",
+    "UNIT": "Unit",
     "LABOR_COST": "Labor Cost",
     "ACTIVITY_PERFORMED": "Activity Performed",
     "WORKED_DAYS": "Days Worked",

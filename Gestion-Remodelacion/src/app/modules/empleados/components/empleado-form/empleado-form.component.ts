@@ -63,21 +63,24 @@ export class EmpleadoFormComponent implements OnInit {
 
     if (this.data) {
       this.isEditMode = true;
-      const empleadoParaForm = { ...this.data };
-      let montoParaForm = empleadoParaForm.modeloDePago === 'POR_DIA'
-        ? empleadoParaForm.costoPorHora * 8
-        : empleadoParaForm.costoPorHora;
+
+      const patchData = { ...this.data };
+
       
-      const patchData = { ...empleadoParaForm, costoPorHora: montoParaForm };
-      
-      if (empleadoParaForm.fechaContratacion) {
-        const dateString = empleadoParaForm.fechaContratacion as string;
+      if (patchData.fechaContratacion) {
+        const dateString = patchData.fechaContratacion as string;
         const parts = dateString.split('-').map(Number);
         const localDate = new Date(parts[0], parts[1] - 1, parts[2]);
         patchData.fechaContratacion = localDate;
       }
       this.empleadoForm.patchValue(patchData);
     }
+
+    // Escucha los cambios en 'modeloDePago'
+    this.empleadoForm.get('modeloDePago')?.valueChanges.subscribe(value => {
+      // Cuando cambie, resetea el campo 'costoPorHora'
+      this.empleadoForm.get('costoPorHora')?.setValue(0);
+    });
   }
 
   private setupDynamicTranslations(): void {

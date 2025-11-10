@@ -16,24 +16,27 @@ public class HorasTrabajadasRequest {
     @NotNull(message = "La fecha no puede ser nula")
     private LocalDate fecha; // Ensure this is LocalDate
 
-    @NotNull(message = "Las horas no pueden ser nulas")
-    private BigDecimal horas;
-
-    private BigDecimal costoPorHora;
-
     private String actividadRealizada;
+
+    @NotNull(message = "La cantidad no puede ser nula")
+    private BigDecimal cantidad;
+
+    @NotNull(message = "La unidad no puede ser nula")
+    private String unidad;
 
     // Constructors
     public HorasTrabajadasRequest() {
     }
 
-    public HorasTrabajadasRequest(Long idEmpleado, Long idProyecto, LocalDate fecha, BigDecimal horas, BigDecimal costoPorHora, String actividadRealizada) {
+    public HorasTrabajadasRequest(
+            Long idEmpleado, Long idProyecto, LocalDate fecha,
+            String actividadRealizada, BigDecimal cantidad, String unidad) {
         this.idEmpleado = idEmpleado;
         this.idProyecto = idProyecto;
         this.fecha = fecha;
-        this.horas = horas;
-        this.costoPorHora = costoPorHora;
         this.actividadRealizada = actividadRealizada;
+        this.cantidad = cantidad;
+        this.unidad = unidad;
     }
 
     // Getters y Setters
@@ -61,27 +64,27 @@ public class HorasTrabajadasRequest {
         this.fecha = fecha;
     }
 
-    public BigDecimal getHoras() {
-        return horas;
-    }
-
-    public void setHoras(BigDecimal horas) {
-        this.horas = horas;
-    }
-
-    public BigDecimal getCostoPorHora() {
-        return costoPorHora;
-    }
-
-    public void setCostoPorHora(BigDecimal costoPorHora) {
-        this.costoPorHora = costoPorHora;
-    }
-
     public String getActividadRealizada() {
         return actividadRealizada;
     }
 
     public void setActividadRealizada(String actividadRealizada) {
         this.actividadRealizada = actividadRealizada;
+    }
+
+    public BigDecimal getCantidad() {
+        return cantidad;
+    }
+
+    public void setCantidad(BigDecimal cantidad) {
+        this.cantidad = cantidad;
+    }
+
+    public String getUnidad() {
+        return unidad;
+    }
+
+    public void setUnidad(String unidad) {
+        this.unidad = unidad;
     }
 }

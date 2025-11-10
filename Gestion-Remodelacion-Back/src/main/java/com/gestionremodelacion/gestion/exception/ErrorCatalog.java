@@ -43,6 +43,7 @@ public enum ErrorCatalog {
 
     // --- Errores de Horas Trabajadas ---
     WORK_LOG_NOT_FOUND("error.workLog.notFound"),
+    INVALID_INPUT_UNIT("error.workLog.invalidInputUnit"),
 
     // --- Errores de Companias ---
     COMPANY_NOT_FOUND("error.company.notFound"),

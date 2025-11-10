@@ -112,7 +112,6 @@ public class AuthController {
             refreshTokenService.revokeByToken(refreshToken.getToken());
         });
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Sesión cerrada exitosamente", null));
+        return ResponseEntity.noContent().build();
     }
 }

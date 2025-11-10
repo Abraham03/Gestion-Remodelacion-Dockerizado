@@ -1,7 +1,6 @@
 package com.gestionremodelacion.gestion.empleado.service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -80,9 +79,13 @@ public class EmpleadoService {
         Empleado empleado = empleadoMapper.toEmpleado(empleadoRequest);
         empleado.setEmpresa(currentUser.getEmpresa());
 
-        // Calcular y asignar el costo por hora
-        this.calcularYAsignarCostoPorHora(empleado, empleadoRequest.getModeloDePago(),
-                empleadoRequest.getCostoPorHora());
+        // Obtener el Enum ModeloDePago
+        ModeloDePago modeloDePago = ModeloDePago.valueOf(empleadoRequest.getModeloDePago().toUpperCase());
+        empleado.setModeloDePago(modeloDePago);
+
+        // Usar el modelo de pago para calcular el costo base (costo/hora)
+        BigDecimal costoBasePorHora = modeloDePago.calcularCostoBasePorHora(empleadoRequest.getCostoPorHora());
+        empleado.setCostoPorHora(costoBasePorHora);
 
         if (empleado.getActivo() == null) {
             empleado.setActivo(true);
@@ -101,9 +104,13 @@ public class EmpleadoService {
 
         empleadoMapper.updateEmpleadoFromRequest(empleadoRequest, empleado);
 
-        // Calcular y asignar el costo por hora
-        this.calcularYAsignarCostoPorHora(empleado, empleadoRequest.getModeloDePago(),
-                empleadoRequest.getCostoPorHora());
+        // Obtener el Enum ModeloDePago
+        ModeloDePago modeloDePago = ModeloDePago.valueOf(empleadoRequest.getModeloDePago().toUpperCase());
+        empleado.setModeloDePago(modeloDePago);
+
+        // Usar el modelo de pago para calcular el costo base (costo/hora)
+        BigDecimal costoBasePorHora = modeloDePago.calcularCostoBasePorHora(empleadoRequest.getCostoPorHora());
+        empleado.setCostoPorHora(costoBasePorHora);
 
         Empleado updatedEmpleado = empleadoRepository.save(empleado);
         return empleadoMapper.toEmpleadoResponse(updatedEmpleado);
@@ -132,35 +139,6 @@ public class EmpleadoService {
             throw new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey());
         }
         empleadoRepository.deleteById(id);
-    }
-
-    /**
-     * Centraliza la lógica de conversión.
-     * Este método se encarga de interpretar el modelo de pago y asignar el valor
-     * correcto al campo 'costoPorHora' de la entidad Empleado.
-     * * @param empleado La entidad Empleado a modificar.
-     * 
-     * @param modeloDePagoStr El string "POR_HORA" o "POR_DIA" que viene del
-     *                        request.
-     * @param monto           El valor numérico asociado (costo por hora o costo por
-     *                        día).
-     */
-    private void calcularYAsignarCostoPorHora(Empleado empleado, String modeloDePagoStr, BigDecimal monto) {
-        ModeloDePago modeloDePago = ModeloDePago.valueOf(modeloDePagoStr.toUpperCase());
-        empleado.setModeloDePago(modeloDePago);
-
-        if (modeloDePago == ModeloDePago.POR_DIA) {
-            // Si el pago es por día, calculamos el costo por hora.
-            // Asumimos una jornada laboral de 8 horas.
-            BigDecimal horasPorJornada = new BigDecimal("8");
-            // Dividimos y redondeamos a 2 decimales para evitar problemas con números
-            // periódicos.
-            BigDecimal costoPorHoraCalculado = monto.divide(horasPorJornada, 2, RoundingMode.HALF_UP);
-            empleado.setCostoPorHora(costoPorHoraCalculado);
-        } else {
-            // Si el pago ya es por hora, simplemente lo asignamos.
-            empleado.setCostoPorHora(monto);
-        }
     }
 
     // Método para la exportación

@@ -38,16 +38,15 @@ public class EmpleadoExportDTO implements Exportable {
         String telefonoFormateado = FormatUtils.formatPhoneNumber(this.empleado.getTelefonoContacto());
 
         // Se añade la lógica para calcular el monto de pago.
-        BigDecimal montoDePago;
-        if (empleado.getModeloDePago() == ModeloDePago.POR_DIA) {
-            // Si el pago es por día, se multiplica el costo por hora por 8.
-            montoDePago = this.empleado.getCostoPorHora().multiply(new BigDecimal("8"));
-        } else {
-            // Si es por hora (o cualquier otro caso), se mantiene el costo por hora.
-            montoDePago = this.empleado.getCostoPorHora();
+        BigDecimal montoDePago = BigDecimal.ZERO;
+        if (empleado.getModeloDePago() != null && empleado.getCostoPorHora() != null) {
+            // Llama a la estrategia:
+            // - Si es POR_HORA, devuelve el costo base.
+            // - Si es POR_DIA, devuelve el costo base * 8.
+            montoDePago = this.empleado.getModeloDePago().calcularMontoDisplay(this.empleado.getCostoPorHora());
         }
 
-        String montoFormateado = FormatUtils.formatCurrency(montoDePago);
+        // String montoFormateado = FormatUtils.formatCurrency(montoDePago);
 
         String modeloDePagoFormateado = FormatUtils.formatModeloDePago(this.empleado.getModeloDePago());
 
@@ -57,7 +56,7 @@ public class EmpleadoExportDTO implements Exportable {
                 telefonoFormateado,
                 fechaFormateada,
                 modeloDePagoFormateado,
-                montoFormateado,
+                montoDePago.toString(),
                 estadoActivo,
                 fechaRegistroFormateada));
     }

@@ -1,0 +1,5 @@
+ALTER TABLE horas_trabajadas
+ADD COLUMN cantidad DECIMAL(19, 2) NULL,
+ADD COLUMN unidad VARCHAR(50) NULL,
+ADD COLUMN nombre_empleado VARCHAR(255) NULL,
+ADD COLUMN nombre_proyecto VARCHAR(255) NULL;

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { HorasTrabajadas } from '../models/horas-trabajadas';
+import { HorasTrabajadas, HorasTrabajadasRequest } from '../models/horas-trabajadas';
 import { delay, map, Observable, tap } from 'rxjs';
 import { Page } from '../../../core/models/page.model';
 import { BaseService } from '../../../core/services/base.service';
@@ -97,7 +97,7 @@ export class HorasTrabajadasService  extends BaseService<HorasTrabajadas> {
   /**
    * Crea un nuevo registro de horas trabajadas.
    */
-  addHorasTrabajadas(horasTrabajadas: HorasTrabajadas): Observable<HorasTrabajadas> {
+  addHorasTrabajadas(horasTrabajadas: HorasTrabajadasRequest): Observable<HorasTrabajadas> {
     return this.http.post<ApiResponse<HorasTrabajadas>>(this.apiUrl, horasTrabajadas).pipe(
       map(response => this.extractSingleData(response)),
       tap(nuevoHorasTrabajadas => {
@@ -110,7 +110,7 @@ export class HorasTrabajadasService  extends BaseService<HorasTrabajadas> {
   /**
    * Actualiza un registro de horas trabajadas existente.
    */
-  updateHorasTrabajadas(horasTrabajadas: HorasTrabajadas): Observable<HorasTrabajadas> {
+  updateHorasTrabajadas(horasTrabajadas: HorasTrabajadasRequest): Observable<HorasTrabajadas> {
     return this.http.put<ApiResponse<HorasTrabajadas>>(`${this.apiUrl}/${horasTrabajadas.id}`,horasTrabajadas).pipe(
       map(response => this.extractSingleData(response)),
       tap(actualizadoHorasTrabajadas => {

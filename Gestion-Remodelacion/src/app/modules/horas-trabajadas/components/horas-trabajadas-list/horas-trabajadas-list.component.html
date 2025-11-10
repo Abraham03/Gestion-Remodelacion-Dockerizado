@@ -36,28 +36,24 @@
 
   <div class="table-card">
 
-    <mat-progress-bar 
-      *ngIf="loading$ | async" 
-      mode="indeterminate" 
-      class="table-loading-bar">
-    </mat-progress-bar>
+    <mat-progress-bar *ngIf="loading$ | async" mode="indeterminate" class="table-loading-bar"></mat-progress-bar>
 
     <div class="table-container">
-      <table mat-table [dataSource]="(horasTrabajadasViewModel$ | async) || []" class="responsive-table" matSort (matSortChange)="onSortChange($event)">
+      <table mat-table [dataSource]="(horasTrabajadas$ | async) || []" class="responsive-table" matSort (matSortChange)="onSortChange($event)">
         <ng-container matColumnDef="fecha">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'WORK_HOURS.DATE' | translate }}</th>
           <td mat-cell *matCellDef="let element">{{ element.fecha | date:'shortDate' }}</td>
         </ng-container>
         <ng-container matColumnDef="nombreEmpleado">
           <th mat-header-cell *matHeaderCellDef mat-sort-header="empleado.nombreEmpleado">{{ 'WORK_HOURS.EMPLOYEE' | translate }}</th>
-          <td mat-cell *matCellDef="let element">{{ element.nombreEmpleadoActualizado }}</td>
+          <td mat-cell *matCellDef="let element">{{ element.nombreEmpleado }}</td>
         </ng-container>
         <ng-container matColumnDef="nombreProyecto">
           <th mat-header-cell *matHeaderCellDef mat-sort-header="proyecto.nombreProyecto">{{ 'WORK_HOURS.PROJECT' | translate }}</th>
-          <td mat-cell *matCellDef="let element">{{ element.nombreProyectoActualizado }}</td>
+          <td mat-cell *matCellDef="let element">{{ element.nombreProyecto }}</td>
         </ng-container>
-        <ng-container matColumnDef="horas">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header="horas">{{ 'WORK_HOURS.HOURS' | translate }}</th>
+        <ng-container matColumnDef="unidad">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="unidad">{{ 'WORK_HOURS.UNIT' | translate }}</th>
           <td mat-cell *matCellDef="let element"> {{element.cantidad}} {{element.unidad}} </td>
         </ng-container>      
         <ng-container matColumnDef="montoTotal">

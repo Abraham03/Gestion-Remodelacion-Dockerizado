@@ -1,5 +1,6 @@
 package com.gestionremodelacion.gestion.horastrabajadas.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,28 +28,38 @@ public interface HorasTrabajadasRepository extends JpaRepository<HorasTrabajadas
 
         // Consulta optimizada que devuelve directamente el DTO.
         @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
-                        + "h.id, e.id, e.nombreCompleto, e, p.id, p.nombreProyecto, " // <-- 'e' añadido
-                        + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro) "
-                        + "FROM HorasTrabajadas h JOIN h.empleado e JOIN h.proyecto p WHERE h.empresa.id = :empresaId")
+                        + "h.id, h.empleado.id, h.nombreEmpleado, h.proyecto.id, h.proyecto.nombreProyecto, "
+                        + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro, "
+                        + "h.cantidad, h.unidad) "
+                        + "FROM HorasTrabajadas h WHERE h.empresa.id = :empresaId")
         Page<HorasTrabajadasResponse> findAllWithDetails(@Param("empresaId") Long empresaId, Pageable pageable);
 
         // Consulta optimizada con filtro por nombre de empleado o proyecto.
         @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
-                        + "h.id, e.id, e.nombreCompleto, e, p.id, p.nombreProyecto, " // <-- 'e' añadido
-                        + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro) "
-                        + "FROM HorasTrabajadas h JOIN h.empleado e JOIN h.proyecto p WHERE h.empresa.id = :empresaId AND ("
-                        + "LOWER(e.nombreCompleto) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
-                        + "LOWER(p.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%')))")
+                        + "h.id, h.empleado.id, h.nombreEmpleado, h.proyecto.id, h.proyecto.nombreProyecto, "
+                        + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro,"
+                        + "h.cantidad, h.unidad) "
+                        + "FROM HorasTrabajadas h WHERE h.empresa.id = :empresaId AND ("
+                        + "LOWER(h.nombreEmpleado) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
+                        + "LOWER(h.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%')))")
         Page<HorasTrabajadasResponse> findByFilterWithDetails(@Param("empresaId") Long empresaId,
                         @Param("filter") String filter, Pageable pageable);
 
         // Consulta para la exportación que devuelve la entidad completa.
         @Query("SELECT h FROM HorasTrabajadas h JOIN FETCH h.empleado e JOIN FETCH h.proyecto p "
                         + "WHERE h.empresa.id = :empresaId AND (:filter IS NULL OR "
-                        + "LOWER(e.nombreCompleto) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
-                        + "LOWER(p.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%')))")
+                        + "LOWER(h.nombreEmpleado) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
+                        + "LOWER(h.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%')))")
         List<HorasTrabajadas> findByFilterForExport(@Param("empresaId") Long empresaId, @Param("filter") String filter,
                         Sort sort);
+
+        /**
+         * Calcula la suma total de mano de obra para un proyecto directamente en la BD.
+         */
+        @Query("SELECT SUM(h.horas * h.costoPorHoraActual) FROM HorasTrabajadas h " +
+                        "WHERE h.proyecto.id = :proyectoId AND h.empresa.id = :empresaId")
+        BigDecimal sumCostoManoDeObraByProyectoId(@Param("proyectoId") Long proyectoId,
+                        @Param("empresaId") Long empresaId);
 
         /* ======================================================================= */
         /* MÉTODOS EXCLUSIVOS PARA DashboardService (Agregaciones) */

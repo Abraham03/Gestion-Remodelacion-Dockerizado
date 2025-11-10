@@ -111,6 +111,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/clientes/**").hasAuthority("CLIENTE_CREATE")
                         .requestMatchers(HttpMethod.PUT, "/api/clientes/**").hasAuthority("CLIENTE_UPDATE")
                         .requestMatchers(HttpMethod.DELETE, "/api/clientes/**").hasAuthority("CLIENTE_DELETE")
+                        .requestMatchers(HttpMethod.GET, "/api/clientes/dropdown").hasAuthority("CLIENTE_DROPDOWN")
                         // Empleados: cada operación requiere un permiso específico
                         .requestMatchers(HttpMethod.GET, "/api/empleados/**").hasAuthority("EMPLEADO_READ")
                         .requestMatchers(HttpMethod.POST, "/api/empleados/**").hasAuthority("EMPLEADO_CREATE")

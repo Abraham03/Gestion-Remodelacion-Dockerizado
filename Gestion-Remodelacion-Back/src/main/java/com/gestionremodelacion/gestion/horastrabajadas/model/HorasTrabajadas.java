@@ -20,7 +20,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "HorasTrabajadas")
+@Table(name = "horas_trabajadas")
 public class HorasTrabajadas {
 
     @Id
@@ -47,6 +47,18 @@ public class HorasTrabajadas {
 
     @Column(name = "costo_por_hora_actual")
     private BigDecimal costoPorHoraActual;
+
+    @Column(name = "cantidad")
+    private BigDecimal cantidad;// cantidad de horas o dias
+
+    @Column(name = "unidad")
+    private String unidad;// horas o dias
+
+    @Column(name = "nombre_empleado")
+    private String nombreEmpleado;
+
+    @Column(name = "nombre_proyecto")
+    private String nombreProyecto;
 
     @Column(name = "actividad_realizada", columnDefinition = "TEXT")
     private String actividadRealizada;
@@ -135,4 +147,37 @@ public class HorasTrabajadas {
     public void setEmpresa(Empresa empresa) {
         this.empresa = empresa;
     }
+
+    public BigDecimal getCantidad() {
+        return cantidad;
+    }
+
+    public void setCantidad(BigDecimal cantidad) {
+        this.cantidad = cantidad;
+    }
+
+    public String getUnidad() {
+        return unidad;
+    }
+
+    public void setUnidad(String unidad) {
+        this.unidad = unidad;
+    }
+
+    public String getNombreEmpleado() {
+        return nombreEmpleado;
+    }
+
+    public void setNombreEmpleado(String nombre_empleado) {
+        this.nombreEmpleado = nombre_empleado;
+    }
+
+    public String getNombreProyecto() {
+        return nombreProyecto;
+    }
+
+    public void setNombreProyecto(String nombre_proyecto) {
+        this.nombreProyecto = nombre_proyecto;
+    }
+
 }
