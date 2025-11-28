@@ -29,4 +29,5 @@ export interface UserRequest {
   roleIds: number[]; 
   enabled: boolean; 
   empresaId?: number;
+  empleadoId?: number | null;
 }

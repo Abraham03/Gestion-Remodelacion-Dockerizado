@@ -3,8 +3,10 @@ package com.gestionremodelacion.gestion.model;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.gestionremodelacion.gestion.empleado.model.Empleado;
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
@@ -53,6 +56,10 @@ public class User {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_empresa", nullable = true)
     private Empresa empresa;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "id_empleado", referencedColumnName = "id", unique = true)
+    private Empleado empleados;
 
     // Método de conveniencia para añadir roles
     public void addRole(Role role) {
@@ -118,6 +125,14 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Empleado getEmpleado() {
+        return empleados;
+    }
+
+    public void setEmpleado(Empleado empleado) {
+        this.empleados = empleado;
     }
 
 }

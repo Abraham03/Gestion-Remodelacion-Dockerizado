@@ -2,6 +2,7 @@ package com.gestionremodelacion.gestion.invitation.model;
 
 import java.time.LocalDateTime;
 
+import com.gestionremodelacion.gestion.empleado.model.Empleado;
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
 
 import jakarta.persistence.Column;
@@ -39,6 +40,10 @@ public class Invitacion {
     private LocalDateTime fechaExpiracion;
 
     private boolean utilizada = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_empleado", nullable = true)
+    private Empleado empleado;
 
     public Invitacion() {
     }
@@ -97,6 +102,14 @@ public class Invitacion {
 
     public void setRolAAsignar(String rolAAsignar) {
         this.rolAAsignar = rolAAsignar;
+    }
+
+    public Empleado getEmpleado() {
+        return empleado;
+    }
+
+    public void setEmpleado(Empleado empleado) {
+        this.empleado = empleado;
     }
 
 }

@@ -19,7 +19,10 @@ import { EmpresaService } from '../../../../empresa/service/empresa.service';
 import { EmpresaDropdown } from '../../../../empresa/model/Empresa';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { distinct, distinctUntilChanged, filter, tap } from 'rxjs';
+import { distinctUntilChanged, filter, tap } from 'rxjs';
+
+import { EmpleadoService } from '../../../../empleados/services/empleado.service';
+import { dropdownItemModeloHorastrabajadas } from '../../../../../core/models/dropdown-item-modelo-horastrabajadas';
 
 @Component({
   selector: 'app-user-form',
@@ -35,21 +38,23 @@ export class UserFormComponent implements OnInit {
   userForm: FormGroup;
   isEditMode: boolean;
   roles: RoleDropdownResponse[] = [];
-
   empresas: EmpresaDropdown[] = [];
+  empleados: dropdownItemModeloHorastrabajadas[] = [];
   isSuperAdmin = false;
-  private destroyRef = inject(DestroyRef); // Necesario para takeUntilDestroyed
+
+  private destroyRef = inject(DestroyRef);
   private translate = inject(TranslateService);
+  private snackBar = inject(MatSnackBar);
+  private userService = inject(UserService);
+  private roleService = inject(RoleService);
+  private authService = inject(AuthService);
+  private empresaService = inject(EmpresaService);
+  private empleadoService = inject(EmpleadoService);
 
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<UserFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: User | undefined,
-    private userService: UserService,
-    private roleService: RoleService,
-    private snackBar: MatSnackBar,
-    private authService: AuthService,
-    private empresaService: EmpresaService
   ) {
     this.isEditMode = !!data;
     this.isSuperAdmin = this.authService.isSuperAdmin; 
@@ -62,6 +67,7 @@ export class UserFormComponent implements OnInit {
       enabled: [data?.enabled ?? true],
       roles: [data?.roles.map(role => role.id) || [], Validators.required],
       empresaId: [data?.empresaId || null],
+      empleadoId: [null],
     });
   }
 
@@ -70,6 +76,7 @@ export class UserFormComponent implements OnInit {
       this.setupSuperAdminForm();
     }else{
       this.loadRolesForCurrentUser();
+      this.loadEmpleados();
     }
   }
 
@@ -85,9 +92,12 @@ export class UserFormComponent implements OnInit {
       distinctUntilChanged(),// Evita recargar si se selecciona la misma empresa
       tap(() => {// Limpia roles al cambiar empresa
         this.roles = [];
+        this.empleados = [];
         this.userForm.get('rolAAsignar')?.reset();
         this.userForm.get('rolAAsignar')?.clearValidators();
         this.userForm.get('rolAAsignar')?.updateValueAndValidity();
+        this.userForm.get('empleadoId')?.reset();
+        this.userForm.get('roles')?.reset();
       }),
       filter(empresaId => !!empresaId) // Solo carga si hay un ID de empresa seleccionado
     ).subscribe(empresaId => {
@@ -135,6 +145,19 @@ export class UserFormComponent implements OnInit {
       error: (err) => {
         console.error('Error loading roles:', err);
         this.snackBar.open(this.translate.instant('USERS.ERROR_LOADING_ROLES'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
+      },
+    });
+  }
+
+  loadEmpleados(): void{
+    this.empleadoService.getEmpleadosForDropdown().subscribe({
+      next: (data) => {
+        this.empleados = data;
+        console.log(this.empleados);
+      },
+      error: (err) => {
+        console.error('Error loading employees:', err);
+        this.snackBar.open(this.translate.instant('USERS.ERROR_LOADING_EMPLOYEES'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 });
       },
     });
   }

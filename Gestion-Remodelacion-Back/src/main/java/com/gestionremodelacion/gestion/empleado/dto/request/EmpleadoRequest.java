@@ -2,6 +2,7 @@ package com.gestionremodelacion.gestion.empleado.dto.request;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -33,6 +34,12 @@ public class EmpleadoRequest {
 
     private Boolean activo;
     private String notas;
+
+    // --- AÑADIR CAMPOS OPCIONALES PARA CREAR LOGIN ---
+    private String username;
+    private String email;
+    private String password;
+    private Set<Long> roles; // IDs de los roles para el nuevo usuario
 
     public EmpleadoRequest() {
         this.activo = true;
@@ -101,5 +108,37 @@ public class EmpleadoRequest {
 
     public void setNotas(String notas) {
         this.notas = notas;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Set<Long> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Long> roles) {
+        this.roles = roles;
     }
 }

@@ -36,7 +36,7 @@ public class InvitationController {
     public ResponseEntity<ApiResponse<Void>> createInvitationBySuperAdmin(
             @Valid @RequestBody InvitationRequest request) {
         invitationService.createAndSendInvitation(request.getEmail(), request.getEmpresaId(),
-                request.getRolAAsignar());
+                request.getRolAAsignar(), request.getEmpleadoId());
         return ResponseEntity.ok(new ApiResponse<>(200, "Invitación enviada por Super Admin.", null));
     }
 
@@ -48,7 +48,8 @@ public class InvitationController {
             throw new BusinessRuleException("No perteneces a ninguna empresa para poder invitar usuarios.");
         }
         // El rol se fija a "ROLE_USER" por seguridad.
-        invitationService.createAndSendInvitation(request.getEmail(), currentUser.getEmpresa().getId(), "ROLE_USER");
+        invitationService.createAndSendInvitation(request.getEmail(), currentUser.getEmpresa().getId(),
+                request.getRolAAsignar(), request.getEmpleadoId());
         return ResponseEntity.ok(new ApiResponse<>(200, "Invitación enviada.", null));
     }
 

@@ -6,6 +6,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gestionremodelacion.gestion.empleado.model.Empleado;
+import com.gestionremodelacion.gestion.empleado.repository.EmpleadoRepository;
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.empresa.repository.EmpresaRepository;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
@@ -24,17 +26,20 @@ public class InvitationService {
     private final EmpresaRepository empresaRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final EmpleadoRepository empleadoRepository;
 
     public InvitationService(InvitacionRepository invitacionRepository, EmpresaRepository empresaRepository,
-            UserRepository userRepository, NotificationService notificationService) {
+            UserRepository userRepository, NotificationService notificationService,
+            EmpleadoRepository empleadoRepository) {
         this.invitacionRepository = invitacionRepository;
         this.empresaRepository = empresaRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.empleadoRepository = empleadoRepository;
     }
 
     @Transactional
-    public void createAndSendInvitation(String email, Long empresaId, String roleNameToAssign) {
+    public void createAndSendInvitation(String email, Long empresaId, String roleNameToAssign, Long empleadoId) {
         if (userRepository.existsByEmail(email)) {
             throw new BusinessRuleException(ErrorCatalog.INVITATION_EMAIL_ALREADY_EXISTS.getKey());
         }
@@ -52,6 +57,20 @@ public class InvitationService {
         invitacion.setEmpresa(empresa);
         invitacion.setRolAAsignar(roleNameToAssign);
         invitacion.setFechaExpiracion(LocalDateTime.now().plusHours(48));
+
+        if (empleadoId != null) {
+            Empleado empleado = empleadoRepository.findByIdAndEmpresaId(empleadoId, empresaId)
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.EMPLOYEE_NOT_FOUND.getKey()));
+
+            // Validar que el empleado no tenga usuario asociado
+            if (empleado.getUser() != null) {
+                throw new BusinessRuleException(ErrorCatalog.EMPLOYEE_ALREADY_LINKED_TO_USER.getKey());
+            }
+
+            // Asignar el empleado a la invitación
+            invitacion.setEmpleado(empleado);
+        }
+
         invitacionRepository.save(invitacion);
 
         notificationService.sendInvitationEmail(

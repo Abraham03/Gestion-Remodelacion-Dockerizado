@@ -18,6 +18,8 @@ import { RoleService } from '../../../roles/services/role.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { InvitationService } from '../../../auth/services/invitation.service';
+import { dropdownItemModeloHorastrabajadas } from '../../../../core/models/dropdown-item-modelo-horastrabajadas';
+import { EmpleadoService } from '../../../empleados/services/empleado.service';
 
 @Component({
   selector: 'app-invite-user-dialog',
@@ -35,6 +37,7 @@ export class InviteUserDialogComponent implements OnInit {
   isSuperAdmin = false;
   empresas: EmpresaDropdown[] = [];
   rolesDeEmpresa: RoleDropdownResponse[] = [];
+  empleados: dropdownItemModeloHorastrabajadas[] = [];
 
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<InviteUserDialogComponent>);
@@ -45,12 +48,14 @@ export class InviteUserDialogComponent implements OnInit {
   private roleService = inject(RoleService);
   private invitationService = inject(InvitationService);
   private destroyRef = inject(DestroyRef); // Inyecta DestroyRef
+  private empleadoService = inject(EmpleadoService);
 
   constructor() {
     this.inviteForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       empresaId: [null],
-      rolAAsignar: [null]
+      rolAAsignar: [null],
+      empleadoId: [null]
     });
   }
 
@@ -58,6 +63,9 @@ export class InviteUserDialogComponent implements OnInit {
     this.isSuperAdmin = this.authService.isSuperAdmin;
     if (this.isSuperAdmin) {
       this.setupSuperAdminForm();
+    }
+    if (!this.isSuperAdmin) {
+      this.loadEmpleados();
     }
   }
 
@@ -90,17 +98,24 @@ export class InviteUserDialogComponent implements OnInit {
     });
   }
 
+  loadEmpleados(): void {
+    this.empleadoService.getEmpleadosForDropdown().subscribe({
+      next: (data) => this.empleados = data,
+      error: () => this.snackBar.open(this.translate.instant('USERS.ERROR_LOADING_EMPLOYEES'), this.translate.instant('GLOBAL.CLOSE'), { duration: 3000 })
+    });
+  }
+
   onSubmit(): void {
     if (this.inviteForm.invalid || this.isLoading) {
       return;
     }
 
     this.isLoading = true;
-    const { email, empresaId, rolAAsignar } = this.inviteForm.value;
+    const { email, empresaId, rolAAsignar, empleadoId } = this.inviteForm.value;
 
     const inviteCall$ = this.isSuperAdmin
-      ? this.invitationService.inviteUserBySuperAdmin(email, empresaId, rolAAsignar)
-      : this.invitationService.inviteUser(email);
+      ? this.invitationService.inviteUserBySuperAdmin(email, empresaId, rolAAsignar, empleadoId)
+      : this.invitationService.inviteUser(email, empleadoId);
 
     inviteCall$.subscribe({
       next: () => {

@@ -26,6 +26,9 @@ public class UserRequest {
 
     private Long empresaId;
 
+    // Campo Opcional
+    private Long empleadoId;
+
     public Long getId() {
         return id;
     }
@@ -81,6 +84,14 @@ public class UserRequest {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Long getEmpleadoId() {
+        return empleadoId;
+    }
+
+    public void setEmpleadoId(Long empleadoId) {
+        this.empleadoId = empleadoId;
     }
 
 }

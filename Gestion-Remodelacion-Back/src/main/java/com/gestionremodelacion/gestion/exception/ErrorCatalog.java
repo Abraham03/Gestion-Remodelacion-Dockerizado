@@ -30,16 +30,21 @@ public enum ErrorCatalog {
     CANNOT_DELETE_OWN_ACCOUNT("error.user.cannotDeleteSelf"),
     SUPER_ADMIN_ROLE_ASSIGNMENT_NOT_ALLOWED("error.user.uperAdminRoleAssignmentNotAllowed"),
     CANNOT_DELETE_SUPER_ADMIN("error.user.cannotDeleteSuperAdmin"), // error.user.cannotDeleteSuperAdmin
+    USER_NOT_LINKED_TO_EMPLOYEE("error.user.notLinkedToEmployee"),
+    EMAIL_ALREADY_IN_USE("error.user.emailInUse"),
 
     // --- Errores de Roles y Permisos ---
     ROLE_NOT_FOUND("error.role.notFound"),
     ROLE_NAME_ALREADY_EXISTS("error.role.nameExists"),
     PERMISSION_NOT_FOUND("error.permission.notFound"),
     PERMISSION_NOT_ALLOWED("error.permission.notAllowed"),
+    ROLES_ARE_REQUIRED("error.user.rolesRequired"),
 
     // --- Errores de Empleados ---
     EMPLOYEE_ALREADY_IN_DESIRED_STATE("error.employee.alreadyInDesiredState"),
     INVALID_EMPLOYEE_FOR_COMPANY("error.employee.invalidForCompany"),
+    EMPLOYEE_NOT_FOUND("error.employee.notFound"),
+    EMPLOYEE_ALREADY_LINKED_TO_USER("error.employee.alreadyLinkedToUser"),
 
     // --- Errores de Horas Trabajadas ---
     WORK_LOG_NOT_FOUND("error.workLog.notFound"),

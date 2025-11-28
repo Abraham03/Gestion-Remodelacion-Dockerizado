@@ -19,6 +19,7 @@ import com.gestionremodelacion.gestion.dto.request.LoginRequest;
 import com.gestionremodelacion.gestion.dto.request.RefreshTokenRequest;
 import com.gestionremodelacion.gestion.dto.request.UserRequest;
 import com.gestionremodelacion.gestion.dto.response.AuthResponse;
+import com.gestionremodelacion.gestion.empleado.model.Empleado;
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
 import com.gestionremodelacion.gestion.exception.DuplicateResourceException;
@@ -206,6 +207,19 @@ public class AuthService {
         newUser.setEnabled(true);
         newUser.setEmpresa(empresa);
         newUser.setRoles(Set.of(roleToAssign));
+
+        // Vinculacion automatica con el empleado
+        if (invitacion.getEmpleado() != null) {
+            Empleado empleado = invitacion.getEmpleado();
+
+            // Doble verificacion de seguridad por si se asigno manualmente mientras la
+            // invitacion estaba pendiente
+            if (empleado.getUser() != null) {
+                throw new BusinessRuleException(ErrorCatalog.EMPLOYEE_ALREADY_LINKED_TO_USER.getKey());
+            }
+
+            newUser.setEmpleado(empleado);
+        }
 
         // 6. Guardar el nuevo usuario
         userRepository.save(newUser);

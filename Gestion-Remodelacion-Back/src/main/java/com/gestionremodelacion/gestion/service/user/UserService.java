@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionremodelacion.gestion.dto.request.UserRequest;
 import com.gestionremodelacion.gestion.dto.response.UserResponse;
+import com.gestionremodelacion.gestion.empleado.model.Empleado;
+import com.gestionremodelacion.gestion.empleado.repository.EmpleadoRepository;
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.empresa.repository.EmpresaRepository;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
@@ -39,15 +41,18 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final EmpresaRepository empresaRepository;
+    private final EmpleadoRepository empleadoRepository;
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder,
-            UserMapper userMapper, RefreshTokenRepository refreshTokenRepository, EmpresaRepository empresaRepository) {
+            UserMapper userMapper, RefreshTokenRepository refreshTokenRepository, EmpresaRepository empresaRepository,
+            EmpleadoRepository empleadoRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
         this.refreshTokenRepository = refreshTokenRepository;
         this.empresaRepository = empresaRepository;
+        this.empleadoRepository = empleadoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -138,23 +143,19 @@ public class UserService {
         boolean isSuperAdmin = currentUser.getRoles().stream()
                 .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getName()));
 
-        // --- LÓGICA CORREGIDA ---
         if (isSuperAdmin) {
             // Si es Super Admin, debe recibir el 'empresaId' en el request.
             if (userRequest.getEmpresaId() == null) {
-                throw new BusinessRuleException(ErrorCatalog.COMPANY_ID_REQUIRED.getKey()); // Deberías crear este error
-                                                                                            // en tu catálogo
+                throw new BusinessRuleException(ErrorCatalog.COMPANY_ID_REQUIRED.getKey());
             }
             Empresa empresaAsignada = empresaRepository.findById(userRequest.getEmpresaId())
-                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.COMPANY_NOT_FOUND.getKey())); // Y
-                                                                                                                // este
-                                                                                                                // también
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.COMPANY_NOT_FOUND.getKey()));
+
             newUser.setEmpresa(empresaAsignada);
         } else {
             // Si es un Admin normal, se le asigna su propia empresa.
             newUser.setEmpresa(currentUser.getEmpresa());
         }
-        // --- FIN DE LA CORRECCIÓN ---
 
         newUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         newUser.setEnabled(userRequest.isEnabled());
@@ -164,6 +165,23 @@ public class UserService {
                         .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey())))
                 .collect(Collectors.toSet());
         newUser.setRoles(roles);
+
+        // Vinculacion con el empleado
+        if (userRequest.getEmpleadoId() != null) {
+            // Buscar el empleado asegurando que pertenezca a la misma empresa que el
+            // usuario
+            Empleado empleado = empleadoRepository
+                    .findByIdAndEmpresaId(userRequest.getEmpleadoId(), newUser.getEmpresa().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.EMPLOYEE_NOT_FOUND.getKey()));
+
+            // Validar que el empleado no este ya vinculado a otro usuario
+            if (empleado.getUser() != null) {
+                throw new BusinessRuleException(ErrorCatalog.EMPLOYEE_ALREADY_LINKED_TO_USER.getKey());
+            }
+
+            // Asignar el empleado al usuario
+            newUser.setEmpleado(empleado);
+        }
 
         User savedUser = userRepository.save(newUser);
         return userMapper.toDto(savedUser);

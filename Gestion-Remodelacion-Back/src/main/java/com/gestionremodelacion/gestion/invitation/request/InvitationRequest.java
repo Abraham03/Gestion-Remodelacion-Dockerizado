@@ -11,6 +11,8 @@ public class InvitationRequest {
 
     private String rolAAsignar;
 
+    private Long empleadoId;
+
     public String getRolAAsignar() {
         return rolAAsignar;
     }
@@ -22,4 +24,9 @@ public class InvitationRequest {
     public String getEmail() {
         return email;
     }
+
+    public Long getEmpleadoId() {
+        return empleadoId;
+    }
+
 }

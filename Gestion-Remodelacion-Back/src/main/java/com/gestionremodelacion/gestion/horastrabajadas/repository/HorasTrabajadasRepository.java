@@ -45,6 +45,31 @@ public interface HorasTrabajadasRepository extends JpaRepository<HorasTrabajadas
         Page<HorasTrabajadasResponse> findByFilterWithDetails(@Param("empresaId") Long empresaId,
                         @Param("filter") String filter, Pageable pageable);
 
+        /**
+         * Obtiene todos los registros de un empleado específico.
+         */
+        @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
+                        + "h.id, h.empleado.id, h.nombreEmpleado, h.proyecto.id, h.nombreProyecto, "
+                        + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro, "
+                        + "h.cantidad, h.unidad) "
+                        + "FROM HorasTrabajadas h WHERE h.empresa.id = :empresaId AND h.empleado.id = :empleadoId")
+        Page<HorasTrabajadasResponse> findAllWithDetailsByEmpleado(@Param("empresaId") Long empresaId,
+                        @Param("empleadoId") Long empleadoId, Pageable pageable);
+
+        /**
+         * Obtiene registros filtrados de un empleado específico.
+         */
+        @Query("SELECT new com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasResponse("
+                        + "h.id, h.empleado.id, h.nombreEmpleado, h.proyecto.id, h.nombreProyecto, "
+                        + "h.fecha, h.horas, h.costoPorHoraActual, h.actividadRealizada, h.fechaRegistro,"
+                        + "h.cantidad, h.unidad) "
+                        + "FROM HorasTrabajadas h WHERE h.empresa.id = :empresaId AND h.empleado.id = :empleadoId AND ("
+                        + "LOWER(h.nombreEmpleado) LIKE LOWER(CONCAT('%', :filter, '%')) OR "
+                        + "LOWER(h.nombreProyecto) LIKE LOWER(CONCAT('%', :filter, '%')))")
+        Page<HorasTrabajadasResponse> findByFilterWithDetailsByEmpleado(@Param("empresaId") Long empresaId,
+                        @Param("empleadoId") Long empleadoId,
+                        @Param("filter") String filter, Pageable pageable);
+
         // Consulta para la exportación que devuelve la entidad completa.
         @Query("SELECT h FROM HorasTrabajadas h JOIN FETCH h.empleado e JOIN FETCH h.proyecto p "
                         + "WHERE h.empresa.id = :empresaId AND (:filter IS NULL OR "

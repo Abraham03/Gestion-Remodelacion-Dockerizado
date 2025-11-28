@@ -43,6 +43,17 @@
             </mat-error>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditMode">
+                <mat-label>{{ 'USERS.LINK_EMPLOYEE' | translate }}</mat-label>
+                <mat-select formControlName="empleadoId">
+                    <mat-option [value]="null">-- {{ 'GLOBAL.NONE' | translate }} --</mat-option>
+                    <mat-option *ngFor="let empleado of empleados" [value]="empleado.id">
+                        {{ empleado.nombre }}
+                    </mat-option>
+                </mat-select>
+                <mat-hint>{{ 'USERS.LINK_EMPLOYEE_HINT' | translate }}</mat-hint>
+        </mat-form-field>        
+
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'USERS.ROLES' | translate }}</mat-label>    
             <mat-select formControlName="roles" multiple required>

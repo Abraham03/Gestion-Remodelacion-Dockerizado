@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionremodelacion.gestion.empleado.model.Empleado;
+import com.gestionremodelacion.gestion.empleado.model.ModeloDePago;
 import com.gestionremodelacion.gestion.empleado.repository.EmpleadoRepository;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
 import com.gestionremodelacion.gestion.exception.ErrorCatalog;
@@ -35,6 +36,11 @@ public class HorasTrabajadasService {
     private final ProyectoRepository proyectoRepository;
     private final UserService userService;
 
+    private static final String PERMISO_READ_ALL = "HORASTRABAJADAS_READ_ALL";
+    private static final String PERMISO_CREATE_ALL = "HORASTRABAJADAS_CREATE_ALL";
+    private static final String PERMISO_UPDATE_ALL = "HORASTRABAJADAS_UPDATE_ALL";
+    private static final String PERMISO_DELETE_ALL = "HORASTRABAJADAS_DELETE_ALL";
+
     public HorasTrabajadasService(HorasTrabajadasRepository horasTrabajadasRepository,
             HorasTrabajadasMapper horasTrabajadasMapper, EmpleadoRepository empleadoRepository,
             ProyectoRepository proyectoRepository, UserService userService) {
@@ -51,9 +57,24 @@ public class HorasTrabajadasService {
         User currentUser = userService.getCurrentUser();
         Long empresaId = currentUser.getEmpresa().getId();
 
-        return (filter != null && !filter.trim().isEmpty())
-                ? horasTrabajadasRepository.findByFilterWithDetails(empresaId, filter, pageable)
-                : horasTrabajadasRepository.findAllWithDetails(empresaId, pageable);
+        // Logica de seguridad
+        boolean canReadAll = hasPermission(currentUser, PERMISO_READ_ALL);
+
+        if (canReadAll) {
+            // El usuario es Admin/Manager, usa la consulta antigua (ver todo)
+            return (filter != null && !filter.trim().isEmpty())
+                    ? horasTrabajadasRepository.findByFilterWithDetails(empresaId, filter, pageable)
+                    : horasTrabajadasRepository.findAllWithDetails(empresaId, pageable);
+        } else {
+            // El usuario es un trabajador, usa la nueva consulta (ver solo lo suyo)
+            Empleado empleadoVinculado = getEmpleadoVinculado(currentUser); // Método helper
+
+            return (filter != null && !filter.trim().isEmpty())
+                    ? horasTrabajadasRepository.findByFilterWithDetailsByEmpleado(empresaId, empleadoVinculado.getId(),
+                            filter, pageable)
+                    : horasTrabajadasRepository.findAllWithDetailsByEmpleado(empresaId, empleadoVinculado.getId(),
+                            pageable);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -61,9 +82,23 @@ public class HorasTrabajadasService {
         User currentUser = userService.getCurrentUser();
         Long empresaId = currentUser.getEmpresa().getId();
 
-        return horasTrabajadasRepository.findByIdAndEmpresaId(id, empresaId)
-                .map(horasTrabajadasMapper::toHorasTrabajadasResponse)
+        HorasTrabajadas horasTrabajadas = horasTrabajadasRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey()));
+
+        // --- LÓGICA DE SEGURIDAD CORREGIDA ---
+        boolean canReadAll = hasPermission(currentUser, PERMISO_READ_ALL);
+
+        if (canReadAll) {
+            return horasTrabajadasMapper.toHorasTrabajadasResponse(horasTrabajadas);
+        }
+
+        Empleado empleadoVinculado = getEmpleadoVinculado(currentUser);
+        if (horasTrabajadas.getEmpleado().getId().equals(empleadoVinculado.getId())) {
+            return horasTrabajadasMapper.toHorasTrabajadasResponse(horasTrabajadas);
+        }
+
+        // Si no es admin y no es el dueño, no lo encuentra
+        throw new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey());
     }
 
     @Transactional
@@ -71,8 +106,21 @@ public class HorasTrabajadasService {
         User currentUser = userService.getCurrentUser();
         Long empresaId = currentUser.getEmpresa().getId();
 
+        // --- LÓGICA DE SEGURIDAD ---
+        boolean canCreateForAll = hasPermission(currentUser, PERMISO_CREATE_ALL);
+
+        Long empleadoIdParaRegistro;
+
+        if (canCreateForAll) {
+            // Admin usa el ID del request
+            empleadoIdParaRegistro = horasTrabajadasRequest.getIdEmpleado();
+        } else {
+            // Trabajador usa su propio ID, ignorando el request
+            empleadoIdParaRegistro = getEmpleadoVinculado(currentUser).getId();
+        }
+
         // Validar entidades
-        Empleado empleado = empleadoRepository.findByIdAndEmpresaId(horasTrabajadasRequest.getIdEmpleado(), empresaId)
+        Empleado empleado = empleadoRepository.findByIdAndEmpresaId(empleadoIdParaRegistro, empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
                         ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
 
@@ -86,7 +134,9 @@ public class HorasTrabajadasService {
         BigDecimal horasReales = this.convertirUnidadAHoras(horasTrabajadasRequest.getCantidad(),
                 horasTrabajadasRequest.getUnidad());
 
-        // Mapear y guardar el Snapshot inmutable
+        ModeloDePago estrategiaDePago = empleado.getModeloDePago();
+
+        BigDecimal costoPorHoraReal = estrategiaDePago.calcularCostoBasePorHora(empleado.getCostoPorHora());
 
         HorasTrabajadas horasTrabajadas = horasTrabajadasMapper.toHorasTrabajadas(horasTrabajadasRequest);
 
@@ -96,7 +146,7 @@ public class HorasTrabajadasService {
 
         // Asignacion de valores calculados y de snapshot
         horasTrabajadas.setHoras(horasReales);
-        horasTrabajadas.setCostoPorHoraActual(empleado.getCostoPorHora());
+        horasTrabajadas.setCostoPorHoraActual(costoPorHoraReal);
         horasTrabajadas.setCantidad(horasTrabajadasRequest.getCantidad());
         horasTrabajadas.setUnidad(horasTrabajadasRequest.getUnidad());
         horasTrabajadas.setNombreEmpleado(empleado.getNombreCompleto());
@@ -118,10 +168,26 @@ public class HorasTrabajadasService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         ErrorCatalog.WORK_LOG_NOT_FOUND.getKey()));
 
+        // --- LÓGICA DE SEGURIDAD ---
+        boolean canUpdateAll = hasPermission(currentUser, PERMISO_UPDATE_ALL);
+
+        Long empleadoIdParaActualizar;
+
+        if (canUpdateAll) {
+            empleadoIdParaActualizar = horasTrabajadasRequest.getIdEmpleado();
+        } else {
+            // Si no es admin, solo puede editar sus propios registros
+            Empleado empleadoVinculado = getEmpleadoVinculado(currentUser);
+            if (!horasTrabajadas.getEmpleado().getId().equals(empleadoVinculado.getId())) {
+                throw new ResourceNotFoundException(ErrorCatalog.WORK_LOG_NOT_FOUND.getKey()); // Lanza error
+            }
+            empleadoIdParaActualizar = empleadoVinculado.getId();
+        }
+
         Proyecto proyectoOriginal = horasTrabajadas.getProyecto();
 
         Empleado nuevoEmpleado = empleadoRepository
-                .findByIdAndEmpresaId(horasTrabajadasRequest.getIdEmpleado(), empresaId)
+                .findByIdAndEmpresaId(empleadoIdParaActualizar, empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
                         ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
 
@@ -133,6 +199,8 @@ public class HorasTrabajadasService {
         // Logica de calculo de costo/hora
         BigDecimal horasReales = this.convertirUnidadAHoras(horasTrabajadasRequest.getCantidad(),
                 horasTrabajadasRequest.getUnidad());
+        ModeloDePago estrategiaDePago = nuevoEmpleado.getModeloDePago();
+        BigDecimal costoPorHoraReal = estrategiaDePago.calcularCostoBasePorHora(nuevoEmpleado.getCostoPorHora());
 
         // Mapear campos del request a horas trabajadas
         horasTrabajadasMapper.updateHorasTrabajadasFromRequest(horasTrabajadasRequest, horasTrabajadas);
@@ -141,7 +209,7 @@ public class HorasTrabajadasService {
         horasTrabajadas.setEmpleado(nuevoEmpleado);
         horasTrabajadas.setProyecto(nuevoProyecto);
         horasTrabajadas.setHoras(horasReales);
-        horasTrabajadas.setCostoPorHoraActual(nuevoEmpleado.getCostoPorHora());
+        horasTrabajadas.setCostoPorHoraActual(costoPorHoraReal);
         horasTrabajadas.setCantidad(horasTrabajadasRequest.getCantidad());
         horasTrabajadas.setUnidad(horasTrabajadasRequest.getUnidad());
         horasTrabajadas.setNombreEmpleado(nuevoEmpleado.getNombreCompleto());
@@ -165,6 +233,16 @@ public class HorasTrabajadasService {
         HorasTrabajadas horasTrabajadas = horasTrabajadasRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         ErrorCatalog.WORK_LOG_NOT_FOUND.getKey()));
+
+        // --- LÓGICA DE SEGURIDAD ---
+        boolean canDeleteAll = hasPermission(currentUser, PERMISO_DELETE_ALL);
+
+        if (!canDeleteAll) {
+            Empleado empleadoVinculado = getEmpleadoVinculado(currentUser);
+            if (!horasTrabajadas.getEmpleado().getId().equals(empleadoVinculado.getId())) {
+                throw new ResourceNotFoundException(ErrorCatalog.WORK_LOG_NOT_FOUND.getKey()); // Lanza error
+            }
+        }
 
         Proyecto proyectoAfectado = horasTrabajadas.getProyecto();
         horasTrabajadasRepository.delete(horasTrabajadas);
@@ -228,6 +306,32 @@ public class HorasTrabajadasService {
 
         // Lanza una excepción si la unidad no se reconoce
         throw new BusinessRuleException(ErrorCatalog.INVALID_INPUT_UNIT.getKey());
+    }
+
+    /**
+     * Método helper privado para obtener el empleado vinculado a un usuario
+     * y manejar la excepción si no existe.
+     */
+    private Empleado getEmpleadoVinculado(User currentUser) {
+        Empleado empleadoVinculado = currentUser.getEmpleado();
+        if (empleadoVinculado == null) {
+
+            throw new BusinessRuleException(ErrorCatalog.USER_NOT_LINKED_TO_EMPLOYEE.getKey());
+        }
+        return empleadoVinculado;
+    }
+
+    /**
+     * Método helper privado para comprobar permisos usando el modelo de dominio.
+     */
+    private boolean hasPermission(User user, String permissionName) {
+        if (user == null || user.getRoles() == null) {
+            return false;
+        }
+        // Itera a través de los roles, luego los permisos de cada rol
+        return user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .anyMatch(permission -> permission.getName().equals(permissionName));
     }
 
 }
