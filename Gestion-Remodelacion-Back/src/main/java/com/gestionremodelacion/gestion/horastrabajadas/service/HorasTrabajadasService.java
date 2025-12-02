@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionremodelacion.gestion.empleado.model.Empleado;
-import com.gestionremodelacion.gestion.empleado.model.ModeloDePago;
 import com.gestionremodelacion.gestion.empleado.repository.EmpleadoRepository;
 import com.gestionremodelacion.gestion.exception.BusinessRuleException;
 import com.gestionremodelacion.gestion.exception.ErrorCatalog;
@@ -134,10 +133,6 @@ public class HorasTrabajadasService {
         BigDecimal horasReales = this.convertirUnidadAHoras(horasTrabajadasRequest.getCantidad(),
                 horasTrabajadasRequest.getUnidad());
 
-        ModeloDePago estrategiaDePago = empleado.getModeloDePago();
-
-        BigDecimal costoPorHoraReal = estrategiaDePago.calcularCostoBasePorHora(empleado.getCostoPorHora());
-
         HorasTrabajadas horasTrabajadas = horasTrabajadasMapper.toHorasTrabajadas(horasTrabajadasRequest);
 
         horasTrabajadas.setEmpresa(currentUser.getEmpresa());
@@ -146,7 +141,7 @@ public class HorasTrabajadasService {
 
         // Asignacion de valores calculados y de snapshot
         horasTrabajadas.setHoras(horasReales);
-        horasTrabajadas.setCostoPorHoraActual(costoPorHoraReal);
+        horasTrabajadas.setCostoPorHoraActual(empleado.getCostoPorHora());
         horasTrabajadas.setCantidad(horasTrabajadasRequest.getCantidad());
         horasTrabajadas.setUnidad(horasTrabajadasRequest.getUnidad());
         horasTrabajadas.setNombreEmpleado(empleado.getNombreCompleto());
@@ -199,8 +194,6 @@ public class HorasTrabajadasService {
         // Logica de calculo de costo/hora
         BigDecimal horasReales = this.convertirUnidadAHoras(horasTrabajadasRequest.getCantidad(),
                 horasTrabajadasRequest.getUnidad());
-        ModeloDePago estrategiaDePago = nuevoEmpleado.getModeloDePago();
-        BigDecimal costoPorHoraReal = estrategiaDePago.calcularCostoBasePorHora(nuevoEmpleado.getCostoPorHora());
 
         // Mapear campos del request a horas trabajadas
         horasTrabajadasMapper.updateHorasTrabajadasFromRequest(horasTrabajadasRequest, horasTrabajadas);
@@ -209,7 +202,7 @@ public class HorasTrabajadasService {
         horasTrabajadas.setEmpleado(nuevoEmpleado);
         horasTrabajadas.setProyecto(nuevoProyecto);
         horasTrabajadas.setHoras(horasReales);
-        horasTrabajadas.setCostoPorHoraActual(costoPorHoraReal);
+        horasTrabajadas.setCostoPorHoraActual(nuevoEmpleado.getCostoPorHora());
         horasTrabajadas.setCantidad(horasTrabajadasRequest.getCantidad());
         horasTrabajadas.setUnidad(horasTrabajadasRequest.getUnidad());
         horasTrabajadas.setNombreEmpleado(nuevoEmpleado.getNombreCompleto());

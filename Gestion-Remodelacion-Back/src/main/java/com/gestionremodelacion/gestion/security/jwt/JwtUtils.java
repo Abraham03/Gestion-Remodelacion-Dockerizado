@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -35,6 +37,7 @@ public class JwtUtils {
 
     private final JwtProperties jwtProperties;
     private Key key;
+    private final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
     public JwtUtils(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
@@ -65,15 +68,11 @@ public class JwtUtils {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        // --- INICIO DE LA CORRECCIÓN ---
         Empresa empresa = userPrincipal.getEmpresa();
-
-        // Verificamos si la empresa existe antes de obtener sus datos
+        // Verifica si la empresa existe antes de obtener sus datos
         Long empresaId = (empresa != null) ? empresa.getId() : null;
         String plan = (empresa != null) ? empresa.getPlan().toString() : null;
         String nombreEmpresa = (empresa != null) ? empresa.getNombreEmpresa() : null;
-
-        // --- FIN DE LA CORRECCIÓN ---
 
         return buildToken(
                 userPrincipal.getUsername(),
@@ -86,15 +85,10 @@ public class JwtUtils {
 
     public String generateTokenFromUsername(String username, List<String> permissions, List<String> roles,
             Empresa empresa) {
-
-        // --- INICIO DE LA CORRECCIÓN ---
         // Hacemos la misma verificación aquí
         Long empresaId = (empresa != null) ? empresa.getId() : null;
         String plan = (empresa != null) ? empresa.getPlan().toString() : null;
         String nombreEmpresa = (empresa != null) ? empresa.getNombreEmpresa() : null;
-
-        // --- FIN DE LA CORRECCIÓN ---
-
         return buildToken(username, permissions, roles, empresaId, plan, nombreEmpresa);
     }
 
@@ -108,7 +102,6 @@ public class JwtUtils {
                 .claim("authorities", permissions)
                 .claim("roles", roles);
 
-        // --- INICIO DE LA CORRECCIÓN ---
         // Añadimos los claims de la empresa solo si no son nulos
         if (empresaId != null) {
             builder.claim("empresaId", empresaId);
@@ -119,8 +112,6 @@ public class JwtUtils {
         if (nombreEmpresa != null) {
             builder.claim("nombreEmpresa", nombreEmpresa);
         }
-
-        // --- FIN DE LA CORRECCIÓN ---
 
         return builder.signWith(key).compact();
     }
