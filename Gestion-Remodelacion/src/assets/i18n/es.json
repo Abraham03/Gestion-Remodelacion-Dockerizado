@@ -148,7 +148,6 @@
     "EXPORT_PDF": "PDF",
     "FULL_NAME": "Nombre Completo",
     "ROLE_POSITION": "Rol/Cargo",
-    "PAYMENT_MODEL": "Modelo de Pago",
     "COST": "Costo",
     "HIRE_DATE": "Fecha Contratación",
     "STATUS": "Estado",
@@ -179,7 +178,13 @@
     "ERROR_INVALID_ID_FOR_DELETE": "ID de empleado no válido para desactivar.",
     "ERROR_ALREADY_DEACTIVATED": "El empleado ya está desactivado.",
     "ERROR_EXPORT_EXCEL": "Error al exportar a Excel.",
-    "ERROR_EXPORT_PDF": "Error al exportar a PDF."
+    "ERROR_EXPORT_PDF": "Error al exportar a PDF.",
+    "PAYMENT_MODEL": {
+        "POR_HORA": "Por Hora",
+        "POR_DIA": "Por Día"
+    },
+    "SELECTED": "Seleccionados",
+    "PAYMENT_MODEL_TYPE": "Modelo de Pago"
   },
   "PROJECTS": {
     "MANAGEMENT": "Gestión de Proyectos",
@@ -240,13 +245,18 @@
     "ERROR_UPDATING": "Error al actualizar el proyecto.",
     "ERROR_EXPORT_EXCEL": "Error al exportar a Excel.",
     "ERROR_EXPORT_PDF": "Error al exportar a PDF.",
+    "ASSIGNED_TEAM_HINT": "Asignar empleados a este proyecto",
     "STATE": {
       "PENDIENTE": "Pendiente",
       "EN_PROGRESO": "En Progreso",
       "EN_PAUSA": "En Pausa",
       "FINALIZADO": "Finalizado",
       "CANCELADO": "Cancelado"
-    }
+    },
+    "ASSIGNED_TEAM": "Equipo Asignado",
+    "ASSIGNED_TEAM_FOR": "Equipo Asignado para",
+    "NO_TEAM_ASSIGNED": "No hay empleados asignados a este proyecto.",
+    "VIEW_TEAM_TOOLTIP": "Ver lista de empleados asignados"
   },
   "WORK_HOURS": {
     "MANAGEMENT": "Registro de Horas Trabajadas",
@@ -287,6 +297,7 @@
     "PASSWORD": "Contraseña",
     "IS_ACTIVE": "Usuario Activo",
     "ROLES": "Roles",
+    "LINK_EMPLOYEE": "Empleado Asociado",
     "NO_USERS_FOUND": "No se encontraron usuarios que coincidan con el filtro.",
     "SEARCH_USER": "Buscar usuario",
     "PLACEHOLDER_SEARCH": "Ej. Juan Pérez",

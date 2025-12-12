@@ -3,7 +3,9 @@ package com.gestionremodelacion.gestion.proyecto.dto.response;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
+import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoDropdownResponse;
 import com.gestionremodelacion.gestion.proyecto.model.Proyecto;
 
 public class ProyectoResponse {
@@ -29,14 +31,18 @@ public class ProyectoResponse {
     private Integer progresoPorcentaje;
     private String notasProyecto;
     private LocalDateTime fechaCreacion;
+    private Set<EmpleadoDropdownResponse> equipoAsignado;
+
+    public ProyectoResponse() {
+    }
 
     public ProyectoResponse(Long id, Long idCliente, String nombreCliente, String nombreProyecto, String descripcion,
             String direccionPropiedad, Proyecto.EstadoProyecto estado, LocalDate fechaInicio,
             LocalDate fechaFinEstimada, LocalDate fechaFinalizacionReal, Long idEmpleadoResponsable,
             String nombreEmpleadoResponsable, BigDecimal montoContrato, BigDecimal montoRecibido,
             LocalDate fechaUltimoPagoRecibido, BigDecimal costoMaterialesConsolidado,
-            BigDecimal otrosGastosDirectosConsolidado, BigDecimal costoManoDeObra, Integer progresoPorcentaje, String notasProyecto,
-            LocalDateTime fechaCreacion) {
+            BigDecimal otrosGastosDirectosConsolidado, BigDecimal costoManoDeObra, Integer progresoPorcentaje,
+            String notasProyecto, LocalDateTime fechaCreacion, Set<EmpleadoDropdownResponse> equipoAsignado) {
         this.id = id;
         this.idCliente = idCliente;
         this.nombreCliente = nombreCliente;
@@ -58,6 +64,24 @@ public class ProyectoResponse {
         this.progresoPorcentaje = progresoPorcentaje;
         this.notasProyecto = notasProyecto;
         this.fechaCreacion = fechaCreacion;
+        this.equipoAsignado = equipoAsignado;
+    }
+
+    // Coincide exactamente con los argumentos de tu @Query en el repositorio
+    public ProyectoResponse(Long id, Long idCliente, String nombreCliente, String nombreProyecto, String descripcion,
+            String direccionPropiedad, Proyecto.EstadoProyecto estado, LocalDate fechaInicio,
+            LocalDate fechaFinEstimada, LocalDate fechaFinalizacionReal, Long idEmpleadoResponsable,
+            String nombreEmpleadoResponsable, BigDecimal montoContrato, BigDecimal montoRecibido,
+            LocalDate fechaUltimoPagoRecibido, BigDecimal costoMaterialesConsolidado,
+            BigDecimal otrosGastosDirectosConsolidado, BigDecimal costoManoDeObra, Integer progresoPorcentaje,
+            String notasProyecto, LocalDateTime fechaCreacion) {
+
+        // Llamamos al constructor principal pasando null o vacío en el equipo
+        this(id, idCliente, nombreCliente, nombreProyecto, descripcion, direccionPropiedad, estado, fechaInicio,
+                fechaFinEstimada, fechaFinalizacionReal, idEmpleadoResponsable, nombreEmpleadoResponsable,
+                montoContrato, montoRecibido, fechaUltimoPagoRecibido, costoMaterialesConsolidado,
+                otrosGastosDirectosConsolidado, costoManoDeObra, progresoPorcentaje, notasProyecto, fechaCreacion,
+                null); // <--- Equipo es NULL aquí
     }
 
     // Getters y Setters
@@ -228,4 +252,13 @@ public class ProyectoResponse {
     public void setCostoManoDeObra(BigDecimal costoManoDeObra) {
         this.costoManoDeObra = costoManoDeObra;
     }
+
+    public void setEquipoAsignado(Set<EmpleadoDropdownResponse> equipoAsignado) {
+        this.equipoAsignado = equipoAsignado;
+    }
+
+    public Set<EmpleadoDropdownResponse> getEquipoAsignado() {
+        return equipoAsignado;
+    }
+
 }

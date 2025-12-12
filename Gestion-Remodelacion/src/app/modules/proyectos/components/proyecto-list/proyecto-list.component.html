@@ -60,6 +60,15 @@
           <td mat-cell *matCellDef="let proyecto">{{ proyecto.nombreEmpleadoResponsable || '---' }}</td>
         </ng-container>
 
+        <ng-container matColumnDef="equipo">
+            <th mat-header-cell *matHeaderCellDef>{{ 'PROJECTS.ASSIGNED_TEAM' | translate }}</th>
+            <td mat-cell *matCellDef="let proyecto">
+                <button mat-icon-button color="primary" (click)="viewTeam(proyecto)" [matTooltip]="'PROJECTS.VIEW_TEAM_TOOLTIP' | translate">
+                    <mat-icon>group</mat-icon>
+                </button>
+            </td>
+        </ng-container>
+
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'PROJECTS.STATUS' | translate }}</th>
           <td mat-cell *matCellDef="let proyecto">

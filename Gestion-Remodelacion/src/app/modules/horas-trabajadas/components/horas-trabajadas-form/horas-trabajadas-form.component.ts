@@ -155,12 +155,12 @@ loadDropdownData(): void {
       },
       error: err => {
         // Si hubieras tenido esto, habrías visto el error en la consola.
-        console.error('Error al cargar empleados dropdown:', err);
         this.snackBar.open('Error al cargar empleados', 'Cerrar', { duration: 3000 });
       }
     });
 
     this.proyectos$ = (this.proyectosService as any).getProyectosForDropdown();
+
   }
 
   private formatDateForBackend(date: Date | null): string | null {

@@ -7,6 +7,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import com.gestionremodelacion.gestion.empleado.dto.request.EmpleadoRequest;
+import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoDropdownResponse;
 import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoResponse;
 import com.gestionremodelacion.gestion.empleado.model.Empleado;
 
@@ -42,6 +43,8 @@ public interface EmpleadoMapper {
     @Mapping(target = "activo", ignore = true) // Handled by Empleado constructor
     @Mapping(target = "fechaRegistro", ignore = true) // Handled by @PrePersist
     @Mapping(target = "empresa", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "proyectosAsignados", ignore = true)
     Empleado toEmpleado(EmpleadoRequest request);
 
     /**
@@ -53,9 +56,15 @@ public interface EmpleadoMapper {
      * @param request  The EmpleadoRequest DTO with updated data.
      * @param empleado The existing Empleado entity to update.
      */
-    @Mapping(target = "id", ignore = true) // ID should not be updated from request
-    @Mapping(target = "fechaRegistro", ignore = true) // FechaRegistro should not be updated from request
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "activo", ignore = true)
+    @Mapping(target = "fechaRegistro", ignore = true)
     @Mapping(target = "empresa", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "proyectosAsignados", ignore = true)
     void updateEmpleadoFromRequest(EmpleadoRequest request, @MappingTarget Empleado empleado);
 
+    @Mapping(source = "nombreCompleto", target = "nombre")
+    @Mapping(source = "modeloDePago", target = "modeloDePago")
+    EmpleadoDropdownResponse toEmpleadoDropdownResponse(Empleado empleado);
 }

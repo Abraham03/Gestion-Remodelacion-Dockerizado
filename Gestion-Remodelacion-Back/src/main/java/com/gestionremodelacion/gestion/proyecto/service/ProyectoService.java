@@ -1,7 +1,10 @@
 package com.gestionremodelacion.gestion.proyecto.service;
 
 import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -20,10 +23,10 @@ import com.gestionremodelacion.gestion.exception.ResourceNotFoundException;
 import com.gestionremodelacion.gestion.mapper.ProyectoMapper;
 import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.proyecto.dto.request.ProyectoRequest;
+import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoDropdownResponse;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoExcelDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoPdfDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoResponse;
-import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoDropdownResponse;
 import com.gestionremodelacion.gestion.proyecto.model.Proyecto;
 import com.gestionremodelacion.gestion.proyecto.repository.ProyectoRepository;
 import com.gestionremodelacion.gestion.service.user.UserService;
@@ -36,6 +39,8 @@ public class ProyectoService {
     private final UserService userService;
     private final ClienteRepository clienteRepository;
     private final EmpleadoRepository empleadoRepository;
+
+    private static final String PERMISO_CREATE_ALL = "PROYECTO_CREATE_ALL";
 
     public ProyectoService(ProyectoRepository proyectoRepository, ProyectoMapper proyectoMapper,
             UserService userService, ClienteRepository clienteRepository, EmpleadoRepository empleadoRepository) {
@@ -90,6 +95,8 @@ public class ProyectoService {
         proyecto.setCliente(cliente);
         proyecto.setEmpleadoResponsable(empleadoResponsable);
 
+        asignarEquipoDeTrabajo(proyecto, proyectoRequest.getIdsEmpleadosAsignados(), empresaId);
+
         // 3. Asignar valores por defecto si no se proporcionan
         proyecto.setMontoRecibido(proyectoRequest.getMontoRecibido() != null
                 ? proyectoRequest.getMontoRecibido()
@@ -133,6 +140,7 @@ public class ProyectoService {
         proyectoMapper.updateProyectoFromRequest(proyectoRequest, proyecto);
         proyecto.setCliente(cliente);
         proyecto.setEmpleadoResponsable(empleadoResponsable);
+        asignarEquipoDeTrabajo(proyecto, proyectoRequest.getIdsEmpleadosAsignados(), empresaId);
 
         Proyecto updatedProyecto = proyectoRepository.save(proyecto);
         return proyectoMapper.toProyectoResponse(updatedProyecto);
@@ -157,11 +165,52 @@ public class ProyectoService {
         User currentUser = userService.getCurrentUser();
         Long empresaId = currentUser.getEmpresa().getId();
 
-        List<Proyecto> proyectos = proyectoRepository.findByEmpresaId(empresaId);
+        List<Proyecto> proyectos;
+
+        // Si tiene permiso de crear todo (Admin/Manager), ve todos los proyectos de la
+        // empresa
+        if (hasPermission(currentUser, PERMISO_CREATE_ALL)) {
+            proyectos = proyectoRepository.findByEmpresaId(empresaId);
+        } else {
+            Empleado empleado = currentUser.getEmpleado();
+            if (empleado != null) {
+                proyectos = proyectoRepository.findProyectosForEmpleado(empresaId, empleado.getId());
+            } else {
+                proyectos = Collections.emptyList();
+            }
+        }
 
         return proyectos.stream()
                 .map(proyecto -> new ProyectoDropdownResponse(proyecto.getId(), proyecto.getNombreProyecto()))
                 .collect(Collectors.toList());
+    }
+
+    private boolean hasPermission(User user, String permissionName) {
+        if (user == null || user.getRoles() == null) {
+            return false;
+        }
+        // Itera a través de los roles, luego los permisos de cada rol
+        return user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .anyMatch(permission -> permission.getName().equals(permissionName));
+    }
+
+    private void asignarEquipoDeTrabajo(Proyecto proyecto, Set<Long> idsEmpleados, Long empresaId) {
+        // Si la lista tiene elementos, los buscamos y asignamos
+        if (idsEmpleados != null && !idsEmpleados.isEmpty()) {
+            Set<Empleado> equipo = new HashSet<>();
+            for (Long empId : idsEmpleados) {
+                Empleado empleado = empleadoRepository.findByIdAndEmpresaId(empId, empresaId)
+                        .orElseThrow(() -> new BusinessRuleException(
+                                ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
+                equipo.add(empleado);
+            }
+            proyecto.setEquipoAsignado(equipo);
+        } else {
+            if (idsEmpleados != null) {
+                proyecto.setEquipoAsignado(new HashSet<>());
+            }
+        }
     }
 
     @Transactional

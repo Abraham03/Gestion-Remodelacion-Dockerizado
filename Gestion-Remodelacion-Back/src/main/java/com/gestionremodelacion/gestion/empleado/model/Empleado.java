@@ -3,9 +3,12 @@ package com.gestionremodelacion.gestion.empleado.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.model.User;
+import com.gestionremodelacion.gestion.proyecto.model.Proyecto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,6 +19,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
@@ -63,6 +67,9 @@ public class Empleado {
 
     @OneToOne(mappedBy = "empleados", fetch = FetchType.LAZY)
     private User user;
+
+    @ManyToMany(mappedBy = "equipoAsignado", fetch = FetchType.LAZY)
+    private Set<Proyecto> proyectosAsignados = new HashSet<>();
 
     public Empleado() {
         this.activo = true;
@@ -167,5 +174,13 @@ public class Empleado {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Set<Proyecto> getProyectosAsignados() {
+        return proyectosAsignados;
+    }
+
+    public void setProyectosAsignados(Set<Proyecto> proyectosAsignados) {
+        this.proyectosAsignados = proyectosAsignados;
     }
 }

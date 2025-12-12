@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.gestionremodelacion.gestion.empleado.model.Empleado;
-import com.gestionremodelacion.gestion.empleado.model.ModeloDePago;
 import com.gestionremodelacion.gestion.export.Exportable;
 import com.gestionremodelacion.gestion.util.FormatUtils;
 

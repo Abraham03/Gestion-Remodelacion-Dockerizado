@@ -24,6 +24,17 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
 
         boolean existsByIdAndEmpresaId(Long id, Long empresaId);
 
+        // Consulta optimizada para el Dropdown, Busca proyectos donde:
+        // La empresa coincide Y El empleado es el responsable O El empleado está en la
+        // lista de asignados)
+        @Query("SELECT DISTINCT p FROM Proyecto p " +
+                        "LEFT JOIN p.equipoAsignado e " +
+                        "WHERE p.empresa.id = :empresaId " +
+                        "AND (p.empleadoResponsable.id = :empleadoId OR e.id = :empleadoId)")
+        List<Proyecto> findProyectosForEmpleado(
+                        @Param("empresaId") Long empresaId,
+                        @Param("empleadoId") Long empleadoId);
+
         @Query("SELECT new com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoResponse("
                         + "p.id, p.cliente.id, p.cliente.nombreCliente, p.nombreProyecto, p.descripcion, "
                         + "p.direccionPropiedad, p.estado, p.fechaInicio, p.fechaFinEstimada, "

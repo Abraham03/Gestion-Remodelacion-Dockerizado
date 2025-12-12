@@ -2,6 +2,8 @@ package com.gestionremodelacion.gestion.proyecto.dto.request;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
+
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.gestionremodelacion.gestion.proyecto.model.Proyecto;
@@ -38,6 +40,8 @@ public class ProyectoRequest {
     private LocalDate fechaFinalizacionReal;
 
     private Long idEmpleadoResponsable;
+
+    private Set<Long> idsEmpleadosAsignados;
 
     @NotNull(message = "El monto del contrato es obligatorio")
     @DecimalMin(value = "0.00", message = "El monto del contrato no puede ser negativo")
@@ -140,6 +144,14 @@ public class ProyectoRequest {
 
     public void setIdEmpleadoResponsable(Long idEmpleadoResponsable) {
         this.idEmpleadoResponsable = idEmpleadoResponsable;
+    }
+
+    public Set<Long> getIdsEmpleadosAsignados() {
+        return idsEmpleadosAsignados;
+    }
+
+    public void setIdsEmpleadosAsignados(Set<Long> idsEmpleadosAsignados) {
+        this.idsEmpleadosAsignados = idsEmpleadosAsignados;
     }
 
     public BigDecimal getMontoContrato() {

@@ -18,7 +18,7 @@ import com.gestionremodelacion.gestion.proyecto.dto.request.ProyectoRequest;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoResponse;
 import com.gestionremodelacion.gestion.proyecto.model.Proyecto;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = { EmpleadoMapper.class })
 public abstract class ProyectoMapper {
 
     // NEW: Inject repositories into the mapper
@@ -38,6 +38,7 @@ public abstract class ProyectoMapper {
     @Mapping(source = "cliente.nombreCliente", target = "nombreCliente")
     @Mapping(source = "empleadoResponsable.id", target = "idEmpleadoResponsable")
     @Mapping(source = "empleadoResponsable.nombreCompleto", target = "nombreEmpleadoResponsable")
+    @Mapping(source = "equipoAsignado", target = "equipoAsignado")
     public abstract ProyectoResponse toProyectoResponse(Proyecto proyecto);
 
     public abstract List<ProyectoResponse> toProyectoResponseList(List<Proyecto> proyectos);
@@ -52,6 +53,7 @@ public abstract class ProyectoMapper {
     @Mapping(target = "fechaCreacion", ignore = true)
     @Mapping(target = "costoManoDeObra", ignore = true)
     @Mapping(target = "empresa", ignore = true)
+    @Mapping(target = "equipoAsignado", ignore = true)
     public abstract Proyecto toProyecto(ProyectoRequest request);
 
     /**
@@ -64,6 +66,7 @@ public abstract class ProyectoMapper {
     @Mapping(target = "fechaCreacion", ignore = true) // FechaCreacion should not be updated from request
     @Mapping(target = "costoManoDeObra", ignore = true)
     @Mapping(target = "empresa", ignore = true) // ✅ CORREGIDO: Ignora el campo empresa al actualizar.
+    @Mapping(target = "equipoAsignado", ignore = true)
     public abstract void updateProyectoFromRequest(ProyectoRequest request, @MappingTarget Proyecto proyecto);
 
     // Helper methods to fetch Cliente and Empleado, used in expressions above

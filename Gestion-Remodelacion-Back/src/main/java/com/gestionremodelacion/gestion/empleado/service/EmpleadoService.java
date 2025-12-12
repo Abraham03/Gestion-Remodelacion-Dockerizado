@@ -1,6 +1,7 @@
 package com.gestionremodelacion.gestion.empleado.service;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ public class EmpleadoService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final String PERMISO_CREATE_ALL = "HORASTRABAJADAS_CREATE_ALL";
 
     public EmpleadoService(EmpleadoRepository empleadoRepository, EmpleadoMapper empleadoMapper,
             UserService userService, UserRepository userRepository, RoleRepository roleRepository,
@@ -59,13 +61,35 @@ public class EmpleadoService {
         User currentUser = userService.getCurrentUser();
         Long empresaId = currentUser.getEmpresa().getId();
 
-        // Obtenemos solo empleados activos para el dropdown
-        List<Empleado> empleados = empleadoRepository.findByEmpresaIdAndActivo(empresaId, true);
+        List<Empleado> empleados;
+
+        // 1. Verificamos si tiene permiso de Admin/Manager
+        if (hasPermission(currentUser, PERMISO_CREATE_ALL)) {
+            // Admin: Ve todos los activos
+            empleados = empleadoRepository.findByEmpresaIdAndActivo(empresaId, true);
+        } else {
+            // Empleado Normal: Solo se ve a sí mismo
+            Empleado empleadoVinculado = currentUser.getEmpleado();
+            if (empleadoVinculado != null && Boolean.TRUE.equals(empleadoVinculado.getActivo())) {
+                empleados = Collections.singletonList(empleadoVinculado);
+            } else {
+                empleados = Collections.emptyList();
+            }
+        }
 
         return empleados.stream()
                 .map(emp -> new EmpleadoDropdownResponse(emp.getId(), emp.getNombreCompleto(),
-                        emp.getModeloDePago().name()))
+                emp.getModeloDePago().name()))
                 .collect(Collectors.toList());
+    }
+
+    private boolean hasPermission(User user, String permissionName) {
+        if (user == null || user.getRoles() == null) {
+            return false;
+        }
+        return user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .anyMatch(permission -> permission.getName().equals(permissionName));
     }
 
     @Transactional(readOnly = true)
@@ -196,7 +220,7 @@ public class EmpleadoService {
         }
         Set<Role> roles = request.getRoles().stream()
                 .map(roleId -> roleRepository.findById(roleId)
-                        .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey())))
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.ROLE_NOT_FOUND.getKey())))
                 .collect(Collectors.toSet());
         newUser.setRoles(roles);
 

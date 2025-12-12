@@ -61,7 +61,7 @@
         </ng-container>
 
         <ng-container matColumnDef="modeloDePago">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPLOYEES.PAYMENT_MODEL' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'EMPLOYEES.PAYMENT_MODEL_TYPE' | translate }}</th>
             <td mat-cell *matCellDef="let element">{{ (element.modeloDePago === 'POR_HORA' ? 'EMPLOYEES.PAY_PER_HOUR' : 'EMPLOYEES.PAY_PER_DAY') | translate }}</td>
         </ng-container>
         

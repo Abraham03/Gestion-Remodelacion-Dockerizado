@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -13,7 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { HttpErrorResponse } from '@angular/common/http';
-import { combineLatest, map, Subject, take, takeUntil } from 'rxjs';
+import { combineLatest, delay, map, Subject, take, takeUntil } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ProyectosService } from '../../services/proyecto.service';
@@ -27,11 +27,11 @@ import { AsyncPipe } from '@angular/common';
 
 import { EmpleadosQuery } from '../../../empleados/state/empleados.query';
 import { EmpleadoService } from '../../../empleados/services/empleado.service';
-import { Empleado } from '../../../empleados/models/empleado.model';
 import { ClientesQuery } from '../../../cliente/state/cliente.query';
 import { ClienteService } from '../../../cliente/services/cliente.service';
-import { Cliente } from '../../../cliente/models/cliente.model';
 import { NotificationService } from '../../../../core/services/notification.service';
+
+import { ProjectTeamDialogComponent } from '../dialogs/project-team-dialog/project-team-dialog';
 
 // Interfaz para el viewModel combinando que usara la tabla
 interface ProyectosViewModel {
@@ -50,6 +50,7 @@ interface ProyectosViewModel {
   templateUrl: './proyecto-list.component.html',
   styleUrls: ['./proyecto-list.component.scss'],
   providers: [DatePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy { 
   canExportExcel = false;
@@ -59,7 +60,7 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
   canDelete = false;
 
   //dataSource = new MatTableDataSource<Proyecto>([]);
-  displayedColumns: string[] = ['nombreProyecto', 'nombreCliente', 'nombreEmpleadoResponsable', 'estado', 'progresoPorcentaje', 'fechaInicio', 'fechaFinEstimada', 'acciones'];
+  displayedColumns: string[] = ['nombreProyecto', 'nombreCliente', 'nombreEmpleadoResponsable','equipo', 'estado', 'progresoPorcentaje', 'fechaInicio', 'fechaFinEstimada', 'acciones'];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -93,6 +94,7 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
     this.empleadosQuery.selectAll({ asObject: true }), // Stream 2: Objeto de empleados
     this.clientesQuery.selectAll({ asObject: true }) // Stream 3: Objeto de clientes      
   ]).pipe(
+    delay(0),//ayuda a evitar el error NG0100: ExpressionChangedAfterItHasBeenCheckedError
     map(([proyectosArray, empleadosMap, clientesMap]) => {
         // Si alguno de los mapas esta vacio (aun no cargado), se retorna un array vacio
         // para evitar errores y mostrar "No hay registros" temporalmente
@@ -196,6 +198,26 @@ export class ProyectosListComponent implements OnInit, AfterViewInit, OnDestroy 
     this.canExportPdf = hasPremiumPlan;
     //this.canExportExcel = this.authService.hasPermission('EXPORT_EXCEL') && hasPremiumPlan;
     //this.canExportPdf = this.authService.hasPermission('EXPORT_PDF') && hasPremiumPlan;
+  }
+
+viewTeam(proyecto: Proyecto): void {
+    // Llamamos al endpoint de DETALLE que sí trae el equipo
+    this.proyectosService.getProyectoById(proyecto.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (proyectoCompleto) => {
+          console.log(proyectoCompleto.equipoAsignado);
+          // Abrimos el diálogo con la info del equipo
+          this.dialog.open(ProjectTeamDialogComponent, {
+            width: '400px',
+            data: { 
+              projectName: proyecto.nombreProyecto, 
+              equipoAsignado: proyectoCompleto.equipoAsignado // Aquí ya vendrá la lista
+            }
+          });
+        },
+        error: () => this.snackBar.open('Error al cargar el equipo', 'Cerrar', { duration: 3000 })
+      });
   }
 
   loadProyectos(): void {

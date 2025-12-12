@@ -3,6 +3,8 @@ package com.gestionremodelacion.gestion.proyecto.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.gestionremodelacion.gestion.cliente.model.Cliente;
 import com.gestionremodelacion.gestion.empleado.model.Empleado;
@@ -17,6 +19,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -63,6 +67,11 @@ public class Proyecto {
     @ManyToOne
     @JoinColumn(name = "id_empleado_responsable")
     private Empleado empleadoResponsable;
+
+    // Nueva relacion: El equipo asignado ( trabajadores )
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "proyecto_asignaciones", joinColumns = @JoinColumn(name = "id_proyecto"), inverseJoinColumns = @JoinColumn(name = "id_empleado"))
+    private Set<Empleado> equipoAsignado = new HashSet<>();
 
     @Column(name = "monto_contrato", nullable = true)
     private BigDecimal montoContrato;
@@ -198,6 +207,14 @@ public class Proyecto {
 
     public void setEmpleadoResponsable(Empleado empleadoResponsable) {
         this.empleadoResponsable = empleadoResponsable;
+    }
+
+    public Set<Empleado> getEquipoAsignado() {
+        return equipoAsignado;
+    }
+
+    public void setEquipoAsignado(Set<Empleado> equipoAsignado) {
+        this.equipoAsignado = equipoAsignado;
     }
 
     public BigDecimal getMontoContrato() {

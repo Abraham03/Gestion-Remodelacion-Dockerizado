@@ -152,8 +152,22 @@
                 {{ empleado.nombre }}
               </mat-option>
             </mat-select>
-          </mat-form-field>
+          </mat-form-field>         
         </div>
+        <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ 'PROJECTS.ASSIGNED_TEAM' | translate }}</mat-label>
+                <mat-select formControlName="idsEmpleadosAsignados" multiple>
+                    <mat-select-trigger>
+                        {{ (form.get('idsEmpleadosAsignados')?.value?.length || 0) + ' ' + ('EMPLOYEES.SELECTED' | translate) }}
+                    </mat-select-trigger>
+                    <mat-option *ngFor="let empleado of empleados$ | async" [value]="empleado.id">
+                        {{ empleado.nombre }}
+                    </mat-option>
+                </mat-select>
+                <mat-hint>{{ 'PROJECTS.ASSIGNED_TEAM_HINT' | translate }}</mat-hint>
+            </mat-form-field>
+        </div>        
       </div>
     </mat-dialog-content>
 

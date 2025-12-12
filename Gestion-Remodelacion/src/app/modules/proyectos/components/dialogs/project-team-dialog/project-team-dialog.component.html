@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>{{ 'PROJECTS.ASSIGNED_TEAM_FOR' | translate }} <strong>{{ projectName }}</strong></h2>
+
+<mat-dialog-content>
+  <div *ngIf="equipoAsignado && equipoAsignado.length > 0; else noTeam">
+    <mat-list>
+      <mat-list-item *ngFor="let member of equipoAsignado; last as isLast" class="team-item">
+        <mat-icon matListItemIcon class="avatar-icon">person</mat-icon>
+        <div matListItemTitle class="member-name">
+          {{ member.nombre }}
+        </div>
+        <div matListItemLine class="member-details">
+            <span class="detail-badge">
+                {{ 'EMPLOYEES.PAYMENT_MODEL.' + member.modeloDePago | translate }}
+            </span>
+        </div>
+        <mat-divider *ngIf="!isLast"></mat-divider>
+      </mat-list-item>
+    </mat-list>
+  </div>
+  
+  <ng-template #noTeam>
+    <div class="no-team-message">
+      <mat-icon color="warn">group_off</mat-icon>
+      <p>{{ 'PROJECTS.NO_TEAM_ASSIGNED' | translate }}</p>
+    </div>
+  </ng-template>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" (click)="onClose()">{{ 'GLOBAL.CLOSE' | translate }}</button>
+</mat-dialog-actions>

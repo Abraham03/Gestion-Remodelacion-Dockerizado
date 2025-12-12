@@ -28,7 +28,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ 'EMPLOYEES.PAYMENT_MODEL' | translate }}</mat-label>
+        <mat-label>{{ 'EMPLOYEES.PAYMENT_MODEL_TYPE' | translate }}</mat-label>
         <mat-select formControlName="modeloDePago" required>
             <mat-option *ngFor="let modelo of modelosDePago" [value]="modelo.value">
                 {{ modelo.viewValue }}

@@ -147,7 +147,10 @@
     "EXPORT_PDF": "PDF",
     "FULL_NAME": "Full Name",
     "ROLE_POSITION": "Role/Position",
-    "PAYMENT_MODEL": "Payment Model",
+    "PAYMENT_MODEL": {
+        "POR_HORA": "Por Hora",
+        "POR_DIA": "Por Día"
+    },
     "COST": "Cost",
     "HIRE_DATE": "Hire Date",
     "STATUS": "Status",
@@ -178,7 +181,9 @@
     "ERROR_INVALID_ID_FOR_DELETE": "Invalid employee ID to deactivate.",
     "ERROR_ALREADY_DEACTIVATED": "The employee is already deactivated.",
     "ERROR_EXPORT_EXCEL": "Error exporting to Excel.",
-    "ERROR_EXPORT_PDF": "Error exporting to PDF."
+    "ERROR_EXPORT_PDF": "Error exporting to PDF.",
+    "SELECTED": "Selected",
+    "PAYMENT_MODEL_TYPE": "Payment Model"
   },
   "PROJECTS": {
     "MANAGEMENT": "Project Management",
@@ -245,7 +250,12 @@
       "EN_PAUSA": "Paused",
       "FINALIZADO": "Completed",
       "CANCELADO": "Cancelled"
-    }
+    },
+    "ASSIGNED_TEAM_HINT": "Assign employees to this project",
+    "ASSIGNED_TEAM": "Assigned Team",
+    "ASSIGNED_TEAM_FOR": "Team assigned for",
+    "NO_TEAM_ASSIGNED": "No employees assigned to this project.",
+    "VIEW_TEAM_TOOLTIP": "View list of employees assigned"
   },
   "WORK_HOURS": {
     "MANAGEMENT": "Work Hours Log",
@@ -286,6 +296,7 @@
     "PASSWORD": "Password",
     "IS_ACTIVE": "Active User",
     "ROLES": "Roles",
+    "LINK_EMPLOYEE": "Link Employee",
     "NO_USERS_FOUND": "No users found matching the filter.",
     "SEARCH_USER": "Search user",
     "PLACEHOLDER_SEARCH": "E.g. John Doe",

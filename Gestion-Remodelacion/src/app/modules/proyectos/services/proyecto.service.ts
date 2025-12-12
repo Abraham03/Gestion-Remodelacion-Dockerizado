@@ -71,7 +71,8 @@ export class ProyectosService extends BaseService<Proyecto> {
 
   // Nuevo método para obtener una lista simplificada de proyectos para dropdowns
   getProyectosForDropdown(): Observable<ProyectoDropdown[]> {
-    return this.http.get<ApiResponse<ProyectoDropdown[]>>(`${this.apiUrl}/dropdown`).pipe(
+    return this.http
+      .get<ApiResponse<ProyectoDropdown[]>>(`${this.apiUrl}/dropdown`).pipe(
         map(response => this.extractSingleData(response))
       );
   }
