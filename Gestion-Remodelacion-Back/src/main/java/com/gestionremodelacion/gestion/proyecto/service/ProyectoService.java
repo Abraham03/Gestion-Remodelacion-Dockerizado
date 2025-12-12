@@ -29,6 +29,7 @@ import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoPdfDTO;
 import com.gestionremodelacion.gestion.proyecto.dto.response.ProyectoResponse;
 import com.gestionremodelacion.gestion.proyecto.model.Proyecto;
 import com.gestionremodelacion.gestion.proyecto.repository.ProyectoRepository;
+import com.gestionremodelacion.gestion.security.service.AuthorizationService;
 import com.gestionremodelacion.gestion.service.user.UserService;
 
 @Service
@@ -39,16 +40,44 @@ public class ProyectoService {
     private final UserService userService;
     private final ClienteRepository clienteRepository;
     private final EmpleadoRepository empleadoRepository;
+    private final AuthorizationService authService;
 
     private static final String PERMISO_CREATE_ALL = "PROYECTO_CREATE_ALL";
 
     public ProyectoService(ProyectoRepository proyectoRepository, ProyectoMapper proyectoMapper,
-            UserService userService, ClienteRepository clienteRepository, EmpleadoRepository empleadoRepository) {
+            UserService userService, ClienteRepository clienteRepository, EmpleadoRepository empleadoRepository,
+            AuthorizationService authService) {
         this.proyectoRepository = proyectoRepository;
         this.proyectoMapper = proyectoMapper;
         this.userService = userService;
         this.clienteRepository = clienteRepository;
         this.empleadoRepository = empleadoRepository;
+        this.authService = authService;
+    }
+
+    @Transactional
+    public List<ProyectoDropdownResponse> findProyectosDropdown() {
+        User currentUser = userService.getCurrentUser();
+        Long empresaId = currentUser.getEmpresa().getId();
+
+        List<Proyecto> proyectos;
+
+        // Si tiene permiso de crear todo (Admin/Manager), ve todos los proyectos de la
+        // empresa
+        if (authService.hasPermission(currentUser, PERMISO_CREATE_ALL)) {
+            proyectos = proyectoRepository.findByEmpresaId(empresaId);
+        } else {
+            Empleado empleado = currentUser.getEmpleado();
+            if (empleado != null) {
+                proyectos = proyectoRepository.findProyectosForEmpleado(empresaId, empleado.getId());
+            } else {
+                proyectos = Collections.emptyList();
+            }
+        }
+
+        return proyectos.stream()
+                .map(proyecto -> new ProyectoDropdownResponse(proyecto.getId(), proyecto.getNombreProyecto()))
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -78,14 +107,14 @@ public class ProyectoService {
 
         Cliente cliente = clienteRepository.findByIdAndEmpresaId(proyectoRequest.getIdCliente(), empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        ErrorCatalog.INVALID_CLIENT_FOR_COMPANY.getKey()));
+                ErrorCatalog.INVALID_CLIENT_FOR_COMPANY.getKey()));
 
         Empleado empleadoResponsable = null;
         if (proyectoRequest.getIdEmpleadoResponsable() != null) {
             empleadoResponsable = empleadoRepository
                     .findByIdAndEmpresaId(proyectoRequest.getIdEmpleadoResponsable(), empresaId)
                     .orElseThrow(() -> new BusinessRuleException(
-                            ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
+                    ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
         }
         // 1. El mapper ya debería transferir todos los valores del request,
         // incluyendo montoRecibido, costoMateriales, etc.
@@ -127,14 +156,14 @@ public class ProyectoService {
 
         Cliente cliente = clienteRepository.findByIdAndEmpresaId(proyectoRequest.getIdCliente(), empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        ErrorCatalog.INVALID_CLIENT_FOR_COMPANY.getKey()));
+                ErrorCatalog.INVALID_CLIENT_FOR_COMPANY.getKey()));
 
         Empleado empleadoResponsable = null;
         if (proyectoRequest.getIdEmpleadoResponsable() != null) {
             empleadoResponsable = empleadoRepository
                     .findByIdAndEmpresaId(proyectoRequest.getIdEmpleadoResponsable(), empresaId)
                     .orElseThrow(() -> new BusinessRuleException(
-                            ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
+                    ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
         }
 
         proyectoMapper.updateProyectoFromRequest(proyectoRequest, proyecto);
@@ -160,41 +189,6 @@ public class ProyectoService {
         proyectoRepository.deleteById(id);
     }
 
-    @Transactional
-    public List<ProyectoDropdownResponse> findProyectosDropdown() {
-        User currentUser = userService.getCurrentUser();
-        Long empresaId = currentUser.getEmpresa().getId();
-
-        List<Proyecto> proyectos;
-
-        // Si tiene permiso de crear todo (Admin/Manager), ve todos los proyectos de la
-        // empresa
-        if (hasPermission(currentUser, PERMISO_CREATE_ALL)) {
-            proyectos = proyectoRepository.findByEmpresaId(empresaId);
-        } else {
-            Empleado empleado = currentUser.getEmpleado();
-            if (empleado != null) {
-                proyectos = proyectoRepository.findProyectosForEmpleado(empresaId, empleado.getId());
-            } else {
-                proyectos = Collections.emptyList();
-            }
-        }
-
-        return proyectos.stream()
-                .map(proyecto -> new ProyectoDropdownResponse(proyecto.getId(), proyecto.getNombreProyecto()))
-                .collect(Collectors.toList());
-    }
-
-    private boolean hasPermission(User user, String permissionName) {
-        if (user == null || user.getRoles() == null) {
-            return false;
-        }
-        // Itera a través de los roles, luego los permisos de cada rol
-        return user.getRoles().stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .anyMatch(permission -> permission.getName().equals(permissionName));
-    }
-
     private void asignarEquipoDeTrabajo(Proyecto proyecto, Set<Long> idsEmpleados, Long empresaId) {
         // Si la lista tiene elementos, los buscamos y asignamos
         if (idsEmpleados != null && !idsEmpleados.isEmpty()) {
@@ -202,7 +196,7 @@ public class ProyectoService {
             for (Long empId : idsEmpleados) {
                 Empleado empleado = empleadoRepository.findByIdAndEmpresaId(empId, empresaId)
                         .orElseThrow(() -> new BusinessRuleException(
-                                ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
+                        ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
                 equipo.add(empleado);
             }
             proyecto.setEquipoAsignado(equipo);

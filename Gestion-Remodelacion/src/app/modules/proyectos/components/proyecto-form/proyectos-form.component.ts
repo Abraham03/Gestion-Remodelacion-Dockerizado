@@ -78,7 +78,7 @@ ngOnInit(): void {
     this.setupDynamicTranslations();
     this.loadDropdownData();
 
-    // ✅ CAMBIO IMPORTANTE: Cargar datos completos si es edición
+    // Cargar datos completos si es edición
     if (this.data && this.data.id) {
       // 1. Cargamos datos básicos inmediatamente para que no se vea vacío
       this.patchFormWithData(this.data);
@@ -105,7 +105,7 @@ ngOnInit(): void {
     if (patchedData.fechaFinalizacionReal) patchedData.fechaFinalizacionReal = this.createNormalizedLocalDate(patchedData.fechaFinalizacionReal);
     if (patchedData.fechaUltimoPagoRecibido) patchedData.fechaUltimoPagoRecibido = this.createNormalizedLocalDate(patchedData.fechaUltimoPagoRecibido);
     
-    // ✅ Mapear el equipo asignado a IDs
+    // Mapear el equipo asignado a IDs
     if (data.equipoAsignado && Array.isArray(data.equipoAsignado)) {
       patchedData.idsEmpleadosAsignados = data.equipoAsignado.map((e: any) => e.id);
     } 

@@ -24,6 +24,7 @@ import com.gestionremodelacion.gestion.mapper.HorasTrabajadasMapper;
 import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.proyecto.model.Proyecto;
 import com.gestionremodelacion.gestion.proyecto.repository.ProyectoRepository;
+import com.gestionremodelacion.gestion.security.service.AuthorizationService;
 import com.gestionremodelacion.gestion.service.user.UserService;
 
 @Service
@@ -34,6 +35,7 @@ public class HorasTrabajadasService {
     private final EmpleadoRepository empleadoRepository;
     private final ProyectoRepository proyectoRepository;
     private final UserService userService;
+    private final AuthorizationService authService;
 
     private static final String PERMISO_READ_ALL = "HORASTRABAJADAS_READ_ALL";
     private static final String PERMISO_CREATE_ALL = "HORASTRABAJADAS_CREATE_ALL";
@@ -42,12 +44,13 @@ public class HorasTrabajadasService {
 
     public HorasTrabajadasService(HorasTrabajadasRepository horasTrabajadasRepository,
             HorasTrabajadasMapper horasTrabajadasMapper, EmpleadoRepository empleadoRepository,
-            ProyectoRepository proyectoRepository, UserService userService) {
+            ProyectoRepository proyectoRepository, UserService userService, AuthorizationService authService) {
         this.horasTrabajadasRepository = horasTrabajadasRepository;
         this.horasTrabajadasMapper = horasTrabajadasMapper;
         this.empleadoRepository = empleadoRepository;
         this.proyectoRepository = proyectoRepository;
         this.userService = userService;
+        this.authService = authService;
     }
 
     @Transactional(readOnly = true)
@@ -57,7 +60,7 @@ public class HorasTrabajadasService {
         Long empresaId = currentUser.getEmpresa().getId();
 
         // Logica de seguridad
-        boolean canReadAll = hasPermission(currentUser, PERMISO_READ_ALL);
+        boolean canReadAll = authService.hasPermission(currentUser, PERMISO_READ_ALL);
 
         if (canReadAll) {
             // El usuario es Admin/Manager, usa la consulta antigua (ver todo)
@@ -85,7 +88,7 @@ public class HorasTrabajadasService {
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.RESOURCE_NOT_FOUND.getKey()));
 
         // --- LÓGICA DE SEGURIDAD CORREGIDA ---
-        boolean canReadAll = hasPermission(currentUser, PERMISO_READ_ALL);
+        boolean canReadAll = authService.hasPermission(currentUser, PERMISO_READ_ALL);
 
         if (canReadAll) {
             return horasTrabajadasMapper.toHorasTrabajadasResponse(horasTrabajadas);
@@ -106,7 +109,7 @@ public class HorasTrabajadasService {
         Long empresaId = currentUser.getEmpresa().getId();
 
         // --- LÓGICA DE SEGURIDAD ---
-        boolean canCreateForAll = hasPermission(currentUser, PERMISO_CREATE_ALL);
+        boolean canCreateForAll = authService.hasPermission(currentUser, PERMISO_CREATE_ALL);
 
         Long empleadoIdParaRegistro;
 
@@ -121,14 +124,13 @@ public class HorasTrabajadasService {
         // Validar entidades
         Empleado empleado = empleadoRepository.findByIdAndEmpresaId(empleadoIdParaRegistro, empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
+                ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
 
         Proyecto proyecto = proyectoRepository.findByIdAndEmpresaId(horasTrabajadasRequest.getIdProyecto(), empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        ErrorCatalog.INVALID_PROJECT_FOR_COMPANY.getKey()));
+                ErrorCatalog.INVALID_PROJECT_FOR_COMPANY.getKey()));
 
         // Inicio de la logica de calculo
-
         // Convertir la entrada del request a la unidad base (HORAS)
         BigDecimal horasReales = this.convertirUnidadAHoras(horasTrabajadasRequest.getCantidad(),
                 horasTrabajadasRequest.getUnidad());
@@ -161,10 +163,10 @@ public class HorasTrabajadasService {
 
         HorasTrabajadas horasTrabajadas = horasTrabajadasRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCatalog.WORK_LOG_NOT_FOUND.getKey()));
+                ErrorCatalog.WORK_LOG_NOT_FOUND.getKey()));
 
         // --- LÓGICA DE SEGURIDAD ---
-        boolean canUpdateAll = hasPermission(currentUser, PERMISO_UPDATE_ALL);
+        boolean canUpdateAll = authService.hasPermission(currentUser, PERMISO_UPDATE_ALL);
 
         Long empleadoIdParaActualizar;
 
@@ -184,12 +186,12 @@ public class HorasTrabajadasService {
         Empleado nuevoEmpleado = empleadoRepository
                 .findByIdAndEmpresaId(empleadoIdParaActualizar, empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
+                ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
 
         Proyecto nuevoProyecto = proyectoRepository
                 .findByIdAndEmpresaId(horasTrabajadasRequest.getIdProyecto(), empresaId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        ErrorCatalog.INVALID_PROJECT_FOR_COMPANY.getKey()));
+                ErrorCatalog.INVALID_PROJECT_FOR_COMPANY.getKey()));
 
         // Logica de calculo de costo/hora
         BigDecimal horasReales = this.convertirUnidadAHoras(horasTrabajadasRequest.getCantidad(),
@@ -225,10 +227,10 @@ public class HorasTrabajadasService {
 
         HorasTrabajadas horasTrabajadas = horasTrabajadasRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCatalog.WORK_LOG_NOT_FOUND.getKey()));
+                ErrorCatalog.WORK_LOG_NOT_FOUND.getKey()));
 
         // --- LÓGICA DE SEGURIDAD ---
-        boolean canDeleteAll = hasPermission(currentUser, PERMISO_DELETE_ALL);
+        boolean canDeleteAll = authService.hasPermission(currentUser, PERMISO_DELETE_ALL);
 
         if (!canDeleteAll) {
             Empleado empleadoVinculado = getEmpleadoVinculado(currentUser);
@@ -302,8 +304,8 @@ public class HorasTrabajadasService {
     }
 
     /**
-     * Método helper privado para obtener el empleado vinculado a un usuario
-     * y manejar la excepción si no existe.
+     * Método helper privado para obtener el empleado vinculado a un usuario y
+     * manejar la excepción si no existe.
      */
     private Empleado getEmpleadoVinculado(User currentUser) {
         Empleado empleadoVinculado = currentUser.getEmpleado();
@@ -312,19 +314,6 @@ public class HorasTrabajadasService {
             throw new BusinessRuleException(ErrorCatalog.USER_NOT_LINKED_TO_EMPLOYEE.getKey());
         }
         return empleadoVinculado;
-    }
-
-    /**
-     * Método helper privado para comprobar permisos usando el modelo de dominio.
-     */
-    private boolean hasPermission(User user, String permissionName) {
-        if (user == null || user.getRoles() == null) {
-            return false;
-        }
-        // Itera a través de los roles, luego los permisos de cada rol
-        return user.getRoles().stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .anyMatch(permission -> permission.getName().equals(permissionName));
     }
 
 }

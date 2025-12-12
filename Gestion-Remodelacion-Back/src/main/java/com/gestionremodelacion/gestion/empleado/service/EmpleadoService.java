@@ -30,6 +30,7 @@ import com.gestionremodelacion.gestion.model.Role;
 import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.repository.RoleRepository;
 import com.gestionremodelacion.gestion.repository.UserRepository;
+import com.gestionremodelacion.gestion.security.service.AuthorizationService;
 import com.gestionremodelacion.gestion.service.user.UserService;
 
 @Service
@@ -42,18 +43,19 @@ public class EmpleadoService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthorizationService authService;
     private static final String PERMISO_CREATE_ALL = "HORASTRABAJADAS_CREATE_ALL";
 
     public EmpleadoService(EmpleadoRepository empleadoRepository, EmpleadoMapper empleadoMapper,
             UserService userService, UserRepository userRepository, RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder, AuthorizationService authService) {
         this.empleadoRepository = empleadoRepository;
         this.empleadoMapper = empleadoMapper;
         this.userService = userService;
-
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authService = authService;
     }
 
     @Transactional(readOnly = true)
@@ -64,7 +66,7 @@ public class EmpleadoService {
         List<Empleado> empleados;
 
         // 1. Verificamos si tiene permiso de Admin/Manager
-        if (hasPermission(currentUser, PERMISO_CREATE_ALL)) {
+        if (authService.hasPermission(currentUser, PERMISO_CREATE_ALL)) {
             // Admin: Ve todos los activos
             empleados = empleadoRepository.findByEmpresaIdAndActivo(empresaId, true);
         } else {
@@ -81,15 +83,6 @@ public class EmpleadoService {
                 .map(emp -> new EmpleadoDropdownResponse(emp.getId(), emp.getNombreCompleto(),
                 emp.getModeloDePago().name()))
                 .collect(Collectors.toList());
-    }
-
-    private boolean hasPermission(User user, String permissionName) {
-        if (user == null || user.getRoles() == null) {
-            return false;
-        }
-        return user.getRoles().stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .anyMatch(permission -> permission.getName().equals(permissionName));
     }
 
     @Transactional(readOnly = true)
