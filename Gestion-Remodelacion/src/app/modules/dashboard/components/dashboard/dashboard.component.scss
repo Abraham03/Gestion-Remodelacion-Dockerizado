@@ -2,7 +2,6 @@
  * ARCHIVO: dashboard.component.scss (Refactorizado con Estilos Globales)
  * ============================================================================ */
 
-// ✅ CAMBIO: Se reemplaza @import por @use y se asignan alias (namespaces).
 // 'vars' será el prefijo para las variables, 'mixins' para los mixins.
 @use '../../../../../styles/abstracts/variables' as vars;
 @use '../../../../../styles/abstracts/mixins' as mixins;
@@ -10,7 +9,6 @@
 // --- ESTILOS ESPECÍFICOS DEL COMPONENTE DASHBOARD ---
 
 .dashboard-container {
-  // ✅ CAMBIO: Se añade el prefijo 'vars.' a la variable.
   padding: vars.$spacing-m;
   max-width: 1600px;
   margin: auto;
@@ -22,7 +20,6 @@
 
   h1 {
     color: vars.$color-text-dark;
-    // ✅ CAMBIO: Se añade el prefijo 'mixins.' al mixin.
     @include mixins.responsive-text(1.8rem, 2.5rem);
     font-weight: 700;
     margin: 0;
@@ -113,7 +110,6 @@
   }
 }
 
-// ✅ CAMBIO: Se añade el prefijo 'vars.' a todas las variables de color.
 .color-success { background-color: vars.$color-success; }
 .color-info { background-color: vars.$color-info; }
 .color-warn { background-color: vars.$color-warn; }

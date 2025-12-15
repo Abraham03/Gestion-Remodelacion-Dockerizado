@@ -1,4 +1,4 @@
-@if (!isLoading) {
+@if (!(isLoading$ | async)) {
 <div class="dashboard-container">
   <header class="dashboard-header">
     <h1>{{ 'DASHBOARD.TITLE' | translate }}</h1>
@@ -9,19 +9,21 @@
     <div class="filter-group">
       <mat-form-field appearance="outline">
         <mat-label>{{ 'DASHBOARD.YEAR_GENERAL' | translate }}</mat-label>
-        <mat-select [(ngModel)]="proyectosSelectedYear" (selectionChange)="onProyectosYearChange()">
-          @for (year of proyectosYears; track year) { <mat-option [value]="year">{{ year }}</mat-option> }
+        <mat-select [(ngModel)]="selectedYear" (selectionChange)="onYearChange()">
+          @for (year of (years$ | async); track year) { <mat-option [value]="year">{{ year }}</mat-option> }
         </mat-select>
       </mat-form-field>
+
       <mat-form-field appearance="outline">
         <mat-label>{{ 'DASHBOARD.MONTH_GENERAL' | translate }}</mat-label>
-        <mat-select [(ngModel)]="proyectosSelectedMonth" (selectionChange)="onProyectosMonthChange()">
+        <mat-select [(ngModel)]="selectedMonth" (selectionChange)="onMonthChange()">
           @for (month of availableMonths; track month.value) { <mat-option [value]="month.value">{{ month.viewValue }}</mat-option> }
         </mat-select>
       </mat-form-field>
+
       <mat-form-field appearance="outline">
         <mat-label>{{ 'DASHBOARD.PROJECT' | translate }}</mat-label>
-        <mat-select [(ngModel)]="proyectosSelectedId" (selectionChange)="onProyectosChange()">
+        <mat-select [(ngModel)]="selectedProjectId" (selectionChange)="onProjectChange()">
           <mat-option [value]="null">{{ 'DASHBOARD.ALL_PROJECTS' | translate }}</mat-option>
           @for (proyecto of availableProjects; track proyecto.id) {
             <mat-option [value]="proyecto.id">{{ proyecto.nombre }}</mat-option>
@@ -31,44 +33,46 @@
     </div>
   </mat-card>
 
+  @if (dashboardQuery.summary$ | async; as summary) {
   <h2 class="section-title">{{ 'DASHBOARD.KEY_INDICATORS' | translate }}</h2>
   <div class="kpi-grid">
     <mat-card class="kpi-card">
       <div class="kpi-icon-container color-success"><mat-icon class="kpi-icon">account_balance_wallet</mat-icon></div>
       <div class="kpi-content">
         <p class="kpi-title">{{ 'DASHBOARD.GENERAL_BALANCE' | translate }}</p>
-        <p class="kpi-value">{{ (proyectosData?.balanceFinanciero || 0) | currency:'USD' }}</p>
+        <p class="kpi-value">{{ (summary.balanceFinanciero || 0) | currency:'USD' }}</p>
       </div>
     </mat-card>
     <mat-card class="kpi-card">
       <div class="kpi-icon-container color-info"><mat-icon class="kpi-icon">trending_up</mat-icon></div>
       <div class="kpi-content">
         <p class="kpi-title">{{ 'DASHBOARD.TOTAL_INCOME' | translate }}</p>
-        <p class="kpi-value">{{ (proyectosData?.montoRecibido || 0) | currency:'USD' }}</p>
+        <p class="kpi-value">{{ (summary.montoRecibido || 0) | currency:'USD' }}</p>
       </div>
     </mat-card>
     <mat-card class="kpi-card">
       <div class="kpi-icon-container color-warn"><mat-icon class="kpi-icon">trending_down</mat-icon></div>
       <div class="kpi-content">
         <p class="kpi-title">{{ 'DASHBOARD.COSTS_AND_EXPENSES' | translate }}</p>
-        <p class="kpi-value">{{ (proyectosData?.costoMateriales + proyectosData?.otrosGastos + proyectosData?.costoManoDeObra || 0) | currency:'USD' }}</p>
+        <p class="kpi-value">{{ (summary.costoMateriales + summary.otrosGastos + summary.costoManoDeObra || 0) | currency:'USD' }}</p>
       </div>
     </mat-card>
     <mat-card class="kpi-card">
       <div class="kpi-icon-container color-primary"><mat-icon class="kpi-icon">assignment</mat-icon></div>
       <div class="kpi-content">
         <p class="kpi-title">{{ 'DASHBOARD.TOTAL_PROJECTS' | translate }}</p>
-        <p class="kpi-value">{{ proyectosData?.totalProyectos || 0 }}</p>
+        <p class="kpi-value">{{ summary.totalProyectos || 0 }}</p>
       </div>
     </mat-card>
     <mat-card class="kpi-card">
       <div class="kpi-icon-container color-accent"><mat-icon class="kpi-icon">people</mat-icon></div>
       <div class="kpi-content">
         <p class="kpi-title">{{ 'DASHBOARD.ACTIVE_EMPLOYEES' | translate }}</p>
-        <p class="kpi-value">{{ proyectosData?.empleadosActivos || 0 }}</p>
+        <p class="kpi-value">{{ summary.empleadosActivos || 0 }}</p>
       </div>
     </mat-card>
   </div>
+  }
 
   <h2 class="section-title">{{ 'DASHBOARD.VISUALIZATIONS' | translate }}</h2>
   <mat-grid-list [cols]="cols" rowHeight="420px" gutterSize="24px">
@@ -84,14 +88,16 @@
         <mat-card-content><div class="chart-container"><canvas id="empleadosPorRolChart"></canvas></div></mat-card-content>
       </mat-card>
     </mat-grid-tile>
+    
     <mat-grid-tile [colspan]="cols === 1 ? 1 : 2">
       <mat-card class="chart-card">
         <mat-card-header>
-          <mat-card-title>{{ 'DASHBOARD.CHART_CLIENT_ACQUISITION' | translate }} ({{ clientesSelectedYear }})</mat-card-title>
+          <mat-card-title>{{ 'DASHBOARD.CHART_CLIENT_ACQUISITION' | translate }} ({{ selectedYear }})</mat-card-title>
         </mat-card-header>
         <mat-card-content><div class="chart-container"><canvas id="clientesPorMesChart"></canvas></div></mat-card-content>
       </mat-card>
     </mat-grid-tile>
+
     <mat-grid-tile [colspan]="cols === 1 ? 1 : 2">
       <mat-card class="chart-card">
         <mat-card-header><mat-card-title>{{ 'DASHBOARD.CHART_TOP_5_PROJECTS' | translate }}</mat-card-title></mat-card-header>
@@ -103,13 +109,11 @@
   <div class="table-card">
     <div class="table-header">
       <h2>{{ 'DASHBOARD.DETAILED_HOURS_LOG' | translate }}</h2>
-      <div class="table-actions">
-        </div>
     </div>
     <div class="table-filter">
       <mat-form-field appearance="outline">
         <mat-label>{{ 'DASHBOARD.SEARCH_IN_RECORDS' | translate }}</mat-label>
-        <input matInput #input (keyup)="applyFilter(input.value)" (input)="applyFilterIfEmpty(input.value)">
+        <input matInput #input (keyup)="applyFilter(input.value)" (input)="applyFilter(input.value)">
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
     </div>
