@@ -190,21 +190,27 @@ public class ProyectoService {
     }
 
     private void asignarEquipoDeTrabajo(Proyecto proyecto, Set<Long> idsEmpleados, Long empresaId) {
-        // Si la lista tiene elementos, los buscamos y asignamos
-        if (idsEmpleados != null && !idsEmpleados.isEmpty()) {
-            Set<Empleado> equipo = new HashSet<>();
-            for (Long empId : idsEmpleados) {
-                Empleado empleado = empleadoRepository.findByIdAndEmpresaId(empId, empresaId)
-                        .orElseThrow(() -> new BusinessRuleException(
-                        ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey()));
-                equipo.add(empleado);
-            }
-            proyecto.setEquipoAsignado(equipo);
-        } else {
+        // 1. Manejo de casos vacíos o nulos (Fast return)
+        if (idsEmpleados == null || idsEmpleados.isEmpty()) {
             if (idsEmpleados != null) {
+                // Si la lista viene vacía pero no nula, limpiamos el equipo
                 proyecto.setEquipoAsignado(new HashSet<>());
             }
+            return;
         }
+
+        // 2. Traer todos los empleados en una sola consulta (SELECT ... WHERE id IN (...))
+        List<Empleado> empleadosEncontrados = empleadoRepository.findByIdInAndEmpresaId(idsEmpleados, empresaId);
+
+        // 3. Validación de Integridad:
+        // Si pedimos 5 empleados y la BD nos devolvió 4, significa que uno no existe o no es de esta empresa.
+        if (empleadosEncontrados.size() != idsEmpleados.size()) {
+            throw new BusinessRuleException(ErrorCatalog.INVALID_EMPLOYEE_FOR_COMPANY.getKey());
+        }
+
+        // 4. Asignación directa usando el constructor de HashSet
+        proyecto.setEquipoAsignado(new HashSet<>(empleadosEncontrados));
+
     }
 
     @Transactional
