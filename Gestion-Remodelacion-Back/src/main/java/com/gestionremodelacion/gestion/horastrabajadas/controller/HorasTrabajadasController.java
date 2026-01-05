@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gestionremodelacion.gestion.dto.response.ApiResponse;
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.empresa.model.Empresa.PlanSuscripcion;
+import com.gestionremodelacion.gestion.export.ExportType;
 import com.gestionremodelacion.gestion.export.ExporterService;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.request.HorasTrabajadasRequest;
 import com.gestionremodelacion.gestion.horastrabajadas.dto.response.HorasTrabajadasExportDTO;
@@ -96,7 +97,7 @@ public class HorasTrabajadasController {
 
     @GetMapping("/export/excel")
     @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
-    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
+    @RequiresPlan({PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL})
     public ResponseEntity<byte[]> exportToExcel(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws IOException {
@@ -104,8 +105,13 @@ public class HorasTrabajadasController {
         User currentUser = userService.getCurrentUser();
         Empresa empresa = currentUser.getEmpresa();
 
-        List<HorasTrabajadasExportDTO> data = horasTrabajadasService.findHorasTrabajadasForExport(filter, sort);
-        ByteArrayOutputStream stream = exporterService.exportToExcel(data, "Reporte deHoras Trabajadas", empresa);
+        List<HorasTrabajadasExportDTO> horasTrabajadas = horasTrabajadasService.findHorasTrabajadasForExport(filter, sort);
+        ByteArrayOutputStream stream = exporterService.export(
+                ExportType.EXCEL,
+                horasTrabajadas,
+                "Reporte deHoras Trabajadas",
+                empresa
+        );
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Horas_Trabajadas.xlsx");
@@ -120,7 +126,7 @@ public class HorasTrabajadasController {
      */
     @GetMapping("/export/pdf")
     @PreAuthorize("hasAuthority('EXPORT_PDF')")
-    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
+    @RequiresPlan({PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL})
     public ResponseEntity<byte[]> exportToPdf(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws DocumentException, IOException {
@@ -128,11 +134,16 @@ public class HorasTrabajadasController {
         User currentUser = userService.getCurrentUser();
         Empresa empresa = currentUser.getEmpresa();
 
-        List<HorasTrabajadasExportDTO> data = horasTrabajadasService.findHorasTrabajadasForExport(filter, sort);
-        if (data.isEmpty()) {
+        List<HorasTrabajadasExportDTO> horasTrabajadas = horasTrabajadasService.findHorasTrabajadasForExport(filter, sort);
+        if (horasTrabajadas.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        ByteArrayOutputStream stream = exporterService.exportToPdf(data, "Reporte de Horas Trabajadas", empresa);
+        ByteArrayOutputStream stream = exporterService.export(
+                ExportType.PDF,
+                horasTrabajadas,
+                "Reporte de Horas Trabajadas",
+                empresa
+        );
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Horas_Trabajadas.pdf");

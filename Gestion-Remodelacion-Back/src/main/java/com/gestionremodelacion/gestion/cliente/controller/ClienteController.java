@@ -29,6 +29,7 @@ import com.gestionremodelacion.gestion.cliente.service.ClienteService;
 import com.gestionremodelacion.gestion.dto.response.ApiResponse;
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.empresa.model.Empresa.PlanSuscripcion;
+import com.gestionremodelacion.gestion.export.ExportType;
 import com.gestionremodelacion.gestion.export.ExporterService;
 import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.security.annotations.RequiresPlan;
@@ -100,7 +101,7 @@ public class ClienteController {
     // Nuevo endpoint para exportar a Excel
     @GetMapping("/export/excel")
     @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
-    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
+    @RequiresPlan({PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL})
     public ResponseEntity<byte[]> exportClientsToExcel(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws IOException {
@@ -109,7 +110,12 @@ public class ClienteController {
         Empresa empresa = currentUser.getEmpresa();
 
         List<ClienteExportDTO> clientes = clienteService.findClientesForExport(filter, sort);
-        ByteArrayOutputStream excelStream = exporterService.exportToExcel(clientes, "Reporte de Clientes", empresa);
+        ByteArrayOutputStream excelStream = exporterService.export(
+                ExportType.EXCEL,
+                clientes,
+                "Reporte de Clientes",
+                empresa
+        );
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Clientes.xlsx");
@@ -122,7 +128,7 @@ public class ClienteController {
     // Nuevo endpoint para exportar a PDF
     @GetMapping("/export/pdf")
     @PreAuthorize("hasAuthority('EXPORT_PDF')")
-    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
+    @RequiresPlan({PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL})
     public ResponseEntity<byte[]> exportClientsToPdf(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws DocumentException, IOException {
@@ -135,7 +141,12 @@ public class ClienteController {
             // Devuelve una respuesta HTTP 404 Not Found o 204 No Content
             return ResponseEntity.notFound().build();
         }
-        ByteArrayOutputStream pdfStream = exporterService.exportToPdf(clientes, "Reporte de Clientes", empresa);
+        ByteArrayOutputStream pdfStream = exporterService.export(
+                ExportType.PDF,
+                clientes,
+                "Reporte de Clientes",
+                empresa
+        );
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Clientes.pdf");

@@ -30,6 +30,7 @@ import com.gestionremodelacion.gestion.empleado.dto.response.EmpleadoResponse;
 import com.gestionremodelacion.gestion.empleado.service.EmpleadoService;
 import com.gestionremodelacion.gestion.empresa.model.Empresa;
 import com.gestionremodelacion.gestion.empresa.model.Empresa.PlanSuscripcion;
+import com.gestionremodelacion.gestion.export.ExportType;
 import com.gestionremodelacion.gestion.export.ExporterService;
 import com.gestionremodelacion.gestion.model.User;
 import com.gestionremodelacion.gestion.security.annotations.RequiresPlan;
@@ -113,7 +114,7 @@ public class EmpleadoController {
     // Endpoint para exportar a Excel
     @GetMapping("/export/excel")
     @PreAuthorize("hasAuthority('EXPORT_EXCEL')")
-    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
+    @RequiresPlan({PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL})
     public ResponseEntity<byte[]> exportEmpleadosToExcel(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws IOException {
@@ -123,7 +124,12 @@ public class EmpleadoController {
 
         List<EmpleadoExportDTO> empleados = empleadoService.findEmpleadosForExport(filter, sort);
 
-        ByteArrayOutputStream excelStream = exporterService.exportToExcel(empleados, "Reporte deEmpleados", empresa);
+        ByteArrayOutputStream excelStream = exporterService.export(
+                ExportType.EXCEL,
+                empleados,
+                "Reporte deEmpleados",
+                empresa
+        );
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Empleados.xlsx");
@@ -136,7 +142,7 @@ public class EmpleadoController {
     // Endpoint para exportar a PDF
     @GetMapping("/export/pdf")
     @PreAuthorize("hasAuthority('EXPORT_PDF')")
-    @RequiresPlan({ PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL })
+    @RequiresPlan({PlanSuscripcion.NEGOCIOS, PlanSuscripcion.PROFESIONAL})
     public ResponseEntity<byte[]> exportEmpleadosToPdf(
             @RequestParam(name = "filter", required = false) String filter,
             @RequestParam(name = "sort", required = false) String sort) throws DocumentException, IOException {
@@ -150,7 +156,12 @@ public class EmpleadoController {
             return ResponseEntity.noContent().build();
         }
 
-        ByteArrayOutputStream pdfStream = exporterService.exportToPdf(empleados, "Reporte de Empleados", empresa);
+        ByteArrayOutputStream pdfStream = exporterService.export(
+                ExportType.PDF,
+                empleados,
+                "Reporte de Empleados",
+                empresa
+        );
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Reporte_Empleados.pdf");
